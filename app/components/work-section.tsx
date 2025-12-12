@@ -74,7 +74,7 @@ export default function WorkSection() {
       : items.filter((item) => item.type === activeFilter);
 
   return (
-    <section id="work" className="mb-12 animate-fade-blur animation-delay-100">
+    <section id="work" className="animate-fade-blur animation-delay-100">
       <h2 className="text-2xl font-medium mb-6">work</h2>
 
       {/* Filter buttons */}
@@ -108,7 +108,7 @@ export default function WorkSection() {
             className="block group bg-white rounded-2xl p-5 border border-transparent hover:border-border transition-colors duration-200"
           >
             {/* Image */}
-            <div className="aspect-square bg-background rounded-xl mb-4 overflow-hidden flex items-center justify-center">
+            <div className="aspect-video lg:aspect-[4/3] bg-background rounded-xl mb-4 overflow-hidden flex items-center justify-center">
               {item.image ? (
                 <img
                   src={item.image}

@@ -1,62 +1,47 @@
 import Link from "next/link";
-import WorkSection from "./components/WorkSection";
+import Image from "next/image";
+import WorkSection from "./components/work-section";
+import Hero from "@/content/hero.mdx";
+import Contact from "@/content/contact.mdx";
+import { ExternalLink } from "@/components/ui/external-link";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border/30">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xs border-b border-border/30">
         <nav className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-lg font-medium tracking-tight">
+          <Link
+            href="/"
+            className="flex items-center gap-1 text-lg font-medium tracking-tight hover:text-foreground-muted transition-colors"
+          >
+            <Image
+              src="/zoro.png"
+              alt="Zoro"
+              width={24}
+              height={24}
+              className="rounded-full"
+            />
             13point5
           </Link>
         </nav>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 pt-32 pb-20">
+      <main className="max-w-5xl mx-auto px-6 pt-24 pb-25 flex flex-col gap-10">
         {/* Hero Section */}
-        <section className="mb-12 animate-fade-blur">
-          <h1 className="text-2xl font-medium mb-6">hey, i&apos;m sriraam</h1>
-          <p className="text-foreground-muted leading-relaxed max-w-xl">
-            Founding Engineer at{" "}
-            <a href="#" className="text-foreground hover-underline font-medium">
-              Decode
-            </a>
-            , building a browser and whiteboard for Claude Code. Currently
-            studying Reinforcement Learning by building an open source{" "}
-            <a href="#" className="text-foreground hover-underline font-medium">
-              SWE-Grep
-            </a>{" "}
-            model under{" "}
-            <span className="text-foreground">Prof Graham Neubig</span>. I also
-            build RL environments through{" "}
-            <a href="#" className="text-foreground hover-underline">
-              Prime Intellect
-            </a>{" "}
-            &apos;s bounty program. Previously studied Learning Design at{" "}
-            <span className="text-foreground">Harvard</span> which has led me to
-            see many UX problems as learning problems.
-          </p>
+        <section className="animate-fade-blur">
+          <Hero />
 
-          <div className="flex items-center gap-4 mt-8 text-sm">
-            <a
-              href="#"
-              className="text-foreground-muted hover:text-foreground transition-colors"
-            >
-              twitter →
-            </a>
-            <a
-              href="#"
-              className="text-foreground-muted hover:text-foreground transition-colors"
-            >
-              github →
-            </a>
-            <a
-              href="#"
-              className="text-foreground-muted hover:text-foreground transition-colors"
-            >
-              linkedin →
-            </a>
+          <div className="flex items-center gap-2 mt-4 text-sm">
+            <ExternalLink href="https://x.com/27upon2">twitter</ExternalLink>
+            <span className="text-foreground-muted">•</span>
+            <ExternalLink href="https://github.com/13point5">
+              github
+            </ExternalLink>
+            <span className="text-foreground-muted">•</span>
+            <ExternalLink href="https://www.linkedin.com/in/13point5">
+              linkedin
+            </ExternalLink>
           </div>
         </section>
 
@@ -65,22 +50,7 @@ export default function Home() {
 
         {/* Contact Section */}
         <section id="contact" className="animate-fade-blur animation-delay-200">
-          <h2 className="text-2xl font-medium mb-4">say hi!</h2>
-          <p className="text-foreground-muted leading-relaxed max-w-xl">
-            I love meeting people working on interesting problems. Always happy
-            to chat about Agents, RL, design, education, or whatever you&apos;re
-            building.
-            <br />
-            <a
-              href="https://twitter.com/13point5"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-foreground hover-underline font-medium"
-            >
-              DM on Twitter
-            </a>
-            .
-          </p>
+          <Contact />
         </section>
       </main>
     </div>
