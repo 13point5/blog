@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import SampleBlog from "@/content/sample-blog.mdx";
 import { SettingsDropdown } from "../components/settings-dropdown";
+import { Footer } from "../components/footer";
 
 export default function BlogPage() {
   return (
@@ -37,6 +38,8 @@ export default function BlogPage() {
           <SampleBlog />
         </article>
       </main>
+
+      <Footer />
     </div>
   );
 }
