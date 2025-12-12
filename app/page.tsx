@@ -3,7 +3,6 @@ import Image from "next/image";
 import WorkSection from "./components/work-section";
 import Hero from "@/content/hero.mdx";
 import Contact from "@/content/contact.mdx";
-import { ExternalLink } from "@/components/ui/external-link";
 
 export default function Home() {
   return (
@@ -31,18 +30,6 @@ export default function Home() {
         {/* Hero Section */}
         <section className="animate-fade-blur">
           <Hero />
-
-          <div className="flex items-center gap-2 mt-4 text-sm">
-            <ExternalLink href="https://x.com/27upon2">twitter</ExternalLink>
-            <span className="text-foreground-muted">•</span>
-            <ExternalLink href="https://github.com/13point5">
-              github
-            </ExternalLink>
-            <span className="text-foreground-muted">•</span>
-            <ExternalLink href="https://www.linkedin.com/in/13point5">
-              linkedin
-            </ExternalLink>
-          </div>
         </section>
 
         {/* Work Section with filters */}

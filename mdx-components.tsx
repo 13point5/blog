@@ -1,8 +1,10 @@
 import type { MDXComponents } from "mdx/types";
 import Link from "next/link";
+import { Socials } from "./app/components/socials";
 
 // Custom components for MDX content
 const components: MDXComponents = {
+  Socials,
   // Headings
   h1: ({ children }) => (
     <h1 className="text-2xl font-medium mb-6">{children}</h1>
