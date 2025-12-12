@@ -32,25 +32,6 @@ export default function Home() {
           <Hero />
         </section>
 
-        {/* Sample Blog Link */}
-        <section className="animate-fade-blur animation-delay-100">
-          <div className="bg-accent border border-border rounded-lg p-6">
-            <h2 className="text-xl font-semibold mb-2 text-foreground">
-              📚 Markdown & Math Guide
-            </h2>
-            <p className="text-foreground-muted mb-4">
-              Check out a comprehensive guide showcasing all supported markdown
-              elements and mathematical notation.
-            </p>
-            <Link
-              href="/blog"
-              className="inline-flex items-center gap-2 text-foreground font-medium hover:text-foreground-muted transition-colors underline"
-            >
-              View Sample Blog →
-            </Link>
-          </div>
-        </section>
-
         {/* Work Section with filters */}
         <WorkSection />
 

@@ -8,29 +8,39 @@ const components: MDXComponents = {
   Socials,
   // Headings
   h1: ({ children }) => (
-    <h1 className="text-3xl font-semibold mb-6 mt-8 text-foreground">{children}</h1>
+    <h1 className="text-3xl font-semibold mb-6 mt-8 text-foreground">
+      {children}
+    </h1>
   ),
   h2: ({ children }) => (
-    <h2 className="text-2xl font-semibold mb-4 mt-6 text-foreground">{children}</h2>
+    <h2 className="text-2xl font-semibold mb-4 mt-6 text-foreground">
+      {children}
+    </h2>
   ),
   h3: ({ children }) => (
-    <h3 className="text-xl font-semibold mb-3 mt-5 text-foreground">{children}</h3>
+    <h3 className="text-xl font-semibold mb-3 mt-5 text-foreground">
+      {children}
+    </h3>
   ),
   h4: ({ children }) => (
-    <h4 className="text-lg font-semibold mb-2 mt-4 text-foreground">{children}</h4>
+    <h4 className="text-lg font-semibold mb-2 mt-4 text-foreground">
+      {children}
+    </h4>
   ),
   h5: ({ children }) => (
-    <h5 className="text-base font-semibold mb-2 mt-3 text-foreground">{children}</h5>
+    <h5 className="text-base font-semibold mb-2 mt-3 text-foreground">
+      {children}
+    </h5>
   ),
   h6: ({ children }) => (
-    <h6 className="text-sm font-semibold mb-2 mt-3 text-foreground">{children}</h6>
+    <h6 className="text-sm font-semibold mb-2 mt-3 text-foreground">
+      {children}
+    </h6>
   ),
 
   // Paragraphs
   p: ({ children }) => (
-    <p className="text-foreground-muted leading-relaxed mb-4">
-      {children}
-    </p>
+    <p className="text-foreground leading-relaxed mb-4">{children}</p>
   ),
 
   // Links
@@ -42,7 +52,7 @@ const components: MDXComponents = {
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-foreground font-medium hover:text-foreground-muted transition-colors underline decoration-border hover:decoration-foreground-muted"
+          className="text-foreground font-medium hover:text-foreground-muted transition-colors underline decoration-border hover:decoration-foreground-muted underline-offset-2"
         >
           {children}
         </a>
@@ -51,7 +61,7 @@ const components: MDXComponents = {
     return (
       <Link
         href={href || "#"}
-        className="text-foreground font-medium hover:text-foreground-muted transition-colors underline decoration-border hover:decoration-foreground-muted"
+        className="text-foreground font-medium hover:text-foreground-muted transition-colors underline decoration-border hover:decoration-foreground-muted underline-offset-2"
       >
         {children}
       </Link>
@@ -60,12 +70,12 @@ const components: MDXComponents = {
 
   // Lists
   ul: ({ children }) => (
-    <ul className="list-disc ml-6 text-foreground-muted mb-4 space-y-2">
+    <ul className="list-disc ml-6 text-foreground mb-4 space-y-2">
       {children}
     </ul>
   ),
   ol: ({ children }) => (
-    <ol className="list-decimal ml-6 text-foreground-muted mb-4 space-y-2">
+    <ol className="list-decimal ml-6 text-foreground mb-4 space-y-2">
       {children}
     </ol>
   ),
@@ -88,11 +98,7 @@ const components: MDXComponents = {
       );
     }
     // Code block
-    return (
-      <code className={className}>
-        {children}
-      </code>
-    );
+    return <code className={className}>{children}</code>;
   },
   pre: ({ children }) => (
     <pre className="bg-accent p-4 rounded-lg overflow-x-auto mb-4 text-sm border border-border">
@@ -102,7 +108,7 @@ const components: MDXComponents = {
 
   // Blockquote
   blockquote: ({ children }) => (
-    <blockquote className="border-l-4 border-accent-light bg-accent/50 pl-4 py-2 italic text-foreground-muted mb-4 rounded-r">
+    <blockquote className="border-l-4 border-accent-light bg-accent/50 pl-4 py-2 italic text-foreground mb-4 rounded-r">
       {children}
     </blockquote>
   ),
@@ -112,34 +118,24 @@ const components: MDXComponents = {
 
   // Tables
   table: ({ children }) => (
-    <div className="overflow-x-auto mb-6">
-      <table className="min-w-full border-collapse border border-border rounded-lg">
-        {children}
-      </table>
+    <div className="overflow-x-auto mb-6 rounded-lg border border-border overflow-hidden">
+      <table className="min-w-full">{children}</table>
     </div>
   ),
   thead: ({ children }) => (
-    <thead className="bg-accent">
-      {children}
-    </thead>
+    <thead className="bg-accent border-b border-border">{children}</thead>
   ),
   tbody: ({ children }) => (
-    <tbody className="divide-y divide-border">
-      {children}
-    </tbody>
+    <tbody className="divide-y divide-border">{children}</tbody>
   ),
-  tr: ({ children }) => (
-    <tr className="border-b border-border">
-      {children}
-    </tr>
-  ),
+  tr: ({ children }) => <tr>{children}</tr>,
   th: ({ children }) => (
-    <th className="px-4 py-3 text-left text-sm font-semibold text-foreground border border-border">
+    <th className="px-4 py-3 text-left text-sm font-semibold text-foreground border-r border-border last:border-r-0">
       {children}
     </th>
   ),
   td: ({ children }) => (
-    <td className="px-4 py-3 text-sm text-foreground-muted border border-border">
+    <td className="px-4 py-3 text-sm text-foreground border-r border-border last:border-r-0">
       {children}
     </td>
   ),
@@ -174,11 +170,11 @@ const components: MDXComponents = {
   // Inline images
   img: ({ src, alt }) => {
     // Handle external images with Next.js Image component
-    if (src?.startsWith('http')) {
+    if (src?.startsWith("http")) {
       return (
         <Image
           src={src}
-          alt={alt || ''}
+          alt={alt || ""}
           width={800}
           height={400}
           className="max-w-full h-auto rounded-lg my-4 border border-border"
@@ -189,8 +185,8 @@ const components: MDXComponents = {
     // For local images, use standard img tag or handle accordingly
     return (
       <Image
-        src={src || ''}
-        alt={alt || ''}
+        src={src || ""}
+        alt={alt || ""}
         width={800}
         height={400}
         className="max-w-full h-auto rounded-lg my-4 border border-border"
@@ -200,18 +196,12 @@ const components: MDXComponents = {
 
   // Deleted text (strikethrough from GFM)
   del: ({ children }) => (
-    <del className="text-foreground-muted line-through opacity-70">
-      {children}
-    </del>
+    <del className="text-foreground line-through opacity-70">{children}</del>
   ),
 
   // Superscript and subscript
-  sup: ({ children }) => (
-    <sup className="text-xs">{children}</sup>
-  ),
-  sub: ({ children }) => (
-    <sub className="text-xs">{children}</sub>
-  ),
+  sup: ({ children }) => <sup className="text-xs">{children}</sup>,
+  sub: ({ children }) => <sub className="text-xs">{children}</sub>,
 };
 
 export function useMDXComponents(

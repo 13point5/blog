@@ -16,6 +16,16 @@ type Item = {
 
 const items: Item[] = [
   {
+    id: 0,
+    title: "Markdown & Math Guide",
+    description:
+      "A comprehensive guide showcasing all supported markdown elements and mathematical notation.",
+    year: "2024",
+    link: "/blog",
+    type: "writing",
+    image: null,
+  },
+  {
     id: 1,
     title: "Decode",
     description:
