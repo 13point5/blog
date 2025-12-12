@@ -3,6 +3,7 @@ import Image from "next/image";
 import WorkSection from "./components/work-section";
 import Hero from "@/content/hero.mdx";
 import Contact from "@/content/contact.mdx";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function Home() {
   return (
@@ -23,6 +24,7 @@ export default function Home() {
             />
             13point5
           </Link>
+          <ThemeToggle />
         </nav>
       </header>
 

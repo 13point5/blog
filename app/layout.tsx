@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Geist, Merriweather } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const geist = Geist({
   subsets: ["latin"],
   variable: "--font-geist",
+});
+
+const merriweather = Merriweather({
+  subsets: ["latin"],
+  weight: ["300", "400", "700"],
+  variable: "--font-merriweather",
 });
 
 export const metadata: Metadata = {
@@ -19,8 +26,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={geist.variable}>
-      <body className="antialiased">{children}</body>
+    <html lang="en" className={`${geist.variable} ${merriweather.variable}`} suppressHydrationWarning>
+      <body className="antialiased">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false}
+          themes={["light", "dark", "paper"]}
+        >
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }
