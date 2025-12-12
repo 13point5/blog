@@ -19,7 +19,8 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
-        filterActive: "bg-white text-foreground font-medium shadow-none px-2",
+        filterActive:
+          "border-[1px] border-white bg-white text-foreground font-medium shadow-none px-2",
         filterInactive:
           "border-[1px] border-border text-muted-foreground hover:bg-background-alt bg-transparent shadow-none px-2",
       },

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import WorkSection from "./components/work-section";
-import Hero from "@/content/hero.mdx";
+import Bio from "@/content/bio.mdx";
 import Contact from "@/content/contact.mdx";
 
 export default function Home() {
@@ -29,7 +29,7 @@ export default function Home() {
       <main className="max-w-5xl mx-auto px-6 pt-12 pb-25 flex flex-col gap-6">
         {/* Hero Section */}
         <section className="animate-fade-blur">
-          <Hero />
+          <Bio />
         </section>
 
         {/* Work Section with filters */}
