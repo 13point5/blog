@@ -3,6 +3,7 @@ import Image from "next/image";
 import WorkSection from "./components/work-section";
 import Bio from "@/content/bio.mdx";
 import Contact from "@/content/contact.mdx";
+import { SettingsDropdown } from "./components/settings-dropdown";
 
 export default function Home() {
   return (
@@ -23,6 +24,7 @@ export default function Home() {
             />
             13point5
           </Link>
+          <SettingsDropdown />
         </nav>
       </header>
 

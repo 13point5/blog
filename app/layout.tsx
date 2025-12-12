@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "./providers/theme-provider";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -19,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={geist.variable}>
+    <html lang="en" className={geist.variable} suppressHydrationWarning>
       <head>
         <link
           rel="stylesheet"
@@ -28,7 +29,9 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
       </head>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }
