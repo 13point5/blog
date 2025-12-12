@@ -6,9 +6,20 @@ const nextConfig = {
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
 };
 
-const withMDX = createMDX({
-  // Add markdown plugins here, as desired
-});
+// Create an async wrapper to load plugins
+async function createMDXConfig() {
+  const remarkMath = (await import("remark-math")).default;
+  const rehypeKatex = (await import("rehype-katex")).default;
+  const remarkGfm = (await import("remark-gfm")).default;
 
-// Merge MDX config with Next.js config
-export default withMDX(nextConfig);
+  const withMDX = createMDX({
+    options: {
+      remarkPlugins: [remarkMath, remarkGfm],
+      rehypePlugins: [rehypeKatex],
+    },
+  });
+
+  return withMDX(nextConfig);
+}
+
+export default createMDXConfig();

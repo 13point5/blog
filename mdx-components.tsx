@@ -1,5 +1,6 @@
 import type { MDXComponents } from "mdx/types";
 import Link from "next/link";
+import Image from "next/image";
 import { Socials } from "./app/components/socials";
 
 // Custom components for MDX content
@@ -7,18 +8,27 @@ const components: MDXComponents = {
   Socials,
   // Headings
   h1: ({ children }) => (
-    <h1 className="text-2xl font-medium mb-6">{children}</h1>
+    <h1 className="text-3xl font-semibold mb-6 mt-8 text-foreground">{children}</h1>
   ),
   h2: ({ children }) => (
-    <h2 className="text-2xl font-medium mb-4">{children}</h2>
+    <h2 className="text-2xl font-semibold mb-4 mt-6 text-foreground">{children}</h2>
   ),
   h3: ({ children }) => (
-    <h3 className="text-xl font-medium mb-3">{children}</h3>
+    <h3 className="text-xl font-semibold mb-3 mt-5 text-foreground">{children}</h3>
+  ),
+  h4: ({ children }) => (
+    <h4 className="text-lg font-semibold mb-2 mt-4 text-foreground">{children}</h4>
+  ),
+  h5: ({ children }) => (
+    <h5 className="text-base font-semibold mb-2 mt-3 text-foreground">{children}</h5>
+  ),
+  h6: ({ children }) => (
+    <h6 className="text-sm font-semibold mb-2 mt-3 text-foreground">{children}</h6>
   ),
 
   // Paragraphs
   p: ({ children }) => (
-    <p className="text-foreground-muted leading-relaxed max-w-xl mb-4">
+    <p className="text-foreground-muted leading-relaxed mb-4">
       {children}
     </p>
   ),
@@ -32,7 +42,7 @@ const components: MDXComponents = {
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-foreground font-medium hover:text-foreground-muted transition-colors"
+          className="text-foreground font-medium hover:text-foreground-muted transition-colors underline decoration-border hover:decoration-foreground-muted"
         >
           {children}
         </a>
@@ -41,7 +51,7 @@ const components: MDXComponents = {
     return (
       <Link
         href={href || "#"}
-        className="text-foreground font-medium hover:text-foreground-muted transition-colors"
+        className="text-foreground font-medium hover:text-foreground-muted transition-colors underline decoration-border hover:decoration-foreground-muted"
       >
         {children}
       </Link>
@@ -50,12 +60,12 @@ const components: MDXComponents = {
 
   // Lists
   ul: ({ children }) => (
-    <ul className="list-disc list-inside text-foreground-muted mb-4 space-y-1">
+    <ul className="list-disc ml-6 text-foreground-muted mb-4 space-y-2">
       {children}
     </ul>
   ),
   ol: ({ children }) => (
-    <ol className="list-decimal list-inside text-foreground-muted mb-4 space-y-1">
+    <ol className="list-decimal ml-6 text-foreground-muted mb-4 space-y-2">
       {children}
     </ol>
   ),
@@ -63,31 +73,145 @@ const components: MDXComponents = {
 
   // Emphasis
   strong: ({ children }) => (
-    <strong className="text-foreground font-medium">{children}</strong>
+    <strong className="text-foreground font-semibold">{children}</strong>
   ),
   em: ({ children }) => <em className="italic">{children}</em>,
 
   // Code
-  code: ({ children }) => (
-    <code className="bg-accent px-1.5 py-0.5 rounded text-sm font-mono">
-      {children}
-    </code>
-  ),
+  code: ({ children, className }) => {
+    // Inline code (no className means it's inline)
+    if (!className) {
+      return (
+        <code className="bg-accent px-1.5 py-0.5 rounded text-sm font-mono text-foreground border border-border">
+          {children}
+        </code>
+      );
+    }
+    // Code block
+    return (
+      <code className={className}>
+        {children}
+      </code>
+    );
+  },
   pre: ({ children }) => (
-    <pre className="bg-accent p-4 rounded-lg overflow-x-auto mb-4 text-sm">
+    <pre className="bg-accent p-4 rounded-lg overflow-x-auto mb-4 text-sm border border-border">
       {children}
     </pre>
   ),
 
   // Blockquote
   blockquote: ({ children }) => (
-    <blockquote className="border-l-2 border-border pl-4 italic text-foreground-muted mb-4">
+    <blockquote className="border-l-4 border-accent-light bg-accent/50 pl-4 py-2 italic text-foreground-muted mb-4 rounded-r">
       {children}
     </blockquote>
   ),
 
   // Horizontal rule
   hr: () => <hr className="section-divider my-8" />,
+
+  // Tables
+  table: ({ children }) => (
+    <div className="overflow-x-auto mb-6">
+      <table className="min-w-full border-collapse border border-border rounded-lg">
+        {children}
+      </table>
+    </div>
+  ),
+  thead: ({ children }) => (
+    <thead className="bg-accent">
+      {children}
+    </thead>
+  ),
+  tbody: ({ children }) => (
+    <tbody className="divide-y divide-border">
+      {children}
+    </tbody>
+  ),
+  tr: ({ children }) => (
+    <tr className="border-b border-border">
+      {children}
+    </tr>
+  ),
+  th: ({ children }) => (
+    <th className="px-4 py-3 text-left text-sm font-semibold text-foreground border border-border">
+      {children}
+    </th>
+  ),
+  td: ({ children }) => (
+    <td className="px-4 py-3 text-sm text-foreground-muted border border-border">
+      {children}
+    </td>
+  ),
+
+  // Task lists (from GFM)
+  input: ({ type, checked, disabled }) => {
+    if (type === "checkbox") {
+      return (
+        <input
+          type="checkbox"
+          checked={checked}
+          disabled={disabled}
+          className="mr-2 accent-foreground"
+        />
+      );
+    }
+    return <input type={type} />;
+  },
+
+  // Details/Summary (for collapsible sections)
+  details: ({ children }) => (
+    <details className="mb-4 border border-border rounded-lg p-4 bg-accent/30">
+      {children}
+    </details>
+  ),
+  summary: ({ children }) => (
+    <summary className="cursor-pointer font-medium text-foreground hover:text-foreground-muted transition-colors">
+      {children}
+    </summary>
+  ),
+
+  // Inline images
+  img: ({ src, alt }) => {
+    // Handle external images with Next.js Image component
+    if (src?.startsWith('http')) {
+      return (
+        <Image
+          src={src}
+          alt={alt || ''}
+          width={800}
+          height={400}
+          className="max-w-full h-auto rounded-lg my-4 border border-border"
+          unoptimized
+        />
+      );
+    }
+    // For local images, use standard img tag or handle accordingly
+    return (
+      <Image
+        src={src || ''}
+        alt={alt || ''}
+        width={800}
+        height={400}
+        className="max-w-full h-auto rounded-lg my-4 border border-border"
+      />
+    );
+  },
+
+  // Deleted text (strikethrough from GFM)
+  del: ({ children }) => (
+    <del className="text-foreground-muted line-through opacity-70">
+      {children}
+    </del>
+  ),
+
+  // Superscript and subscript
+  sup: ({ children }) => (
+    <sup className="text-xs">{children}</sup>
+  ),
+  sub: ({ children }) => (
+    <sub className="text-xs">{children}</sub>
+  ),
 };
 
 export function useMDXComponents(

@@ -225,3 +225,129 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* KaTeX Math Styling */
+.katex {
+  font-size: 1.1em;
+}
+
+.katex-display {
+  margin: 1.5rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5rem 0;
+}
+
+.katex-display > .katex {
+  white-space: normal;
+}
+
+/* Math inline styling */
+.math-inline {
+  display: inline-block;
+  margin: 0 0.2em;
+}
+
+/* Footnotes styling */
+.footnotes {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--border);
+  font-size: 0.9em;
+}
+
+.footnotes ol {
+  padding-left: 1.5rem;
+}
+
+.footnotes li {
+  margin-bottom: 0.5rem;
+}
+
+.footnotes p {
+  margin: 0;
+}
+
+.footnote-ref {
+  font-size: 0.8em;
+  vertical-align: super;
+  text-decoration: none;
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+.footnote-ref:hover {
+  text-decoration: underline;
+}
+
+.footnote-backref {
+  font-size: 0.9em;
+  text-decoration: none;
+  margin-left: 0.5rem;
+}
+
+/* Task list styling */
+ul:has(> li > input[type="checkbox"]) {
+  list-style: none;
+  padding-left: 0;
+  margin-left: 0;
+}
+
+ul:has(> li > input[type="checkbox"]) li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+/* Enhanced table styling */
+table {
+  width: 100%;
+  border-spacing: 0;
+}
+
+table th {
+  font-weight: 600;
+  background-color: var(--accent);
+}
+
+table tr:hover {
+  background-color: var(--accent-light);
+  transition: background-color 0.2s ease;
+}
+
+/* Details/Summary styling */
+details[open] summary {
+  margin-bottom: 0.75rem;
+}
+
+summary::marker {
+  color: var(--foreground);
+}
+
+/* Code block language label */
+pre[class*="language-"]::before {
+  content: attr(data-language);
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--foreground-muted);
+  text-transform: uppercase;
+}
+
+/* Definition lists */
+dl {
+  margin-bottom: 1rem;
+}
+
+dt {
+  font-weight: 600;
+  color: var(--foreground);
+  margin-top: 0.5rem;
+}
+
+dd {
+  margin-left: 2rem;
+  margin-bottom: 0.5rem;
+  color: var(--foreground-muted);
+}
