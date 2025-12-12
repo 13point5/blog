@@ -25,7 +25,7 @@ export function IconLink({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-baseline gap-0.5 text-foreground font-medium hover:text-foreground-muted transition-colors underline decoration-border hover:decoration-foreground-muted underline-offset-2"
+      className="inline-flex items-baseline gap-0.5 text-foreground font-medium transition-colors underline decoration-border hover:decoration-foreground underline-offset-2"
     >
       <Image
         src={icon}

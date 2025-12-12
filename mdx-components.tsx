@@ -54,7 +54,7 @@ const components: MDXComponents = {
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-foreground font-medium hover:text-foreground-muted transition-colors underline decoration-border hover:decoration-foreground-muted underline-offset-2"
+          className="text-foreground font-medium transition-colors underline decoration-border hover:decoration-foreground underline-offset-2"
         >
           {children}
         </a>
@@ -63,7 +63,7 @@ const components: MDXComponents = {
     return (
       <Link
         href={href || "#"}
-        className="text-foreground font-medium hover:text-foreground-muted transition-colors underline decoration-border hover:decoration-foreground-muted underline-offset-2"
+        className="text-foreground font-medium transition-colors underline decoration-border hover:decoration-foreground underline-offset-2"
       >
         {children}
       </Link>
