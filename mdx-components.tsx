@@ -2,10 +2,12 @@ import type { MDXComponents } from "mdx/types";
 import Link from "next/link";
 import Image from "next/image";
 import { Socials } from "./app/components/socials";
+import { IconLink } from "./app/components/icon-link";
 
 // Custom components for MDX content
 const components: MDXComponents = {
   Socials,
+  IconLink,
   // Headings
   h1: ({ children }) => (
     <h1 className="text-3xl font-semibold mb-6 mt-8 text-foreground">

@@ -28,7 +28,7 @@ export default function BlogPage() {
         </nav>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 pt-24 pb-16">
+      <main className="max-w-5xl mx-auto px-6 pt-12 pb-16">
         <article className="prose prose-lg animate-fade-blur">
           <SampleBlog />
         </article>
