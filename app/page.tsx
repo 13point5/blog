@@ -1,64 +1,87 @@
-import Image from "next/image";
+import Link from "next/link";
+import WorkSection from "./components/WorkSection";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border/30">
+        <nav className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
+          <Link href="/" className="text-lg font-medium tracking-tight">
+            13point5
+          </Link>
+        </nav>
+      </header>
+
+      <main className="max-w-5xl mx-auto px-6 pt-32 pb-20">
+        {/* Hero Section */}
+        <section className="mb-12 animate-fade-blur">
+          <h1 className="text-2xl font-medium mb-6">hey, i&apos;m sriraam</h1>
+          <p className="text-foreground-muted leading-relaxed max-w-xl">
+            Founding Engineer at{" "}
+            <a href="#" className="text-foreground hover-underline font-medium">
+              Decode
+            </a>
+            , building a browser and whiteboard for Claude Code. Currently
+            studying Reinforcement Learning by building an open source{" "}
+            <a href="#" className="text-foreground hover-underline font-medium">
+              SWE-Grep
             </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
+            model under{" "}
+            <span className="text-foreground">Prof Graham Neubig</span>. I also
+            build RL environments through{" "}
+            <a href="#" className="text-foreground hover-underline">
+              Prime Intellect
             </a>{" "}
-            center.
+            &apos;s bounty program. Previously studied Learning Design at{" "}
+            <span className="text-foreground">Harvard</span> which has led me to
+            see many UX problems as learning problems.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+
+          <div className="flex items-center gap-4 mt-8 text-sm">
+            <a
+              href="#"
+              className="text-foreground-muted hover:text-foreground transition-colors"
+            >
+              twitter →
+            </a>
+            <a
+              href="#"
+              className="text-foreground-muted hover:text-foreground transition-colors"
+            >
+              github →
+            </a>
+            <a
+              href="#"
+              className="text-foreground-muted hover:text-foreground transition-colors"
+            >
+              linkedin →
+            </a>
+          </div>
+        </section>
+
+        {/* Work Section with filters */}
+        <WorkSection />
+
+        {/* Contact Section */}
+        <section id="contact" className="animate-fade-blur animation-delay-200">
+          <h2 className="text-2xl font-medium mb-4">say hi!</h2>
+          <p className="text-foreground-muted leading-relaxed max-w-xl">
+            I love meeting people working on interesting problems. Always happy
+            to chat about Agents, RL, design, education, or whatever you&apos;re
+            building.
+            <br />
+            <a
+              href="https://twitter.com/13point5"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-foreground hover-underline font-medium"
+            >
+              DM on Twitter
+            </a>
+            .
+          </p>
+        </section>
       </main>
     </div>
   );
