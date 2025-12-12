@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Stack, Cube, PencilSimpleLine } from "@phosphor-icons/react";
+import { Layers, Box, PenLine } from "lucide-react";
 
 type Item = {
   id: number;
@@ -68,9 +68,9 @@ const items: Item[] = [
 ];
 
 const filters = [
-  { label: "All", value: "all", icon: Stack },
-  { label: "Projects", value: "project", icon: Cube },
-  { label: "Writing", value: "writing", icon: PencilSimpleLine },
+  { label: "All", value: "all", icon: Layers },
+  { label: "Projects", value: "project", icon: Box },
+  { label: "Writing", value: "writing", icon: PenLine },
 ] as const;
 
 type FilterValue = (typeof filters)[number]["value"];
@@ -102,7 +102,7 @@ export default function WorkSection() {
               }
               className="rounded-full gap-1.5"
             >
-              <Icon size={16} weight="regular" />
+              <Icon size={16} />
               {filter.label}
             </Button>
           );
