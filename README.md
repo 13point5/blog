@@ -1,6 +1,31 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+This is a [Next.js](https://nextjs.org) project with comprehensive MDX, Markdown, and Math support.
 
-## Getting Started
+## ✨ Features
+
+- 📝 **Full Markdown Support** - All standard markdown elements
+- 🧮 **LaTeX Math Equations** - Both inline (`$...$`) and block (`$$...$$`) equations with KaTeX
+- 📊 **GitHub Flavored Markdown** - Tables, task lists, strikethrough, footnotes
+- 🎨 **Beautiful Styling** - Tailwind CSS with custom components
+- 🖼️ **Optimized Images** - Next.js Image component integration
+- 📚 **MDX Components** - Interactive React components in markdown
+
+### Math Support Examples
+
+- Inline: `$E = mc^2$` → $E = mc^2$
+- Block equations with full LaTeX support
+- Matrices, integrals, summations, and more
+
+### Markdown Features
+
+- All heading levels (H1-H6)
+- Lists (ordered, unordered, nested, task lists)
+- Tables with alignment
+- Code blocks with syntax highlighting
+- Blockquotes and collapsible sections
+- Footnotes and references
+- And much more!
+
+## 🚀 Getting Started
 
 First, run the development server:
 
@@ -19,6 +44,26 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## 📖 Sample Blog
+
+Visit `/blog` to see a comprehensive demonstration of all markdown and math features. The sample blog includes:
+
+- All markdown syntax elements
+- Mathematical equations (inline and block)
+- Complex tables and task lists
+- Code examples in multiple languages
+- Collapsible sections
+- Footnotes and references
+
+See [MARKDOWN_MATH_GUIDE.md](./MARKDOWN_MATH_GUIDE.md) for detailed documentation on using all features.
+
+## 📦 Key Dependencies
+
+- `@next/mdx` - MDX support for Next.js
+- `remark-math` - Parse math in markdown
+- `rehype-katex` - Render math with KaTeX
+- `remark-gfm` - GitHub Flavored Markdown support
 
 ## Learn More
 
