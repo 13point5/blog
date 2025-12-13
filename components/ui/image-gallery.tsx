@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import NextImage from "next/image";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type GalleryImage = {
@@ -19,6 +19,7 @@ type ImageGalleryProps = {
 export function ImageGallery({ images, className }: ImageGalleryProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+  const [zoom, setZoom] = useState(1);
 
   const goToPrevious = () => {
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : prev));
@@ -28,8 +29,22 @@ export function ImageGallery({ images, className }: ImageGalleryProps) {
     setCurrentIndex((prev) => (prev < images.length - 1 ? prev + 1 : prev));
   };
 
-  const goToIndex = (index: number) => {
-    setCurrentIndex(index);
+  const openLightbox = () => {
+    setIsOpen(true);
+    setZoom(1);
+  };
+
+  const closeLightbox = () => {
+    setIsOpen(false);
+    setZoom(1);
+  };
+
+  const zoomIn = () => {
+    setZoom((prev) => Math.min(prev + 0.5, 3));
+  };
+
+  const zoomOut = () => {
+    setZoom((prev) => Math.max(prev - 0.5, 0.5));
   };
 
   const currentImage = images[currentIndex];
@@ -39,68 +54,54 @@ export function ImageGallery({ images, className }: ImageGalleryProps) {
   return (
     <>
       <figure className={cn("my-4", className)}>
-        <div className="relative">
-          {/* Previous Button */}
+        {/* Image */}
+        <button
+          onClick={openLightbox}
+          className="block w-full cursor-zoom-in"
+        >
+          <NextImage
+            src={currentImage.src}
+            alt={currentImage.alt}
+            width={800}
+            height={400}
+            className="w-full h-auto rounded-lg border border-border"
+            unoptimized={currentImage.src.startsWith("http")}
+          />
+        </button>
+
+        {/* Navigation Controls */}
+        <div className="flex items-center justify-center gap-4 mt-3">
           <button
             onClick={goToPrevious}
             disabled={currentIndex === 0}
             className={cn(
-              "absolute left-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-background/80 backdrop-blur-sm border border-border transition-all",
+              "p-2 rounded-full border border-border transition-all",
               currentIndex === 0
                 ? "opacity-30 cursor-not-allowed"
-                : "hover:bg-background opacity-70 hover:opacity-100"
+                : "hover:bg-accent"
             )}
             aria-label="Previous image"
           >
-            <ChevronLeft className="size-5" />
+            <ChevronLeft className="size-4" />
           </button>
 
-          {/* Image */}
-          <button
-            onClick={() => setIsOpen(true)}
-            className="block w-full cursor-zoom-in"
-          >
-            <NextImage
-              src={currentImage.src}
-              alt={currentImage.alt}
-              width={800}
-              height={400}
-              className="w-full h-auto rounded-lg border border-border"
-              unoptimized={currentImage.src.startsWith("http")}
-            />
-          </button>
+          <span className="text-sm text-foreground-muted tabular-nums">
+            {currentIndex + 1} / {images.length}
+          </span>
 
-          {/* Next Button */}
           <button
             onClick={goToNext}
             disabled={currentIndex === images.length - 1}
             className={cn(
-              "absolute right-2 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-background/80 backdrop-blur-sm border border-border transition-all",
+              "p-2 rounded-full border border-border transition-all",
               currentIndex === images.length - 1
                 ? "opacity-30 cursor-not-allowed"
-                : "hover:bg-background opacity-70 hover:opacity-100"
+                : "hover:bg-accent"
             )}
             aria-label="Next image"
           >
-            <ChevronRight className="size-5" />
+            <ChevronRight className="size-4" />
           </button>
-        </div>
-
-        {/* Position Indicators */}
-        <div className="flex justify-center gap-2 mt-3">
-          {images.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToIndex(index)}
-              className={cn(
-                "size-2 rounded-full border border-foreground-muted transition-colors",
-                index <= currentIndex
-                  ? "bg-foreground-muted"
-                  : "bg-transparent"
-              )}
-              aria-label={`Go to image ${index + 1}`}
-            />
-          ))}
         </div>
 
         {/* Caption */}
@@ -114,87 +115,118 @@ export function ImageGallery({ images, className }: ImageGalleryProps) {
       {/* Lightbox Dialog */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm"
-          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 z-[100] flex flex-col bg-black/90"
+          onClick={closeLightbox}
         >
-          <button
-            onClick={() => setIsOpen(false)}
-            className="absolute top-4 right-4 p-2 text-white hover:text-white/80 transition-colors"
-            aria-label="Close"
-          >
-            <X className="size-6" />
-          </button>
+          {/* Top Bar */}
+          <div className="flex items-center justify-between p-4 shrink-0">
+            <span className="text-white/80 text-sm tabular-nums">
+              {currentIndex + 1} / {images.length}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  zoomOut();
+                }}
+                disabled={zoom <= 0.5}
+                className={cn(
+                  "p-2 text-white rounded-full transition-colors",
+                  zoom <= 0.5 ? "opacity-30" : "hover:bg-white/10"
+                )}
+                aria-label="Zoom out"
+              >
+                <ZoomOut className="size-5" />
+              </button>
+              <span className="text-white/80 text-sm w-12 text-center">
+                {Math.round(zoom * 100)}%
+              </span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  zoomIn();
+                }}
+                disabled={zoom >= 3}
+                className={cn(
+                  "p-2 text-white rounded-full transition-colors",
+                  zoom >= 3 ? "opacity-30" : "hover:bg-white/10"
+                )}
+                aria-label="Zoom in"
+              >
+                <ZoomIn className="size-5" />
+              </button>
+              <button
+                onClick={closeLightbox}
+                className="p-2 text-white hover:bg-white/10 rounded-full transition-colors ml-2"
+                aria-label="Close"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+          </div>
 
-          {/* Previous Button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              goToPrevious();
-            }}
-            disabled={currentIndex === 0}
-            className={cn(
-              "absolute left-4 top-1/2 -translate-y-1/2 p-2 text-white transition-all",
-              currentIndex === 0
-                ? "opacity-30 cursor-not-allowed"
-                : "hover:text-white/80"
-            )}
-            aria-label="Previous image"
-          >
-            <ChevronLeft className="size-8" />
-          </button>
-
+          {/* Image Container */}
           <div
-            className="relative max-w-[90vw] max-h-[90vh]"
+            className="flex-1 flex items-center justify-center overflow-auto p-4 min-h-0"
             onClick={(e) => e.stopPropagation()}
           >
-            <NextImage
-              src={currentImage.src}
-              alt={currentImage.alt}
-              width={1200}
-              height={800}
-              className="max-w-full max-h-[85vh] w-auto h-auto rounded-lg object-contain"
-              unoptimized={currentImage.src.startsWith("http")}
-            />
-
-            {/* Position Indicators in Lightbox */}
-            <div className="flex justify-center gap-2 mt-3">
-              {images.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => goToIndex(index)}
-                  className={cn(
-                    "size-2.5 rounded-full border border-white/50 transition-colors",
-                    index <= currentIndex ? "bg-white" : "bg-transparent"
-                  )}
-                  aria-label={`Go to image ${index + 1}`}
-                />
-              ))}
+            <div
+              className="transition-transform duration-200"
+              style={{ transform: `scale(${zoom})` }}
+            >
+              <NextImage
+                src={currentImage.src}
+                alt={currentImage.alt}
+                width={1200}
+                height={800}
+                className="max-w-full max-h-[70vh] w-auto h-auto rounded-lg object-contain"
+                unoptimized={currentImage.src.startsWith("http")}
+              />
             </div>
+          </div>
+
+          {/* Bottom Navigation */}
+          <div className="flex items-center justify-center gap-4 p-4 shrink-0">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                goToPrevious();
+              }}
+              disabled={currentIndex === 0}
+              className={cn(
+                "p-3 text-white rounded-full transition-all",
+                currentIndex === 0
+                  ? "opacity-30 cursor-not-allowed"
+                  : "hover:bg-white/10"
+              )}
+              aria-label="Previous image"
+            >
+              <ChevronLeft className="size-6" />
+            </button>
 
             {currentImage.caption && (
-              <p className="text-center text-white/80 text-sm mt-2">
+              <p className="text-white/80 text-sm text-center max-w-md">
                 {currentImage.caption}
               </p>
             )}
-          </div>
 
-          {/* Next Button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              goToNext();
-            }}
-            disabled={currentIndex === images.length - 1}
-            className={cn(
-              "absolute right-4 top-1/2 -translate-y-1/2 p-2 text-white transition-all",
-              currentIndex === images.length - 1
-                ? "opacity-30 cursor-not-allowed"
-                : "hover:text-white/80"
-            )}
-            aria-label="Next image"
-          >
-            <ChevronRight className="size-8" />
-          </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                goToNext();
+              }}
+              disabled={currentIndex === images.length - 1}
+              className={cn(
+                "p-3 text-white rounded-full transition-all",
+                currentIndex === images.length - 1
+                  ? "opacity-30 cursor-not-allowed"
+                  : "hover:bg-white/10"
+              )}
+              aria-label="Next image"
+            >
+              <ChevronRight className="size-6" />
+            </button>
+          </div>
         </div>
       )}
     </>
