@@ -1,12 +1,15 @@
 import type { MDXComponents } from "mdx/types";
-import Image from "next/image";
 import { Socials } from "./app/components/socials";
 import { Link } from "./components/ui/link";
+import { ImageViewer } from "./components/ui/image-viewer";
+import { ImageGallery } from "./components/ui/image-gallery";
 
 // Custom components for MDX content
 const components: MDXComponents = {
   Socials,
   Link,
+  Image: ImageViewer,
+  ImageGallery,
   // Headings
   h1: ({ children }) => (
     <h1 className="text-3xl font-semibold mb-6 mt-8 text-foreground">
@@ -150,32 +153,10 @@ const components: MDXComponents = {
     </summary>
   ),
 
-  // Inline images
-  img: ({ src, alt }) => {
-    // Handle external images with Next.js Image component
-    if (src?.startsWith("http")) {
-      return (
-        <Image
-          src={src}
-          alt={alt || ""}
-          width={800}
-          height={400}
-          className="max-w-full h-auto rounded-lg my-4 border border-border"
-          unoptimized
-        />
-      );
-    }
-    // For local images, use standard img tag or handle accordingly
-    return (
-      <Image
-        src={src || ""}
-        alt={alt || ""}
-        width={800}
-        height={400}
-        className="max-w-full h-auto rounded-lg my-4 border border-border"
-      />
-    );
-  },
+  // Inline images - use ImageViewer for click-to-open functionality
+  img: ({ src, alt, title }) => (
+    <ImageViewer src={src || ""} alt={alt || ""} caption={title} />
+  ),
 
   // Deleted text (strikethrough from GFM)
   del: ({ children }) => (

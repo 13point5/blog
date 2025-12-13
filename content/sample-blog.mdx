@@ -318,11 +318,30 @@ You've seen several horizontal rules throughout this document (the lines separat
 
 ## Images
 
-While this example doesn't include actual images, you would typically add them like this in markdown:
+### Single Image with Caption
 
-![Alt text for accessibility](https://via.placeholder.com/600x300)
+You can use standard markdown image syntax. Click on any image to view it in fullscreen:
 
-Images automatically get responsive styling and border treatment.
+![Decode Logo](/decode.png "The Decode app logo")
+
+### Using the Image Component
+
+For more control, use the Image component directly with a caption:
+
+<Image src="/zoro.png" alt="Zoro" caption="Zoro - the greatest swordsman" />
+
+### Image Gallery
+
+Use the ImageGallery component for multiple images with navigation:
+
+<ImageGallery
+  images={[
+    { src: "/decode.png", alt: "Decode", caption: "Decode - Browser for Claude Code" },
+    { src: "/prime.jpeg", alt: "Prime Intellect", caption: "Prime Intellect - RL Environments" },
+    { src: "/harvard.png", alt: "Harvard", caption: "Harvard Graduate School of Education" },
+    { src: "/zoro.png", alt: "Zoro", caption: "The legendary swordsman" },
+  ]}
+/>
 
 ---
 
