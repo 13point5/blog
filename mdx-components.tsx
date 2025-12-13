@@ -1,13 +1,12 @@
 import type { MDXComponents } from "mdx/types";
-import Link from "next/link";
 import Image from "next/image";
 import { Socials } from "./app/components/socials";
-import { IconLink } from "./app/components/icon-link";
+import { Link } from "./components/ui/link";
 
 // Custom components for MDX content
 const components: MDXComponents = {
   Socials,
-  IconLink,
+  Link,
   // Headings
   h1: ({ children }) => (
     <h1 className="text-3xl font-semibold mb-6 mt-8 text-foreground">
@@ -46,29 +45,11 @@ const components: MDXComponents = {
   ),
 
   // Links
-  a: ({ href, children }) => {
-    const isExternal = href?.startsWith("http");
-    if (isExternal) {
-      return (
-        <a
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-foreground font-medium transition-colors underline decoration-foreground-muted hover:decoration-foreground underline-offset-2"
-        >
-          {children}
-        </a>
-      );
-    }
-    return (
-      <Link
-        href={href || "#"}
-        className="text-foreground font-medium transition-colors underline decoration-foreground-muted hover:decoration-foreground underline-offset-2"
-      >
-        {children}
-      </Link>
-    );
-  },
+  a: ({ href, children }) => (
+    <Link href={href || "#"} variant="underline">
+      {children}
+    </Link>
+  ),
 
   // Lists
   ul: ({ children }) => (
