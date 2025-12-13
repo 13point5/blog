@@ -364,6 +364,15 @@ samp {
   text-decoration: none;
   color: var(--foreground);
   font-weight: 600;
+  margin-left: 0.15em;
+}
+
+.footnote-ref::before {
+  content: "[";
+}
+
+.footnote-ref::after {
+  content: "]";
 }
 
 .footnote-ref:hover {
