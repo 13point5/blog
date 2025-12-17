@@ -20,7 +20,7 @@ const buttonVariants = cva(
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
         filterActive:
-          "border-[1px] border-white bg-white text-foreground font-medium shadow-none px-2",
+          "border-[1px] border-background-card bg-background-card text-foreground font-medium shadow-none px-2",
         filterInactive:
           "border-[1px] border-border text-muted-foreground hover:bg-background-alt bg-transparent shadow-none px-2",
       },
