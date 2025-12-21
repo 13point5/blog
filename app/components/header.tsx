@@ -53,17 +53,8 @@ export function Header({ breadcrumb }: HeaderProps) {
               height={20}
               className="rounded-full"
             />
-            <span className="sm:hidden">13.5</span>
-            <span className="hidden sm:inline">13point5</span>
+            <span>13.5</span>
           </Link>
-          {breadcrumb && (
-            <>
-              <span className="text-foreground-muted mx-2">/</span>
-              <span className="text-sm font-medium tracking-tight">
-                {breadcrumb}
-              </span>
-            </>
-          )}
         </div>
         <SettingsDropdown />
       </nav>
