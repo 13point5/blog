@@ -6,24 +6,34 @@ type ImageViewerProps = {
   alt: string;
   caption?: string;
   className?: string;
+  showBorder?: boolean;
 };
 
-export function ImageViewer({ src, alt, caption, className }: ImageViewerProps) {
+export function ImageViewer({
+  src,
+  alt,
+  caption,
+  className,
+  showBorder = true,
+}: ImageViewerProps) {
   return (
-    <figure className={cn("my-4", className)}>
+    <span className={cn("block my-4 mx-auto max-w-lg", className)}>
       <NextImage
         src={src}
         alt={alt}
-        width={800}
-        height={400}
-        className="w-full h-auto rounded-lg border border-border"
+        width={500}
+        height={350}
+        className={cn(
+          "w-full h-auto rounded-lg",
+          showBorder && "border border-border"
+        )}
         unoptimized={src.startsWith("http")}
       />
       {caption && (
-        <figcaption className="text-center text-sm text-foreground-muted mt-2">
+        <span className="block text-center text-sm text-foreground-muted mt-2">
           {caption}
-        </figcaption>
+        </span>
       )}
-    </figure>
+    </span>
   );
 }

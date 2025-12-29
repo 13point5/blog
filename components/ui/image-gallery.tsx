@@ -14,9 +14,10 @@ type GalleryImage = {
 type ImageGalleryProps = {
   images: GalleryImage[];
   className?: string;
+  showBorder?: boolean;
 };
 
-export function ImageGallery({ images, className }: ImageGalleryProps) {
+export function ImageGallery({ images, className, showBorder = true }: ImageGalleryProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const goToPrevious = () => {
@@ -32,14 +33,17 @@ export function ImageGallery({ images, className }: ImageGalleryProps) {
   if (!images.length) return null;
 
   return (
-    <figure className={cn("my-4", className)}>
+    <figure className={cn("my-4 mx-auto max-w-lg", className)}>
       {/* Image */}
       <NextImage
         src={currentImage.src}
         alt={currentImage.alt}
-        width={800}
-        height={400}
-        className="w-full h-auto rounded-lg border border-border"
+        width={500}
+        height={350}
+        className={cn(
+          "w-full h-auto rounded-lg",
+          showBorder && "border border-border"
+        )}
         unoptimized={currentImage.src.startsWith("http")}
       />
 
