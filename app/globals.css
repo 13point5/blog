@@ -108,7 +108,7 @@ html.font-sans *:not(code):not(pre):not(pre *):not(.katex):not(.katex *) {
 html.font-serif,
 html.font-serif body,
 html.font-serif *:not(code):not(pre):not(pre *):not(.katex):not(.katex *) {
-  font-family: var(--font-lora), Georgia, "Times New Roman", serif;
+  font-family: var(--font-merriweather), Georgia, serif;
 }
 
 html.font-dyslexia,

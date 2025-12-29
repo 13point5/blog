@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Lora } from "next/font/google";
+import { Geist, Merriweather } from "next/font/google";
 // OpenDyslexic font for dyslexia-friendly reading - all weights and styles
 import "@fontsource/opendyslexic/400.css"; // Regular
 import "@fontsource/opendyslexic/400-italic.css"; // Regular Italic
@@ -15,9 +15,11 @@ const geist = Geist({
   variable: "--font-geist",
 });
 
-const lora = Lora({
+const merriweather = Merriweather({
   subsets: ["latin"],
-  variable: "--font-lora",
+  weight: ["300", "400", "700", "900"],
+  style: ["normal", "italic"],
+  variable: "--font-merriweather",
 });
 
 export const metadata: Metadata = {
@@ -34,7 +36,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geist.variable} ${lora.variable} font-sans`}
+      className={`${geist.variable} ${merriweather.variable} font-sans`}
       suppressHydrationWarning
     >
       <head>
