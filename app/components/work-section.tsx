@@ -23,7 +23,7 @@ const items: Item[] = [
     year: "2024",
     link: "/blog",
     type: "writing",
-    image: null,
+    image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&auto=format&fit=crop&q=80",
   },
   {
     id: 1,

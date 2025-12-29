@@ -9,7 +9,7 @@ export function Footer() {
             What I cannot create, I do not understand.
           </blockquote>
           <figcaption className="text-foreground-muted text-sm mt-1 self-end">
-            — Richard Feynman
+            - Richard Feynman
           </figcaption>
         </figure>
         <Socials />

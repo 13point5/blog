@@ -1,5 +1,6 @@
 import type { MDXComponents } from "mdx/types";
 import { Socials } from "./app/components/socials";
+import { BlogMetadata } from "./app/components/blog-metadata";
 import { Link } from "./components/ui/link";
 import { ImageViewer } from "./components/ui/image-viewer";
 import { ImageGallery } from "./components/ui/image-gallery";
@@ -7,6 +8,7 @@ import { ImageGallery } from "./components/ui/image-gallery";
 // Custom components for MDX content
 const components: MDXComponents = {
   Socials,
+  BlogMetadata,
   Link,
   Image: ImageViewer,
   ImageGallery,
