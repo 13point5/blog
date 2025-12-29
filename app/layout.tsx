@@ -38,6 +38,29 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  const theme = localStorage.getItem('theme') || 'light';
+                  const fontFamily = localStorage.getItem('fontFamily') || 'sans';
+                  const root = document.documentElement;
+                  
+                  // Apply theme
+                  if (theme === 'dark') {
+                    root.classList.add('dark');
+                  } else if (theme === 'warm') {
+                    root.classList.add('warm');
+                  }
+                  
+                  // Apply font
+                  root.classList.add('font-' + fontFamily);
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
         <link
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
