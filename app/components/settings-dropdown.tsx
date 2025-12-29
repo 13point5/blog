@@ -1,27 +1,24 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { Settings, Sun, Moon, Palette, Type, Check } from "lucide-react";
+import { Settings, Sun, Moon, Palette, Type } from "lucide-react";
 import { useTheme } from "../providers/theme-provider";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+type Theme = "light" | "dark" | "warm";
+type FontFamily = "sans" | "serif" | "dyslexia";
 
 export function SettingsDropdown() {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const { theme, setTheme, fontFamily, setFontFamily } = useTheme();
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const themes = [
     { value: "light", label: "Light", icon: Sun },
@@ -36,76 +33,69 @@ export function SettingsDropdown() {
   ] as const;
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="p-1.5 rounded-md hover:bg-accent transition-colors"
-        aria-label="Settings"
-      >
-        <Settings className="size-4" />
-      </button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="p-1.5 rounded-md"
+          aria-label="Settings"
+        >
+          <Settings className="size-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" align="end" sideOffset={8}>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="flex items-center gap-2 text-xs font-medium">
+            <Sun className="size-3.5" />
+            Theme
+          </DropdownMenuLabel>
+          <DropdownMenuRadioGroup
+            value={theme}
+            onValueChange={(value) => setTheme(value as Theme)}
+          >
+            {themes.map(({ value, label, icon: Icon }) => (
+              <DropdownMenuRadioItem
+                key={value}
+                value={value}
+                className="flex items-center gap-2"
+              >
+                <Icon className="size-3.5" />
+                {label}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuGroup>
 
-      {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-56 bg-background-card border border-border rounded-lg shadow-lg overflow-hidden z-50">
-          {/* Theme Section */}
-          <div className="p-3 border-b border-border">
-            <div className="flex items-center gap-2 text-xs font-medium text-foreground-muted mb-2">
-              <Sun className="size-3.5" />
-              Theme
-            </div>
-            <div className="flex gap-1">
-              {themes.map(({ value, label, icon: Icon }) => (
-                <button
-                  key={value}
-                  onClick={() => setTheme(value)}
-                  className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md text-sm transition-colors ${
-                    theme === value
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-accent"
-                  }`}
-                >
-                  <Icon className="size-3.5" />
-                  <span className="hidden sm:inline">{label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
+        <DropdownMenuSeparator />
 
-          {/* Font Section */}
-          <div className="p-3">
-            <div className="flex items-center gap-2 text-xs font-medium text-foreground-muted mb-2">
-              <Type className="size-3.5" />
-              Font Family
-            </div>
-            <div className="space-y-1">
-              {fonts.map(({ value, label }) => (
-                <button
-                  key={value}
-                  onClick={() => setFontFamily(value)}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-md text-sm transition-colors ${
-                    fontFamily === value
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-accent"
-                  }`}
-                >
-                  <span
-                    className={
-                      value === "dyslexia"
-                        ? "font-dyslexia"
-                        : value === "serif"
-                          ? "font-serif"
-                          : "font-sans"
-                    }
-                  >
-                    {label}
-                  </span>
-                  {fontFamily === value && <Check className="size-4" />}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="flex items-center gap-2 text-xs font-medium">
+            <Type className="size-3.5" />
+            Font Family
+          </DropdownMenuLabel>
+          <DropdownMenuRadioGroup
+            value={fontFamily}
+            onValueChange={(value) => setFontFamily(value as FontFamily)}
+          >
+            {fonts.map(({ value, label }) => (
+              <DropdownMenuRadioItem
+                key={value}
+                value={value}
+                className={
+                  value === "dyslexia"
+                    ? "font-dyslexia"
+                    : value === "serif"
+                    ? "font-serif"
+                    : "font-sans"
+                }
+              >
+                {label}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
