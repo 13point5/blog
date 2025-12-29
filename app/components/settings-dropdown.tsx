@@ -30,7 +30,7 @@ export function SettingsDropdown() {
     { value: "sans", label: "Sans" },
     { value: "serif", label: "Serif" },
     { value: "mono", label: "Mono" },
-    { value: "dyslexia", label: "Dyslexia" },
+    { value: "dyslexia", label: "Open Dyslexia" },
   ] as const;
 
   return (
