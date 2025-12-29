@@ -123,6 +123,23 @@ html.font-mono *:not(code):not(pre):not(pre *):not(.katex):not(.katex *) {
   font-family: var(--font-jetbrains-mono), ui-monospace, "SF Mono", monospace;
 }
 
+/* Utility classes for individual elements */
+.font-sans {
+  font-family: var(--font-geist), system-ui, sans-serif !important;
+}
+
+.font-serif {
+  font-family: var(--font-merriweather), Georgia, serif !important;
+}
+
+.font-mono {
+  font-family: var(--font-jetbrains-mono), ui-monospace, "SF Mono", monospace !important;
+}
+
+.font-dyslexia {
+  font-family: "OpenDyslexic", sans-serif !important;
+}
+
 /* Ensure code always uses monospace */
 code,
 pre,
