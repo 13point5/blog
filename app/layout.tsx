@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Lora } from "next/font/google";
+// OpenDyslexic font for dyslexia-friendly reading - all weights and styles
+import "@fontsource/opendyslexic/400.css"; // Regular
+import "@fontsource/opendyslexic/400-italic.css"; // Regular Italic
+import "@fontsource/opendyslexic/700.css"; // Bold
+import "@fontsource/opendyslexic/700-italic.css"; // Bold Italic
 import "./globals.css";
 import { ThemeProvider } from "./providers/theme-provider";
 
@@ -25,7 +30,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geist.variable} ${lora.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${geist.variable} ${lora.variable} font-sans`}
+      suppressHydrationWarning
+    >
       <head>
         <link
           rel="stylesheet"

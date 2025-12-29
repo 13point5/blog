@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@fontsource/opendyslexic':
+        specifier: ^5.2.5
+        version: 5.2.5
       '@mdx-js/loader':
         specifier: ^3.1.1
         version: 3.1.1
@@ -298,6 +301,9 @@ packages:
 
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
+
+  '@fontsource/opendyslexic@5.2.5':
+    resolution: {integrity: sha512-NNS9aaPQx2TlaTvb3vTEjw3xz8lKj23mBc+6rM00mSNFDygdoll0/nLMHFtDKKrBT6sMfY6TFFPOR0D9ktdspg==}
 
   '@hono/node-server@1.19.7':
     resolution: {integrity: sha512-vUcD0uauS7EU2caukW8z5lJKtoGMokxNbJtBiwHgpqxEXokaHCBkQUmCHhjFB1VUTWdqj25QoMkMKzgjq+uhrw==}
@@ -4039,6 +4045,8 @@ snapshots:
       react-dom: 19.2.1(react@19.2.1)
 
   '@floating-ui/utils@0.2.10': {}
+
+  '@fontsource/opendyslexic@5.2.5': {}
 
   '@hono/node-server@1.19.7(hono@4.11.3)':
     dependencies:
