@@ -117,6 +117,12 @@ html.font-dyslexia *:not(code):not(pre):not(pre *):not(.katex):not(.katex *) {
   font-family: "OpenDyslexic", sans-serif;
 }
 
+html.font-mono,
+html.font-mono body,
+html.font-mono *:not(code):not(pre):not(pre *):not(.katex):not(.katex *) {
+  font-family: var(--font-jetbrains-mono), ui-monospace, "SF Mono", monospace;
+}
+
 /* Ensure code always uses monospace */
 code,
 pre,

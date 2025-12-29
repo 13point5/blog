@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 type Theme = "light" | "dark" | "warm";
-type FontFamily = "sans" | "serif" | "dyslexia";
+type FontFamily = "sans" | "serif" | "dyslexia" | "mono";
 
 export function SettingsDropdown() {
   const { theme, setTheme, fontFamily, setFontFamily } = useTheme();
@@ -29,6 +29,7 @@ export function SettingsDropdown() {
   const fonts = [
     { value: "sans", label: "Sans" },
     { value: "serif", label: "Serif" },
+    { value: "mono", label: "Mono" },
     { value: "dyslexia", label: "Dyslexia" },
   ] as const;
 
@@ -87,6 +88,8 @@ export function SettingsDropdown() {
                     ? "font-dyslexia"
                     : value === "serif"
                     ? "font-serif"
+                    : value === "mono"
+                    ? "font-mono"
                     : "font-sans"
                 }
               >

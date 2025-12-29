@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Merriweather } from "next/font/google";
+import { Geist, Merriweather, JetBrains_Mono } from "next/font/google";
 // OpenDyslexic font for dyslexia-friendly reading - all weights and styles
 import "@fontsource/opendyslexic/400.css"; // Regular
 import "@fontsource/opendyslexic/400-italic.css"; // Regular Italic
@@ -22,6 +22,11 @@ const merriweather = Merriweather({
   variable: "--font-merriweather",
 });
 
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains-mono",
+});
+
 export const metadata: Metadata = {
   title: "13point5",
   description:
@@ -36,7 +41,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geist.variable} ${merriweather.variable} font-sans`}
+      className={`${geist.variable} ${merriweather.variable} ${jetbrainsMono.variable} font-sans`}
       suppressHydrationWarning
     >
       <head>
@@ -56,7 +61,8 @@ export default function RootLayout({
                     root.classList.add('warm');
                   }
                   
-                  // Apply font
+                  // Apply font (remove all font classes first)
+                  root.classList.remove('font-sans', 'font-serif', 'font-dyslexia', 'font-mono');
                   root.classList.add('font-' + fontFamily);
                 } catch (e) {}
               })();
