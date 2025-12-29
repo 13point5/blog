@@ -7,6 +7,8 @@ import "@fontsource/opendyslexic/700.css"; // Bold
 import "@fontsource/opendyslexic/700-italic.css"; // Bold Italic
 import "./globals.css";
 import { ThemeProvider } from "./providers/theme-provider";
+import { Header } from "./components/header";
+import { Footer } from "./components/footer";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -44,7 +46,13 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <div className="min-h-screen bg-background">
+            <Header />
+            {children}
+            <Footer />
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );

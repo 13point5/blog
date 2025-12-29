@@ -6,18 +6,14 @@ import Image from "next/image";
 import { SettingsDropdown } from "./settings-dropdown";
 import { cn } from "@/lib/utils";
 
-type HeaderProps = {
-  breadcrumb?: string;
-};
-
-export function Header({ breadcrumb }: HeaderProps) {
+export function Header() {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
+
       // Show header when scrolling up or at the top
       if (currentScrollY < lastScrollY || currentScrollY < 10) {
         setIsVisible(true);
@@ -25,7 +21,7 @@ export function Header({ breadcrumb }: HeaderProps) {
         // Hide header when scrolling down (after 60px)
         setIsVisible(false);
       }
-      
+
       setLastScrollY(currentScrollY);
     };
 
@@ -41,30 +37,20 @@ export function Header({ breadcrumb }: HeaderProps) {
       )}
     >
       <nav className="max-w-5xl mx-auto px-6 h-full flex items-center justify-between">
-        <div className="flex items-center">
-          <Link
-            href="/"
-            className="flex items-center gap-1.5 text-sm font-medium tracking-tight hover:text-foreground-muted transition-colors"
-          >
-            <Image
-              src="/zoro.png"
-              alt="Zoro"
-              width={20}
-              height={20}
-              className="rounded-full"
-            />
-            <span className="sm:hidden">13.5</span>
-            <span className="hidden sm:inline">13point5</span>
-          </Link>
-          {breadcrumb && (
-            <>
-              <span className="text-foreground-muted mx-2">/</span>
-              <span className="text-sm font-medium tracking-tight">
-                {breadcrumb}
-              </span>
-            </>
-          )}
-        </div>
+        <Link
+          href="/"
+          className="flex items-center gap-1.5 text-sm font-medium tracking-tight hover:text-foreground-muted transition-colors"
+        >
+          <Image
+            src="/zoro.png"
+            alt="Zoro"
+            width={20}
+            height={20}
+            className="rounded-full"
+          />
+          <span className="sm:hidden">13.5</span>
+          <span className="hidden sm:inline">13point5</span>
+        </Link>
         <SettingsDropdown />
       </nav>
     </header>
