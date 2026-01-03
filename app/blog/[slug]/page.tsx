@@ -95,7 +95,6 @@ export default async function BlogPost({
               width={500}
               height={350}
               className="h-auto rounded-lg"
-              unoptimized={post.metadata.image.startsWith("http")}
             />
           </div>
         )}

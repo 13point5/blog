@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { formatDate, Metadata } from "@/app/blog/utils";
 
 type BlogPostItemProps = {
@@ -12,9 +13,11 @@ export function BlogPostItem({ slug, metadata }: BlogPostItemProps) {
       <article className="flex items-start justify-between gap-4 py-2">
         <div className="flex items-start gap-3 min-w-0">
           {metadata.image && (
-            <img
+            <Image
               src={metadata.image}
               alt=""
+              width={32}
+              height={32}
               className="w-8 h-8 rounded object-cover flex-shrink-0"
             />
           )}
