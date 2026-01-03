@@ -1,0 +1,238 @@
+---
+title: 'Complete Markdown and Math Guide'
+publishedAt: '2024-12-29'
+summary: 'A comprehensive guide demonstrating all supported markdown elements and mathematical notation in MDX.'
+image: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&auto=format&fit=crop&q=80'
+author: 'Sriraam'
+---
+
+This comprehensive guide demonstrates all supported markdown elements and mathematical notation in MDX.
+
+## Text Formatting
+
+Here are various ways to **emphasize** your text. You can use _italics_ for subtle emphasis, **bold** for strong emphasis, or **_both combined_** for maximum impact. You can also use ~~strikethrough~~ to indicate deleted or obsolete content.
+
+## Headings Hierarchy
+
+### This is a Level 3 Heading
+
+#### This is a Level 4 Heading
+
+##### This is a Level 5 Heading
+
+###### This is a Level 6 Heading
+
+## Links and References
+
+You can create [internal links](#math-equations) to other sections of this document, or link to [external resources like Wikipedia](https://en.wikipedia.org/wiki/Markdown). External links open in a new tab automatically.
+
+---
+
+## Lists
+
+### Unordered Lists
+
+Here's a simple unordered list:
+
+- First item with some text
+- Second item with more details
+- Third item
+  - Nested item 1
+  - Nested item 2
+    - Double nested item
+- Back to main level
+
+### Ordered Lists
+
+1. First step in the process
+2. Second step with details
+3. Third step
+   1. Sub-step 3.1
+   2. Sub-step 3.2
+4. Final step
+
+### Task Lists
+
+Track your progress with task lists:
+
+- [x] Learn basic markdown syntax
+- [x] Understand heading structure
+- [x] Master list formatting
+- [ ] Implement in production
+- [ ] Write comprehensive documentation
+- [x] Add math support
+
+---
+
+## Code Examples
+
+### Inline Code
+
+Use inline code like `const x = 42` or `npm install` within your sentences. You can reference functions like `Array.map()` or variables like `isAuthenticated`.
+
+### Code Blocks
+
+Here's a JavaScript code block:
+
+```javascript
+function fibonacci(n) {
+  if (n <= 1) return n;
+  return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+const result = fibonacci(10);
+console.log(result); // Output: 55
+```
+
+Python example with syntax highlighting:
+
+```python
+def quicksort(arr):
+    if len(arr) <= 1:
+        return arr
+    pivot = arr[len(arr) // 2]
+    left = [x for x in arr if x < pivot]
+    middle = [x for x in arr if x == pivot]
+    right = [x for x in arr if x > pivot]
+    return quicksort(left) + middle + quicksort(right)
+
+numbers = [3, 6, 8, 10, 1, 2, 1]
+print(quicksort(numbers))
+```
+
+---
+
+## Tables
+
+### Basic Table
+
+| Feature    | Support | Notes                  |
+| ---------- | ------- | ---------------------- |
+| Headers    | ✅ Yes  | H1-H6 supported        |
+| Tables     | ✅ Yes  | With GFM               |
+| Math       | ✅ Yes  | Inline and block       |
+| Footnotes  | ✅ Yes  | GFM support            |
+| Task Lists | ✅ Yes  | Interactive checkboxes |
+
+### Complex Table with Alignment
+
+| Left Aligned      | Center Aligned | Right Aligned |
+| :---------------- | :------------: | ------------: |
+| Data 1            |     Data 2     |        Data 3 |
+| Cell A            |     Cell B     |        Cell C |
+| Long content here |     Short      |           123 |
+| More data         | Centered text  |        456.78 |
+
+---
+
+## Math Equations
+
+### Inline Math
+
+You can write inline math like $E = mc^2$ or $a^2 + b^2 = c^2$ directly in your text. The Pythagorean theorem states that $\sqrt{a^2 + b^2} = c$.
+
+More examples: $\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}$ and the famous $e^{i\pi} + 1 = 0$.
+
+### Block Math Equations
+
+Here's the quadratic formula displayed as a block equation:
+
+$$
+x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
+$$
+
+Maxwell's equations in differential form:
+
+$$
+\begin{aligned}
+\nabla \cdot \mathbf{E} &= \frac{\rho}{\epsilon_0} \\
+\nabla \cdot \mathbf{B} &= 0 \\
+\nabla \times \mathbf{E} &= -\frac{\partial \mathbf{B}}{\partial t} \\
+\nabla \times \mathbf{B} &= \mu_0\mathbf{J} + \mu_0\epsilon_0\frac{\partial \mathbf{E}}{\partial t}
+\end{aligned}
+$$
+
+### Matrix Notation
+
+The identity matrix:
+
+$$
+I = \begin{pmatrix}
+1 & 0 & 0 \\
+0 & 1 & 0 \\
+0 & 0 & 1
+\end{pmatrix}
+$$
+
+### Summations and Products
+
+The definition of the arithmetic mean:
+
+$$
+\bar{x} = \frac{1}{n}\sum_{i=1}^{n} x_i
+$$
+
+The factorial function:
+
+$$
+n! = \prod_{i=1}^{n} i
+$$
+
+### Calculus
+
+The fundamental theorem of calculus:
+
+$$
+\int_a^b f(x)\,dx = F(b) - F(a)
+$$
+
+Taylor series expansion:
+
+$$
+f(x) = f(a) + f'(a)(x-a) + \frac{f''(a)}{2!}(x-a)^2 + \frac{f'''(a)}{3!}(x-a)^3 + \cdots
+$$
+
+### Probability and Statistics
+
+Bayes' theorem:
+
+$$
+P(A|B) = \frac{P(B|A) \cdot P(A)}{P(B)}
+$$
+
+Normal distribution:
+
+$$
+f(x) = \frac{1}{\sigma\sqrt{2\pi}} e^{-\frac{1}{2}\left(\frac{x-\mu}{\sigma}\right)^2}
+$$
+
+---
+
+## Blockquotes
+
+> This is a simple blockquote. It can contain multiple lines of text and is useful for highlighting important information or quoting external sources.
+
+> **Note:** Blockquotes can also contain **formatted text**, `inline code`, and even [links](https://example.com).
+>
+> They can span multiple paragraphs, which is useful for longer quotations or important notes.
+
+---
+
+## Conclusion
+
+This document demonstrates the full power of MDX with:
+
+✅ Complete markdown syntax support  
+✅ GitHub Flavored Markdown (GFM) features  
+✅ Inline and block math equations (LaTeX/KaTeX)  
+✅ Beautiful tables with proper styling  
+✅ Task lists for tracking  
+✅ Code highlighting  
+✅ And much more!
+
+For more information, check out the [MDX documentation](https://mdxjs.com/) and [KaTeX documentation](https://katex.org/).
+
+---
+
+_Last updated: December 2024_
+

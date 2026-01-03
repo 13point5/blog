@@ -1,41 +1,18 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-
-type Item = {
-  id: number;
-  title: string;
-  description: string;
-  year: string;
-  link: string;
-  image?: string | null;
-};
-
-const items: Item[] = [
-  {
-    id: 0,
-    title: "Markdown & Math Guide",
-    description:
-      "A comprehensive guide showcasing all supported markdown elements and mathematical notation.",
-    year: "2024",
-    link: "/blog/markdown-math-guide",
-    image:
-      "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&auto=format&fit=crop&q=80",
-  },
-  {
-    id: 4,
-    title: "Coming soon",
-    description:
-      "Thoughts on building, learning, and the intersection of UX and RL.",
-    year: "2024",
-    link: "#",
-    image: null,
-  },
-];
+import { getBlogPosts } from "@/app/blog/utils";
 
 export default function WorkSection() {
+  const posts = getBlogPosts()
+    .sort((a, b) => {
+      if (new Date(a.metadata.publishedAt) > new Date(b.metadata.publishedAt)) {
+        return -1;
+      }
+      return 1;
+    })
+    .slice(0, 3); // Show only the 3 most recent posts
+
   return (
     <section id="blog" className="animate-fade-blur animation-delay-100">
       <div className="flex items-center justify-between mb-6">
@@ -53,18 +30,18 @@ export default function WorkSection() {
 
       {/* Items grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {items.map((item) => (
-          <a
-            key={item.id}
-            href={item.link}
+        {posts.map((post) => (
+          <Link
+            key={post.slug}
+            href={`/blog/${post.slug}`}
             className="block group bg-background-card rounded-2xl p-5 border border-transparent hover:border-border transition-colors duration-200"
           >
             {/* Image */}
-            <div className="aspect-video lg:aspect-[4/3] bg-background rounded-xl mb-4 overflow-hidden flex items-center justify-center">
-              {item.image ? (
+            <div className="aspect-video lg:aspect-4/3 bg-background rounded-xl mb-4 overflow-hidden flex items-center justify-center">
+              {post.metadata.image ? (
                 <img
-                  src={item.image}
-                  alt={item.title}
+                  src={post.metadata.image}
+                  alt={post.metadata.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               ) : (
@@ -73,8 +50,8 @@ export default function WorkSection() {
             </div>
 
             {/* Title */}
-            <h3 className="font-medium">{item.title}</h3>
-          </a>
+            <h3 className="font-medium">{post.metadata.title}</h3>
+          </Link>
         ))}
       </div>
     </section>

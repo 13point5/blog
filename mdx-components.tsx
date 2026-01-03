@@ -1,19 +1,15 @@
 import type { MDXComponents } from "mdx/types";
 import { Socials } from "./app/components/socials";
-import { BlogMetadata } from "./app/components/blog-metadata";
 import { Link } from "./components/ui/link";
 import { ImageViewer } from "./components/ui/image-viewer";
 import { ImageGallery } from "./components/ui/image-gallery";
-import BlogListing from "./app/components/blog-listing";
 
 // Custom components for MDX content
 const components: MDXComponents = {
   Socials,
-  BlogMetadata,
   Link,
   Image: ImageViewer,
   ImageGallery,
-  BlogListing,
   // Headings
   h1: ({ children }) => (
     <h1 className="text-3xl font-semibold mb-6 mt-8 text-foreground">
