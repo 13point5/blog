@@ -25,12 +25,6 @@ export function BlogPosts() {
               <h4 className="text-lg font-medium group-hover:text-foreground-muted transition-colors flex-1">
                 {post.metadata.title}
               </h4>
-              <time
-                dateTime={post.metadata.publishedAt}
-                className="text-sm text-foreground-muted whitespace-nowrap"
-              >
-                {formatDate(post.metadata.publishedAt)}
-              </time>
             </article>
           </Link>
         ))}

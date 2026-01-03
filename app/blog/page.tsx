@@ -9,8 +9,8 @@ export default function BlogPage() {
   return (
     <main className="max-w-5xl mx-auto px-6 pt-14 pb-16">
       <section className="animate-fade-blur">
-        <h1 className="text-2xl font-semibold mb-8 mt-8 text-foreground">
-          Blog
+        <h1 className="text-2xl font-semibold mb-4 mt-6 text-foreground">
+          blog
         </h1>
         <BlogPosts />
       </section>
