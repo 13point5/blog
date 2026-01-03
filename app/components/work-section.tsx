@@ -41,7 +41,7 @@ export default function WorkSection() {
   return (
     <section id="blog" className="animate-fade-blur animation-delay-100">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-medium">Blog</h2>
+        <h2 className="text-2xl font-medium">blog</h2>
         <Link href="/blog">
           <Button variant="ghost" className="gap-2 group">
             View All

@@ -3,11 +3,8 @@ import Link from "next/link";
 type BlogPost = {
   id: string;
   title: string;
-  description: string;
   date: Date;
   slug: string;
-  author: string;
-  coverImage?: string;
 };
 
 // Sample blog posts - in a real app, this would come from a CMS or MDX files
@@ -15,13 +12,62 @@ const blogPosts: BlogPost[] = [
   {
     id: "1",
     title: "Complete Markdown and Math Guide",
-    description:
-      "A comprehensive guide showcasing all supported markdown elements and mathematical notation in MDX.",
     date: new Date("2024-12-29"),
     slug: "markdown-math-guide",
-    author: "Sriraam",
-    coverImage:
-      "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&auto=format&fit=crop&q=80",
+  },
+  {
+    id: "2",
+    title: "Building Decode: A Browser for AI Agents",
+    date: new Date("2024-12-15"),
+    slug: "building-decode",
+  },
+  {
+    id: "3",
+    title: "Lessons from Learning Design at Harvard",
+    date: new Date("2024-12-01"),
+    slug: "harvard-learning-design",
+  },
+  {
+    id: "4",
+    title: "Understanding Reinforcement Learning Through Practice",
+    date: new Date("2024-11-20"),
+    slug: "rl-practice",
+  },
+  {
+    id: "5",
+    title: "Why UX is a Learning Problem",
+    date: new Date("2024-11-05"),
+    slug: "ux-learning-problem",
+  },
+  {
+    id: "6",
+    title: "Building SWE-Grep: An Open Source SWE Agent",
+    date: new Date("2024-10-28"),
+    slug: "swe-grep",
+  },
+  {
+    id: "7",
+    title: "Contributing to Prime Intellect's RL Environments",
+    date: new Date("2024-10-10"),
+    slug: "prime-intellect-rl",
+  },
+  {
+    id: "8",
+    title: "The Intersection of Education and Technology",
+    date: new Date("2024-09-22"),
+    slug: "education-technology",
+  },
+  {
+    id: "9",
+    title: "Designing for Agent Collaboration",
+    date: new Date("2024-09-05"),
+    slug: "agent-collaboration",
+  },
+  {
+    id: "10",
+    title: "My Journey into AI Research",
+    date: new Date("2024-08-18"),
+    slug: "ai-research-journey",
   },
 ];
 
@@ -54,75 +100,39 @@ export default function BlogPage() {
 
   return (
     <main className="max-w-5xl mx-auto px-6 pt-14 pb-16">
-      <div className="animate-fade-blur">
-        <h1 className="text-4xl font-medium mb-3">Blog</h1>
-        <p className="text-foreground-muted mb-12">
-          Thoughts on building, learning, and the intersection of UX and RL.
-        </p>
+      <div className="animate-fade-blur space-y-12">
+        {Array.from(groupedPosts.entries()).map(([monthYear, posts]) => (
+          <div key={monthYear}>
+            <h2 className="text-xl font-medium mb-6 text-foreground-muted">
+              {monthYear}
+            </h2>
 
-        {/* Blog posts grouped by month */}
-        <div className="space-y-12">
-          {Array.from(groupedPosts.entries()).map(([monthYear, posts]) => (
-            <div key={monthYear}>
-              <h2 className="text-xl font-medium mb-6 text-foreground-muted">
-                {monthYear}
-              </h2>
-
-              <div className="space-y-6">
-                {posts.map((post) => (
-                  <Link
-                    key={post.id}
-                    href={`/blog/${post.slug}`}
-                    className="block group"
-                  >
-                    <article className="bg-background-card rounded-2xl p-6 border border-transparent hover:border-border transition-colors duration-200">
-                      <div className="flex gap-6 flex-col sm:flex-row">
-                        {/* Cover image */}
-                        {post.coverImage && (
-                          <div className="w-full sm:w-48 h-32 bg-background rounded-xl overflow-hidden flex-shrink-0">
-                            <img
-                              src={post.coverImage}
-                              alt={post.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          </div>
-                        )}
-
-                        {/* Content */}
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between mb-2">
-                            <h3 className="text-xl font-medium group-hover:text-foreground transition-colors">
-                              {post.title}
-                            </h3>
-                          </div>
-
-                          <p className="text-foreground-muted text-sm mb-3">
-                            {post.description}
-                          </p>
-
-                          <div className="flex items-center gap-3 text-xs text-foreground-muted">
-                            <span>{post.author}</span>
-                            <span>•</span>
-                            <time
-                              dateTime={post.date.toISOString()}
-                              className="text-foreground-muted"
-                            >
-                              {post.date.toLocaleDateString("en-US", {
-                                month: "long",
-                                day: "numeric",
-                                year: "numeric",
-                              })}
-                            </time>
-                          </div>
-                        </div>
-                      </div>
-                    </article>
-                  </Link>
-                ))}
-              </div>
+            <div className="space-y-4">
+              {posts.map((post) => (
+                <Link
+                  key={post.id}
+                  href={`/blog/${post.slug}`}
+                  className="block group"
+                >
+                  <article className="flex items-baseline justify-between gap-4 py-3 border-b border-border/50 hover:border-border transition-colors">
+                    <h3 className="text-lg font-medium group-hover:text-foreground-muted transition-colors flex-1">
+                      {post.title}
+                    </h3>
+                    <time
+                      dateTime={post.date.toISOString()}
+                      className="text-sm text-foreground-muted whitespace-nowrap"
+                    >
+                      {post.date.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </time>
+                  </article>
+                </Link>
+              ))}
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </main>
   );
