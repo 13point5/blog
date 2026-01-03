@@ -10,7 +10,6 @@ type Item = {
   description: string;
   year: string;
   link: string;
-  type: "project" | "writing";
   image?: string | null;
 };
 
@@ -22,8 +21,8 @@ const items: Item[] = [
       "A comprehensive guide showcasing all supported markdown elements and mathematical notation.",
     year: "2024",
     link: "/blog/markdown-math-guide",
-    type: "writing",
-    image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&auto=format&fit=crop&q=80",
+    image:
+      "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&auto=format&fit=crop&q=80",
   },
   {
     id: 4,
@@ -32,7 +31,6 @@ const items: Item[] = [
       "Thoughts on building, learning, and the intersection of UX and RL.",
     year: "2024",
     link: "#",
-    type: "writing",
     image: null,
   },
 ];
@@ -73,9 +71,6 @@ export default function WorkSection() {
                 <div className="text-5xl opacity-20">✍️</div>
               )}
             </div>
-
-            {/* Type label */}
-            <p className="text-foreground-muted text-xs mb-1">{item.type}</p>
 
             {/* Title */}
             <h3 className="font-medium">{item.title}</h3>
