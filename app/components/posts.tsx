@@ -1,11 +1,11 @@
-import Link from "next/link";
-import { formatDate, getBlogPosts } from "@/app/blog/utils";
+import { getBlogPosts } from "@/app/blog/utils";
+import { BlogPostItem } from "./blog-post-item";
 
 export function BlogPosts() {
   const allBlogs = getBlogPosts();
 
   return (
-    <div className="space-y-4 not-prose">
+    <div className="space-y-1 not-prose">
       {allBlogs
         .sort((a, b) => {
           if (
@@ -16,17 +16,7 @@ export function BlogPosts() {
           return 1;
         })
         .map((post) => (
-          <Link
-            key={post.slug}
-            className="block group"
-            href={`/blog/${post.slug}`}
-          >
-            <article className="flex items-baseline justify-between gap-4 py-3 transition-colors">
-              <h4 className="text-lg font-medium group-hover:text-foreground-muted transition-colors flex-1">
-                {post.metadata.title}
-              </h4>
-            </article>
-          </Link>
+          <BlogPostItem key={post.slug} slug={post.slug} metadata={post.metadata} />
         ))}
     </div>
   );

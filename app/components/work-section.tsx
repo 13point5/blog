@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { formatDate, getBlogPosts } from "@/app/blog/utils";
+import { getBlogPosts } from "@/app/blog/utils";
+import { BlogPostItem } from "./blog-post-item";
 
 export default function WorkSection() {
   const posts = getBlogPosts()
@@ -31,32 +32,11 @@ export default function WorkSection() {
 
       <div className="space-y-1">
         {posts.map((post) => (
-          <Link
+          <BlogPostItem
             key={post.slug}
-            href={`/blog/${post.slug}`}
-            className="block group"
-          >
-            <article className="flex items-start justify-between gap-4 py-2">
-              <div className="flex items-start gap-3 min-w-0">
-                {post.metadata.image && (
-                  <img
-                    src={post.metadata.image}
-                    alt=""
-                    className="w-8 h-8 rounded object-cover flex-shrink-0"
-                  />
-                )}
-                <h3 className="font-medium group-hover:text-foreground-muted transition-colors">
-                  {post.metadata.title}
-                </h3>
-              </div>
-              <time
-                dateTime={post.metadata.publishedAt}
-                className="hidden sm:block text-sm text-foreground-muted whitespace-nowrap"
-              >
-                {formatDate(post.metadata.publishedAt, false, true)}
-              </time>
-            </article>
-          </Link>
+            slug={post.slug}
+            metadata={post.metadata}
+          />
         ))}
       </div>
     </section>
