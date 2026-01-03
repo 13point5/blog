@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { getBlogPosts } from "@/app/blog/utils";
+import { formatDate, getBlogPosts } from "@/app/blog/utils";
 
 export default function WorkSection() {
   const posts = getBlogPosts()
@@ -11,11 +11,11 @@ export default function WorkSection() {
       }
       return 1;
     })
-    .slice(0, 3); // Show only the 3 most recent posts
+    .slice(0, 5);
 
   return (
     <section id="blog" className="animate-fade-blur animation-delay-100">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4 mt-6">
         <h2 className="text-2xl font-semibold text-foreground">blog</h2>
 
         <Link href="/blog">
@@ -29,29 +29,33 @@ export default function WorkSection() {
         </Link>
       </div>
 
-      {/* Items grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="space-y-1">
         {posts.map((post) => (
           <Link
             key={post.slug}
             href={`/blog/${post.slug}`}
-            className="block group bg-background-card rounded-2xl p-5 border border-transparent hover:border-border transition-colors duration-200"
+            className="block group"
           >
-            {/* Image */}
-            <div className="aspect-video lg:aspect-4/3 bg-background rounded-xl mb-4 overflow-hidden flex items-center justify-center">
-              {post.metadata.image ? (
-                <img
-                  src={post.metadata.image}
-                  alt={post.metadata.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              ) : (
-                <div className="text-5xl opacity-20">✍️</div>
-              )}
-            </div>
-
-            {/* Title */}
-            <h3 className="font-medium">{post.metadata.title}</h3>
+            <article className="flex items-center justify-between gap-4 py-2">
+              <div className="flex items-center gap-3 min-w-0">
+                {post.metadata.image && (
+                  <img
+                    src={post.metadata.image}
+                    alt=""
+                    className="w-8 h-8 rounded object-cover flex-shrink-0"
+                  />
+                )}
+                <h3 className="font-medium group-hover:text-foreground-muted transition-colors truncate">
+                  {post.metadata.title}
+                </h3>
+              </div>
+              <time
+                dateTime={post.metadata.publishedAt}
+                className="hidden sm:block text-sm text-foreground-muted whitespace-nowrap"
+              >
+                {formatDate(post.metadata.publishedAt, false, true)}
+              </time>
+            </article>
           </Link>
         ))}
       </div>

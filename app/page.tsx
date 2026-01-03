@@ -4,7 +4,7 @@ import Contact from "@/content/contact.mdx";
 
 export default function Home() {
   return (
-    <main className="max-w-5xl mx-auto px-6 pt-14 pb-25 flex flex-col gap-6">
+    <main className="max-w-5xl mx-auto px-6 pt-14 pb-25 flex flex-col">
       {/* Hero Section */}
       <section className="animate-fade-blur">
         <Bio />
