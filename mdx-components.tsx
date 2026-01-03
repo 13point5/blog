@@ -1,13 +1,17 @@
 import type { MDXComponents } from "mdx/types";
-import Link from "next/link";
-import Image from "next/image";
 import { Socials } from "./app/components/socials";
-import { IconLink } from "./app/components/icon-link";
+import { BlogMetadata } from "./app/components/blog-metadata";
+import { Link } from "./components/ui/link";
+import { ImageViewer } from "./components/ui/image-viewer";
+import { ImageGallery } from "./components/ui/image-gallery";
 
 // Custom components for MDX content
 const components: MDXComponents = {
   Socials,
-  IconLink,
+  BlogMetadata,
+  Link,
+  Image: ImageViewer,
+  ImageGallery,
   // Headings
   h1: ({ children }) => (
     <h1 className="text-3xl font-semibold mb-6 mt-8 text-foreground">
@@ -46,29 +50,11 @@ const components: MDXComponents = {
   ),
 
   // Links
-  a: ({ href, children }) => {
-    const isExternal = href?.startsWith("http");
-    if (isExternal) {
-      return (
-        <a
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-foreground font-medium transition-colors underline decoration-border hover:decoration-foreground underline-offset-2"
-        >
-          {children}
-        </a>
-      );
-    }
-    return (
-      <Link
-        href={href || "#"}
-        className="text-foreground font-medium transition-colors underline decoration-border hover:decoration-foreground underline-offset-2"
-      >
-        {children}
-      </Link>
-    );
-  },
+  a: ({ href, children }) => (
+    <Link href={href || "#"} variant="underline">
+      {children}
+    </Link>
+  ),
 
   // Lists
   ul: ({ children }) => (
@@ -169,32 +155,10 @@ const components: MDXComponents = {
     </summary>
   ),
 
-  // Inline images
-  img: ({ src, alt }) => {
-    // Handle external images with Next.js Image component
-    if (src?.startsWith("http")) {
-      return (
-        <Image
-          src={src}
-          alt={alt || ""}
-          width={800}
-          height={400}
-          className="max-w-full h-auto rounded-lg my-4 border border-border"
-          unoptimized
-        />
-      );
-    }
-    // For local images, use standard img tag or handle accordingly
-    return (
-      <Image
-        src={src || ""}
-        alt={alt || ""}
-        width={800}
-        height={400}
-        className="max-w-full h-auto rounded-lg my-4 border border-border"
-      />
-    );
-  },
+  // Inline images - use ImageViewer for click-to-open functionality
+  img: ({ src, alt, title }) => (
+    <ImageViewer src={src || ""} alt={alt || ""} caption={title} />
+  ),
 
   // Deleted text (strikethrough from GFM)
   del: ({ children }) => (

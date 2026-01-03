@@ -23,7 +23,7 @@ const items: Item[] = [
     year: "2024",
     link: "/blog/markdown-math-guide",
     type: "writing",
-    image: null,
+    image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&auto=format&fit=crop&q=80",
   },
   {
     id: 4,
@@ -59,7 +59,7 @@ export default function WorkSection() {
           <a
             key={item.id}
             href={item.link}
-            className="block group bg-white rounded-2xl p-5 border border-transparent hover:border-border transition-colors duration-200"
+            className="block group bg-background-card rounded-2xl p-5 border border-transparent hover:border-border transition-colors duration-200"
           >
             {/* Image */}
             <div className="aspect-video lg:aspect-[4/3] bg-background rounded-xl mb-4 overflow-hidden flex items-center justify-center">

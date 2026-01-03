@@ -1,10 +1,16 @@
 # Complete Markdown and Math Guide
 
+<BlogMetadata
+  author="Sriraam"
+  date="December 29, 2024"
+  coverImage="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&auto=format&fit=crop&q=80"
+/>
+
 This comprehensive guide demonstrates all supported markdown elements and mathematical notation in MDX.
 
 ## Text Formatting
 
-Here are various ways to **emphasize** your text. You can use *italics* for subtle emphasis, **bold** for strong emphasis, or ***both combined*** for maximum impact. You can also use ~~strikethrough~~ to indicate deleted or obsolete content.
+Here are various ways to **emphasize** your text. You can use _italics_ for subtle emphasis, **bold** for strong emphasis, or **_both combined_** for maximum impact. You can also use ~~strikethrough~~ to indicate deleted or obsolete content.
 
 ## Headings Hierarchy
 
@@ -100,32 +106,32 @@ print(quicksort(numbers))
 
 ### Basic Table
 
-| Feature | Support | Notes |
-|---------|---------|-------|
-| Headers | ✅ Yes | H1-H6 supported |
-| Tables | ✅ Yes | With GFM |
-| Math | ✅ Yes | Inline and block |
-| Footnotes | ✅ Yes | GFM support |
-| Task Lists | ✅ Yes | Interactive checkboxes |
+| Feature    | Support | Notes                  |
+| ---------- | ------- | ---------------------- |
+| Headers    | ✅ Yes  | H1-H6 supported        |
+| Tables     | ✅ Yes  | With GFM               |
+| Math       | ✅ Yes  | Inline and block       |
+| Footnotes  | ✅ Yes  | GFM support            |
+| Task Lists | ✅ Yes  | Interactive checkboxes |
 
 ### Complex Table with Alignment
 
-| Left Aligned | Center Aligned | Right Aligned | 
-|:-------------|:--------------:|--------------:|
-| Data 1 | Data 2 | Data 3 |
-| Cell A | Cell B | Cell C |
-| Long content here | Short | 123 |
-| More data | Centered text | 456.78 |
+| Left Aligned      | Center Aligned | Right Aligned |
+| :---------------- | :------------: | ------------: |
+| Data 1            |     Data 2     |        Data 3 |
+| Cell A            |     Cell B     |        Cell C |
+| Long content here |     Short      |           123 |
+| More data         | Centered text  |        456.78 |
 
 ### Feature Comparison
 
-| Language | Typing | Performance | Learning Curve |
-|----------|--------|-------------|----------------|
-| JavaScript | Dynamic | Fast | Easy |
-| TypeScript | Static | Fast | Medium |
-| Python | Dynamic | Moderate | Easy |
-| Rust | Static | Very Fast | Steep |
-| Go | Static | Very Fast | Medium |
+| Language   | Typing  | Performance | Learning Curve |
+| ---------- | ------- | ----------- | -------------- |
+| JavaScript | Dynamic | Fast        | Easy           |
+| TypeScript | Static  | Fast        | Medium         |
+| Python     | Dynamic | Moderate    | Easy           |
+| Rust       | Static  | Very Fast   | Steep          |
+| Go         | Static  | Very Fast   | Medium         |
 
 ---
 
@@ -133,7 +139,7 @@ print(quicksort(numbers))
 
 ### Inline Math
 
-You can write inline math like $E = mc^2$ or $a^2 + b^2 = c^2$ directly in your text. The Pythagorean theorem states that $\sqrt{a^2 + b^2} = c$. 
+You can write inline math like $E = mc^2$ or $a^2 + b^2 = c^2$ directly in your text. The Pythagorean theorem states that $\sqrt{a^2 + b^2} = c$.
 
 More examples: $\int_0^\infty e^{-x^2} dx = \frac{\sqrt{\pi}}{2}$ and the famous $e^{i\pi} + 1 = 0$.
 
@@ -247,14 +253,14 @@ $$
 > This is a simple blockquote. It can contain multiple lines of text and is useful for highlighting important information or quoting external sources.
 
 > **Note:** Blockquotes can also contain **formatted text**, `inline code`, and even [links](https://example.com).
-> 
+>
 > They can span multiple paragraphs, which is useful for longer quotations or important notes.
 
 > **Warning:** This is a multi-level quote.
-> 
->> You can nest blockquotes for additional emphasis.
->> 
->> > Even deeper nesting is possible, though it should be used sparingly.
+>
+> > You can nest blockquotes for additional emphasis.
+> >
+> > > Even deeper nesting is possible, though it should be used sparingly.
 
 ---
 
@@ -266,6 +272,7 @@ $$
 Markdown is a lightweight markup language created by John Gruber in 2004. It allows you to write using an easy-to-read, easy-to-write plain text format, which then converts to structurally valid HTML.
 
 Key benefits:
+
 - Simple and intuitive syntax
 - Platform-independent
 - Widely supported
@@ -283,6 +290,7 @@ i\hbar\frac{\partial}{\partial t}\Psi(\mathbf{r},t) = \hat{H}\Psi(\mathbf{r},t)
 $$
 
 Where:
+
 - $\Psi$ is the wave function
 - $\hbar$ is the reduced Planck constant
 - $\hat{H}$ is the Hamiltonian operator
@@ -294,15 +302,13 @@ Where:
 
 ```typescript
 interface MathEquation {
-  type: 'inline' | 'block';
+  type: "inline" | "block";
   content: string;
   variables: string[];
 }
 
 function renderEquation(eq: MathEquation): string {
-  return eq.type === 'inline' 
-    ? `$${eq.content}$` 
-    : `$$\n${eq.content}\n$$`;
+  return eq.type === "inline" ? `$${eq.content}$` : `$$\n${eq.content}\n$$`;
 }
 ```
 
@@ -318,11 +324,42 @@ You've seen several horizontal rules throughout this document (the lines separat
 
 ## Images
 
-While this example doesn't include actual images, you would typically add them like this in markdown:
+### Single Image with Caption
 
-![Alt text for accessibility](https://via.placeholder.com/600x300)
+You can use standard markdown image syntax. Click on any image to view it in fullscreen:
 
-Images automatically get responsive styling and border treatment.
+![Decode Logo](/decode.png "The Decode app logo")
+
+### Using the Image Component
+
+For more control, use the Image component directly with a caption:
+
+<Image src="/zoro.png" alt="Zoro" caption="Zoro - the greatest swordsman" />
+
+### Image Gallery
+
+Use the ImageGallery component for multiple images with navigation:
+
+<ImageGallery
+  images={[
+    {
+      src: "/decode.png",
+      alt: "Decode",
+      caption: "Decode - Browser for Claude Code",
+    },
+    {
+      src: "/prime.jpeg",
+      alt: "Prime Intellect",
+      caption: "Prime Intellect - RL Environments",
+    },
+    {
+      src: "/harvard.png",
+      alt: "Harvard",
+      caption: "Harvard Graduate School of Education",
+    },
+    { src: "/zoro.png", alt: "Zoro", caption: "The legendary swordsman" },
+  ]}
+/>
 
 ---
 
@@ -336,12 +373,12 @@ Images automatically get responsive styling and border treatment.
 
 ### Math in Tables
 
-| Constant | Symbol | Value | Formula |
-|----------|--------|-------|---------|
-| Pi | $\pi$ | 3.14159... | $\frac{C}{d}$ |
-| Euler's number | $e$ | 2.71828... | $\lim_{n\to\infty}(1+\frac{1}{n})^n$ |
-| Golden ratio | $\phi$ | 1.61803... | $\frac{1+\sqrt{5}}{2}$ |
-| Planck constant | $h$ | $6.626 \times 10^{-34}$ J⋅s | - |
+| Constant        | Symbol | Value                       | Formula                              |
+| --------------- | ------ | --------------------------- | ------------------------------------ |
+| Pi              | $\pi$  | 3.14159...                  | $\frac{C}{d}$                        |
+| Euler's number  | $e$    | 2.71828...                  | $\lim_{n\to\infty}(1+\frac{1}{n})^n$ |
+| Golden ratio    | $\phi$ | 1.61803...                  | $\frac{1+\sqrt{5}}{2}$               |
+| Planck constant | $h$    | $6.626 \times 10^{-34}$ J⋅s | -                                    |
 
 ### Code with Math Explanation
 
@@ -350,15 +387,15 @@ Here's an implementation of the quadratic formula $x = \frac{-b \pm \sqrt{b^2 - 
 ```javascript
 function solveQuadratic(a, b, c) {
   const discriminant = b * b - 4 * a * c;
-  
+
   if (discriminant < 0) {
     return []; // No real solutions
   }
-  
+
   const sqrtDisc = Math.sqrt(discriminant);
   const x1 = (-b + sqrtDisc) / (2 * a);
   const x2 = (-b - sqrtDisc) / (2 * a);
-  
+
   return discriminant === 0 ? [x1] : [x1, x2];
 }
 
@@ -375,14 +412,13 @@ Footnotes allow you to add references and additional information without clutter
 You can reference the same footnote multiple times[^1], and footnotes can contain **formatted text** and `code snippets`[^3].
 
 [^1]: This is a simple footnote. Footnotes are automatically numbered and linked.
-
 [^2]: MDX with remark-gfm provides full GitHub Flavored Markdown support, including footnotes, tables, task lists, and strikethrough text. Learn more at [GitHub's GFM spec](https://github.github.com/gfm/).
-
 [^3]: Footnotes can include:
+
     - Multiple paragraphs
     - Code examples: `const x = 10`
     - Even math: $f(x) = x^2$
-    
+
     Just indent the continuation lines with 4 spaces.
 
 ---
@@ -417,4 +453,4 @@ For more information, check out the [MDX documentation](https://mdxjs.com/) and 
 
 ---
 
-*Last updated: December 2025*
+_Last updated: December 2025_
