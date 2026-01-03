@@ -36,8 +36,8 @@ export default function WorkSection() {
             href={`/blog/${post.slug}`}
             className="block group"
           >
-            <article className="flex items-center justify-between gap-4 py-2">
-              <div className="flex items-center gap-3 min-w-0">
+            <article className="flex items-start justify-between gap-4 py-2">
+              <div className="flex items-start gap-3 min-w-0">
                 {post.metadata.image && (
                   <img
                     src={post.metadata.image}
@@ -45,7 +45,7 @@ export default function WorkSection() {
                     className="w-8 h-8 rounded object-cover flex-shrink-0"
                   />
                 )}
-                <h3 className="font-medium group-hover:text-foreground-muted transition-colors truncate">
+                <h3 className="font-medium group-hover:text-foreground-muted transition-colors">
                   {post.metadata.title}
                 </h3>
               </div>
