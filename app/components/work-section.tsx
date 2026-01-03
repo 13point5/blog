@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Layers, Box, PenLine } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 type Item = {
   id: number;
@@ -21,39 +21,9 @@ const items: Item[] = [
     description:
       "A comprehensive guide showcasing all supported markdown elements and mathematical notation.",
     year: "2024",
-    link: "/blog",
+    link: "/blog/markdown-math-guide",
     type: "writing",
     image: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=800&auto=format&fit=crop&q=80",
-  },
-  {
-    id: 1,
-    title: "Decode",
-    description:
-      "Building a browser and whiteboard for Claude Code. Making AI agents tangible and collaborative.",
-    year: "2024",
-    link: "#",
-    type: "project",
-    image: null,
-  },
-  {
-    id: 2,
-    title: "SWE-Grep",
-    description:
-      "Open source SWE agent model. Learning RL by building with a team at CMU under Prof Graham Neubig.",
-    year: "2024",
-    link: "#",
-    type: "project",
-    image: null,
-  },
-  {
-    id: 3,
-    title: "Prime Intellect",
-    description:
-      "Building RL environments through their bounty program. Designing challenges for agent training.",
-    year: "2024",
-    link: "#",
-    type: "project",
-    image: null,
   },
   {
     id: 4,
@@ -67,51 +37,25 @@ const items: Item[] = [
   },
 ];
 
-const filters = [
-  { label: "All", value: "all", icon: Layers },
-  { label: "Projects", value: "project", icon: Box },
-  { label: "Writing", value: "writing", icon: PenLine },
-] as const;
-
-type FilterValue = (typeof filters)[number]["value"];
-
 export default function WorkSection() {
-  const [activeFilter, setActiveFilter] = useState<FilterValue>("all");
-
-  const filteredItems =
-    activeFilter === "all"
-      ? items
-      : items.filter((item) => item.type === activeFilter);
-
   return (
-    <section id="work" className="animate-fade-blur animation-delay-100">
-      <h2 className="text-2xl font-medium mb-6">work</h2>
-
-      {/* Filter buttons */}
-      <div className="flex items-center gap-3 mb-8">
-        {filters.map((filter) => {
-          const Icon = filter.icon;
-          return (
-            <Button
-              key={filter.value}
-              onClick={() => setActiveFilter(filter.value)}
-              variant={
-                activeFilter === filter.value
-                  ? "filterActive"
-                  : "filterInactive"
-              }
-              className="rounded-full gap-1.5"
-            >
-              <Icon size={16} />
-              {filter.label}
-            </Button>
-          );
-        })}
+    <section id="blog" className="animate-fade-blur animation-delay-100">
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-medium">Blog</h2>
+        <Link href="/blog">
+          <Button variant="ghost" className="gap-2 group">
+            View All
+            <ArrowRight
+              size={16}
+              className="transition-transform group-hover:translate-x-1"
+            />
+          </Button>
+        </Link>
       </div>
 
       {/* Items grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {filteredItems.map((item) => (
+        {items.map((item) => (
           <a
             key={item.id}
             href={item.link}
@@ -126,9 +70,7 @@ export default function WorkSection() {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
               ) : (
-                <div className="text-5xl opacity-20">
-                  {item.type === "project" ? "🔧" : "✍️"}
-                </div>
+                <div className="text-5xl opacity-20">✍️</div>
               )}
             </div>
 
