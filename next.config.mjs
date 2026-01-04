@@ -1,4 +1,6 @@
 import createMDX from "@next/mdx";
+import rehypePrettyCode from "rehype-pretty-code";
+import { transformers } from "./lib/highlight-code.mjs";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -14,6 +16,17 @@ const nextConfig = {
   },
 };
 
+/** @type {import('rehype-pretty-code').Options} */
+const rehypePrettyCodeOptions = {
+  theme: {
+    dark: "github-dark",
+    light: "github-light",
+  },
+  transformers,
+  keepBackground: false,
+  defaultLang: "plaintext",
+};
+
 // Create an async wrapper to load plugins
 async function createMDXConfig() {
   const remarkMath = (await import("remark-math")).default;
@@ -23,7 +36,7 @@ async function createMDXConfig() {
   const withMDX = createMDX({
     options: {
       remarkPlugins: [remarkMath, remarkGfm],
-      rehypePlugins: [rehypeKatex],
+      rehypePlugins: [rehypeKatex, [rehypePrettyCode, rehypePrettyCodeOptions]],
     },
   });
 

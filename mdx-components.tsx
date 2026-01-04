@@ -3,6 +3,9 @@ import { Socials } from "./app/components/socials";
 import { Link } from "./components/ui/link";
 import { ImageViewer } from "./components/ui/image-viewer";
 import { ImageGallery } from "./components/ui/image-gallery";
+import { CopyButton } from "./components/ui/copy-button";
+import { CodeCollapsibleWrapper } from "./components/code-collapsible-wrapper";
+import { getIconForLanguageExtension } from "./components/language-icons";
 
 // Custom components for MDX content
 const components: MDXComponents = {
@@ -10,6 +13,8 @@ const components: MDXComponents = {
   Link,
   Image: ImageViewer,
   ImageGallery,
+  CodeCollapsibleWrapper,
+
   // Headings
   h1: ({ children }) => (
     <h1 className="text-3xl font-semibold mb-6 mt-8 text-foreground">
@@ -73,24 +78,74 @@ const components: MDXComponents = {
   ),
   em: ({ children }) => <em className="italic">{children}</em>,
 
-  // Code
-  code: ({ children, className }) => {
-    // Inline code (no className means it's inline)
-    if (!className) {
+  // Code blocks - handled by rehype-pretty-code
+  pre: ({ children, ...props }) => {
+    return (
+      <pre className="no-scrollbar" {...props}>
+        {children}
+      </pre>
+    );
+  },
+
+  code: ({
+    children,
+    className,
+    __raw__,
+    ...props
+  }: React.ComponentProps<"code"> & {
+    __raw__?: string;
+  }) => {
+    // Inline code (no className or children is a string without data-language)
+    const isInline = typeof children === "string" && !className;
+    if (isInline) {
       return (
-        <code className="bg-accent px-1.5 py-0.5 rounded text-sm font-mono text-foreground border border-border">
+        <code className="bg-accent border-border px-1.5 py-0.5 rounded text-sm font-mono text-foreground border">
           {children}
         </code>
       );
     }
-    // Code block
-    return <code className={className}>{children}</code>;
+
+    // Default code block with copy button
+    return (
+      <>
+        {__raw__ && <CopyButton value={__raw__} />}
+        <code className={className} {...props}>
+          {children}
+        </code>
+      </>
+    );
   },
-  pre: ({ children }) => (
-    <pre className="bg-accent p-4 rounded-lg overflow-x-auto mb-4 text-sm border border-border">
+
+  // Figure (code block container from rehype-pretty-code)
+  figure: ({ className, ...props }: React.ComponentProps<"figure">) => {
+    const isCodeBlock =
+      typeof className === "string" &&
+      className.includes("rehype-pretty-code");
+    if (isCodeBlock) {
+      return <figure className={`${className} group/code`} {...props} />;
+    }
+    return <figure className={className} {...props} />;
+  },
+
+  // Figcaption (code block title from rehype-pretty-code)
+  figcaption: ({
+    className,
+    children,
+    ...props
+  }: React.ComponentProps<"figcaption"> & { "data-language"?: string }) => {
+    const language = props["data-language"];
+    const icon = language ? getIconForLanguageExtension(language) : null;
+
+    return (
+      <figcaption
+        className={`flex items-center gap-2 ${className || ""}`}
+        {...props}
+      >
+        {icon}
       {children}
-    </pre>
-  ),
+      </figcaption>
+    );
+  },
 
   // Blockquote
   blockquote: ({ children }) => (

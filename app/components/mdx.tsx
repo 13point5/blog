@@ -1,11 +1,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { MDXRemote } from "next-mdx-remote/rsc";
-import { highlight } from "sugar-high";
 import React from "react";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
+import rehypePrettyCode from "rehype-pretty-code";
+import type { Options } from "rehype-pretty-code";
+import { CopyButton } from "@/components/ui/copy-button";
+import { getIconForLanguageExtension } from "@/components/language-icons";
 
 function CustomLink(props: React.AnchorHTMLAttributes<HTMLAnchorElement>) {
   const href = props.href || "";
@@ -27,34 +30,6 @@ function CustomLink(props: React.AnchorHTMLAttributes<HTMLAnchorElement>) {
 
 function RoundedImage(props: React.ComponentProps<typeof Image>) {
   return <Image className="rounded-lg" {...props} />;
-}
-
-function Code({
-  children,
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLElement>) {
-  // Inline code (no className means it's inline)
-  if (!className) {
-    return (
-      <code
-        className="bg-accent px-1.5 py-0.5 rounded text-sm font-mono text-foreground border border-border"
-        {...props}
-      >
-        {children}
-      </code>
-    );
-  }
-
-  // Code block - apply syntax highlighting
-  const codeHTML = highlight(String(children));
-  return (
-    <code
-      dangerouslySetInnerHTML={{ __html: codeHTML }}
-      className={className}
-      {...props}
-    />
-  );
 }
 
 function slugify(str: string) {
@@ -98,6 +73,97 @@ function createHeading(level: number) {
   return Heading;
 }
 
+// Code component that handles both inline code and code blocks
+function Code({
+  children,
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLElement> & {
+  "data-language"?: string;
+  __raw__?: string;
+}) {
+  const isInlineCode =
+    typeof children === "string" && !className?.includes("language-");
+
+  // Inline code
+  if (isInlineCode) {
+    return (
+      <code
+        className="bg-accent px-1.5 py-0.5 rounded text-sm font-mono text-foreground border border-border"
+        {...props}
+      >
+        {children}
+      </code>
+    );
+  }
+
+  // Code block - rehype-pretty-code will handle the syntax highlighting
+  const rawCode = (props as { __raw__?: string }).__raw__;
+
+  return (
+    <>
+      {rawCode && <CopyButton value={rawCode} />}
+      <code className={className} {...props}>
+        {children}
+      </code>
+    </>
+  );
+}
+
+// Figure component for code blocks
+function Figure({
+  children,
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLElement>) {
+  // Check if this is a code block figure from rehype-pretty-code
+  const dataAttr = (props as Record<string, unknown>)[
+    "data-rehype-pretty-code-figure"
+  ];
+  if (dataAttr !== undefined) {
+    return (
+      <figure className={`group/code ${className || ""}`} {...props}>
+        {children}
+      </figure>
+    );
+  }
+  return (
+    <figure className={className} {...props}>
+      {children}
+    </figure>
+  );
+}
+
+// Figcaption for code block titles
+function Figcaption({
+  children,
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLElement> & { "data-language"?: string }) {
+  const language = props["data-language"];
+  const icon = language ? getIconForLanguageExtension(language) : null;
+
+  return (
+    <figcaption className={`flex items-center gap-2 ${className || ""}`} {...props}>
+      {icon}
+      {children}
+    </figcaption>
+  );
+}
+
+// Pre component for code blocks
+function Pre({
+  children,
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLPreElement>) {
+  return (
+    <pre className={`no-scrollbar ${className || ""}`} {...props}>
+      {children}
+    </pre>
+  );
+}
+
 const components = {
   h1: createHeading(1),
   h2: createHeading(2),
@@ -108,11 +174,9 @@ const components = {
   Image: RoundedImage,
   a: CustomLink,
   code: Code,
-  pre: ({ children }: { children: React.ReactNode }) => (
-    <pre className="bg-accent p-4 rounded-lg overflow-x-auto mb-4 text-sm border border-border">
-      {children}
-    </pre>
-  ),
+  pre: Pre,
+  figure: Figure,
+  figcaption: Figcaption,
   blockquote: ({ children }: { children: React.ReactNode }) => (
     <blockquote className="border-l-4 border-accent-light bg-accent/50 pl-4 py-2 italic text-foreground mb-4 rounded-r">
       {children}
@@ -183,6 +247,35 @@ const components = {
   },
 };
 
+// Rehype Pretty Code options
+const rehypePrettyCodeOptions: Options = {
+  theme: {
+    dark: "github-dark",
+    light: "github-light",
+  },
+  keepBackground: false,
+  defaultLang: "plaintext",
+  transformers: [
+    {
+      pre(node) {
+        node.properties["class"] =
+          "no-scrollbar min-w-0 overflow-x-auto outline-none !bg-transparent";
+      },
+      code(node) {
+        if (node.tagName === "code") {
+          // Store raw code for copy button
+          node.properties["__raw__"] = this.source;
+          // Add line numbers
+          node.properties["data-line-numbers"] = "";
+        }
+      },
+      line(node) {
+        node.properties["data-line"] = "";
+      },
+    },
+  ],
+};
+
 export function CustomMDX(props: { source: string }) {
   return (
     <MDXRemote
@@ -190,11 +283,13 @@ export function CustomMDX(props: { source: string }) {
       options={{
         mdxOptions: {
           remarkPlugins: [remarkGfm, remarkMath],
-          rehypePlugins: [rehypeKatex],
+          rehypePlugins: [
+            rehypeKatex,
+            [rehypePrettyCode, rehypePrettyCodeOptions],
+          ],
         },
       }}
       components={components}
     />
   );
 }
-

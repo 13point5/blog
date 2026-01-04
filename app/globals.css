@@ -11,6 +11,13 @@
   --accent-light: oklch(0.9 0 0);
   --border: oklch(0.82 0 0);
   --radius: 0.625rem;
+
+  /* Code block colors - Light mode */
+  --code-bg: oklch(0.97 0 0);
+  --code-foreground: oklch(0.25 0 0);
+  --code-highlight: oklch(0.92 0 0);
+  --code-line-number: oklch(0.6 0 0);
+  --code-border: oklch(0.88 0 0);
   --background: #f2f2f2;
   --foreground: oklch(0.2 0 0);
   --card: oklch(1 0 0);
@@ -51,6 +58,11 @@
   --color-accent: var(--accent);
   --color-accent-light: var(--accent-light);
   --color-border: var(--border);
+  --color-code-bg: var(--code-bg);
+  --color-code-foreground: var(--code-foreground);
+  --color-code-highlight: var(--code-highlight);
+  --color-code-line-number: var(--code-line-number);
+  --color-code-border: var(--code-border);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -225,6 +237,13 @@ samp {
   --accent: oklch(0.32 0 0);
   --accent-light: oklch(0.3 0 0);
   --border: oklch(1 0 0 / 15%);
+
+  /* Code block colors - Dark mode */
+  --code-bg: oklch(0.18 0 0);
+  --code-foreground: oklch(0.85 0 0);
+  --code-highlight: oklch(0.25 0 0);
+  --code-line-number: oklch(0.55 0 0);
+  --code-border: oklch(0.32 0 0);
   --card: oklch(0.27 0 0);
   --card-foreground: oklch(0.95 0 0);
   --popover: oklch(0.27 0 0);
@@ -264,6 +283,13 @@ samp {
   --accent: oklch(0.93 0.02 85);
   --accent-light: oklch(0.9 0.025 85);
   --border: oklch(0.85 0.03 80);
+
+  /* Code block colors - Warm mode */
+  --code-bg: oklch(0.93 0.015 85);
+  --code-foreground: oklch(0.3 0.02 50);
+  --code-highlight: oklch(0.88 0.025 85);
+  --code-line-number: oklch(0.55 0.02 60);
+  --code-border: oklch(0.82 0.03 80);
   --card: oklch(0.97 0.015 85);
   --card-foreground: oklch(0.25 0.02 50);
   --popover: oklch(0.97 0.015 85);
@@ -413,15 +439,139 @@ summary::marker {
   color: var(--foreground);
 }
 
-/* Code block language label */
-pre[class*="language-"]::before {
-  content: attr(data-language);
+/* ===== Code Block Styling (rehype-pretty-code) ===== */
+
+/* Code block figure container */
+[data-rehype-pretty-code-figure] {
+  background-color: var(--color-code-bg);
+  color: var(--color-code-foreground);
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-code-border);
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  font-size: 0.875rem;
+  position: relative;
+}
+
+/* Adjust copy button position when title exists */
+[data-rehype-pretty-code-figure]:has([data-rehype-pretty-code-title])
+  [data-slot="copy-button"] {
+  top: 0.375rem !important;
+}
+
+/* Code block title/filename bar */
+[data-rehype-pretty-code-title] {
+  border-bottom: 1px solid var(--color-code-border);
+  padding-block: 0.625rem;
+  padding-inline: 1rem;
+  font-size: 0.8125rem;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  color: var(--color-code-foreground);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: color-mix(in oklab, var(--code-bg) 80%, var(--code-border));
+}
+
+/* Pre element styling */
+[data-rehype-pretty-code-figure] pre {
+  margin: 0;
+  padding: 1rem 0;
+  background: transparent !important;
+  overflow-x: auto;
+}
+
+/* Line numbers grid */
+[data-line-numbers] {
+  display: grid;
+  min-width: 100%;
+  white-space: pre;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  counter-reset: line;
+}
+
+/* Line number styling */
+[data-line-numbers] [data-line]::before {
+  font-size: 0.8125rem;
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 3.5rem;
+  padding-right: 1.25rem;
+  text-align: right;
+  color: var(--color-code-line-number);
+  background-color: var(--color-code-bg);
+  position: sticky;
+  left: 0;
+  user-select: none;
+}
+
+/* Highlighted line number background */
+[data-line-numbers] [data-highlighted-line][data-line]::before {
+  background-color: var(--color-code-highlight);
+}
+
+/* Individual line styling */
+[data-line] {
+  padding-top: 0.0625rem;
+  padding-bottom: 0.0625rem;
+  padding-right: 1rem;
+  min-height: 1.5rem;
+  width: 100%;
+  display: inline-block;
+}
+
+/* Shiki theme token colors */
+[data-line] span {
+  color: var(--shiki-light);
+}
+
+.dark [data-line] span {
+  color: var(--shiki-dark) !important;
+}
+
+/* Highlighted lines */
+[data-highlighted-line] {
+  position: relative;
+  background-color: var(--color-code-highlight);
+}
+
+/* Highlighted line left border indicator */
+[data-highlighted-line]::after {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  font-size: 0.75rem;
-  color: var(--foreground-muted);
-  text-transform: uppercase;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  content: "";
+  background-color: var(--color-foreground-muted);
+  border-radius: 0 2px 2px 0;
+}
+
+/* Highlighted inline chars */
+[data-highlighted-chars] {
+  background-color: var(--color-code-highlight);
+  border-radius: 0.25rem;
+  padding-inline: 0.25rem;
+  padding-block: 0.125rem;
+}
+
+/* Hide scrollbar but allow scrolling */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Code block without line numbers */
+[data-rehype-pretty-code-figure] pre:not(:has([data-line-numbers])) {
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 /* Definition lists */
