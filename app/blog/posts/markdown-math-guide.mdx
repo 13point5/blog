@@ -70,34 +70,169 @@ Track your progress with task lists:
 
 Use inline code like `const x = 42` or `npm install` within your sentences. You can reference functions like `Array.map()` or variables like `isAuthenticated`.
 
-### Code Blocks
+### Basic Syntax Highlighting
 
-Here's a JavaScript code block:
+Here's a simple TypeScript example with automatic syntax highlighting:
 
-```javascript
-function fibonacci(n) {
-  if (n <= 1) return n;
-  return fibonacci(n - 1) + fibonacci(n - 2);
+```typescript
+interface User {
+  id: string;
+  name: string;
+  email: string;
 }
 
-const result = fibonacci(10);
-console.log(result); // Output: 55
+function greetUser(user: User): string {
+  return `Hello, ${user.name}!`;
+}
+
+const user: User = {
+  id: "1",
+  name: "John Doe",
+  email: "john@example.com",
+};
+
+console.log(greetUser(user));
 ```
 
-Python example with syntax highlighting:
+### Code Block with Filename
 
-```python
-def quicksort(arr):
-    if len(arr) <= 1:
-        return arr
-    pivot = arr[len(arr) // 2]
-    left = [x for x in arr if x < pivot]
-    middle = [x for x in arr if x == pivot]
-    right = [x for x in arr if x > pivot]
-    return quicksort(left) + middle + quicksort(right)
+When you add a title to your code block, it shows a nice header with the filename:
 
-numbers = [3, 6, 8, 10, 1, 2, 1]
-print(quicksort(numbers))
+```tsx title="components/button.tsx"
+import { cn } from "@/lib/utils";
+
+interface ButtonProps {
+  children: React.ReactNode;
+  variant?: "primary" | "secondary" | "ghost";
+  onClick?: () => void;
+}
+
+export function Button({ 
+  children, 
+  variant = "primary", 
+  onClick 
+}: ButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "px-4 py-2 rounded-lg font-medium transition-colors",
+        variant === "primary" && "bg-blue-500 text-white hover:bg-blue-600",
+        variant === "secondary" && "bg-gray-200 text-gray-800 hover:bg-gray-300",
+        variant === "ghost" && "hover:bg-gray-100"
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+```
+
+### Line Highlighting
+
+You can highlight specific lines to draw attention to important code:
+
+```tsx {4-6,12}
+import { useState, useEffect } from "react";
+
+export function useLocalStorage<T>(key: string, initialValue: T) {
+  // Get initial value from localStorage or use provided initialValue
+  const [storedValue, setStoredValue] = useState<T>(() => {
+    try {
+      const item = window.localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch {
+      return initialValue;
+    }
+  });
+
+  // Update localStorage when value changes
+  useEffect(() => {
+    window.localStorage.setItem(key, JSON.stringify(storedValue));
+  }, [key, storedValue]);
+
+  return [storedValue, setStoredValue] as const;
+}
+```
+
+### Different Languages
+
+#### Python
+
+```python title="fibonacci.py"
+def fibonacci(n: int) -> list[int]:
+    """Generate Fibonacci sequence up to n numbers."""
+    if n <= 0:
+        return []
+    elif n == 1:
+        return [0]
+    
+    sequence = [0, 1]
+    while len(sequence) < n:
+        sequence.append(sequence[-1] + sequence[-2])
+    
+    return sequence
+
+# Example usage
+print(fibonacci(10))  # [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+```
+
+#### CSS
+
+```css title="globals.css"
+:root {
+  --background: oklch(0.98 0 0);
+  --foreground: oklch(0.2 0 0);
+  --primary: oklch(0.55 0.2 250);
+}
+
+.dark {
+  --background: oklch(0.15 0 0);
+  --foreground: oklch(0.95 0 0);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: system-ui, sans-serif;
+}
+```
+
+#### JSON Configuration
+
+```json title="package.json"
+{
+  "name": "my-awesome-app",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "^14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
+```
+
+#### Shell/Bash
+
+```bash title="setup.sh"
+#!/bin/bash
+
+# Create project directory
+mkdir -p my-project && cd my-project
+
+# Initialize git repository
+git init
+
+# Create basic structure
+mkdir -p src/{components,hooks,utils}
+touch src/index.ts
+
+echo "Project setup complete!"
 ```
 
 ---
