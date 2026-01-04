@@ -450,7 +450,7 @@ summary::marker {
   margin-top: 1.5rem;
   margin-bottom: 1.5rem;
   overflow: hidden;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   position: relative;
 }
 
@@ -458,6 +458,7 @@ summary::marker {
 [data-rehype-pretty-code-figure]:has([data-rehype-pretty-code-title])
   [data-slot="copy-button"] {
   top: 0.375rem !important;
+  background-color: color-mix(in oklab, var(--code-bg) 80%, var(--code-border)) !important;
 }
 
 /* Code block title/filename bar */
@@ -495,7 +496,7 @@ summary::marker {
 
 /* Line number styling */
 [data-line-numbers] [data-line]::before {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   counter-increment: line;
   content: counter(line);
   display: inline-block;
