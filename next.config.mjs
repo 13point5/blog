@@ -1,9 +1,30 @@
 import createMDX from "@next/mdx";
+import rehypePrettyCode from "rehype-pretty-code";
+import { transformers } from "./lib/highlight-code.mjs";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Configure `pageExtensions` to include markdown and MDX files
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+    ],
+  },
+};
+
+/** @type {import('rehype-pretty-code').Options} */
+const rehypePrettyCodeOptions = {
+  theme: {
+    dark: "github-dark",
+    light: "github-light",
+  },
+  transformers,
+  keepBackground: false,
+  defaultLang: "plaintext",
 };
 
 // Create an async wrapper to load plugins
@@ -15,7 +36,7 @@ async function createMDXConfig() {
   const withMDX = createMDX({
     options: {
       remarkPlugins: [remarkMath, remarkGfm],
-      rehypePlugins: [rehypeKatex],
+      rehypePlugins: [rehypeKatex, [rehypePrettyCode, rehypePrettyCodeOptions]],
     },
   });
 

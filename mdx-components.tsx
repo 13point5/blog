@@ -1,13 +1,20 @@
 import type { MDXComponents } from "mdx/types";
-import Link from "next/link";
-import Image from "next/image";
 import { Socials } from "./app/components/socials";
-import { IconLink } from "./app/components/icon-link";
+import { Link } from "./components/ui/link";
+import { ImageViewer } from "./components/ui/image-viewer";
+import { ImageGallery } from "./components/ui/image-gallery";
+import { CopyButton } from "./components/ui/copy-button";
+import { CodeCollapsibleWrapper } from "./components/code-collapsible-wrapper";
+import { getIconForLanguageExtension } from "./components/language-icons";
 
 // Custom components for MDX content
 const components: MDXComponents = {
   Socials,
-  IconLink,
+  Link,
+  Image: ImageViewer,
+  ImageGallery,
+  CodeCollapsibleWrapper,
+
   // Headings
   h1: ({ children }) => (
     <h1 className="text-3xl font-semibold mb-6 mt-8 text-foreground">
@@ -46,29 +53,11 @@ const components: MDXComponents = {
   ),
 
   // Links
-  a: ({ href, children }) => {
-    const isExternal = href?.startsWith("http");
-    if (isExternal) {
-      return (
-        <a
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-foreground font-medium transition-colors underline decoration-border hover:decoration-foreground underline-offset-2"
-        >
-          {children}
-        </a>
-      );
-    }
-    return (
-      <Link
-        href={href || "#"}
-        className="text-foreground font-medium transition-colors underline decoration-border hover:decoration-foreground underline-offset-2"
-      >
-        {children}
-      </Link>
-    );
-  },
+  a: ({ href, children }) => (
+    <Link href={href || "#"} variant="underline">
+      {children}
+    </Link>
+  ),
 
   // Lists
   ul: ({ children }) => (
@@ -89,24 +78,74 @@ const components: MDXComponents = {
   ),
   em: ({ children }) => <em className="italic">{children}</em>,
 
-  // Code
-  code: ({ children, className }) => {
-    // Inline code (no className means it's inline)
-    if (!className) {
+  // Code blocks - handled by rehype-pretty-code
+  pre: ({ children, ...props }) => {
+    return (
+      <pre className="no-scrollbar" {...props}>
+        {children}
+      </pre>
+    );
+  },
+
+  code: ({
+    children,
+    className,
+    __raw__,
+    ...props
+  }: React.ComponentProps<"code"> & {
+    __raw__?: string;
+  }) => {
+    // Inline code (no className or children is a string without data-language)
+    const isInline = typeof children === "string" && !className;
+    if (isInline) {
       return (
-        <code className="bg-accent px-1.5 py-0.5 rounded text-sm font-mono text-foreground border border-border">
+        <code className="bg-accent border-border px-1.5 py-0.5 rounded text-sm font-mono text-foreground border">
           {children}
         </code>
       );
     }
-    // Code block
-    return <code className={className}>{children}</code>;
+
+    // Default code block with copy button
+    return (
+      <>
+        {__raw__ && <CopyButton value={__raw__} />}
+        <code className={className} {...props}>
+          {children}
+        </code>
+      </>
+    );
   },
-  pre: ({ children }) => (
-    <pre className="bg-accent p-4 rounded-lg overflow-x-auto mb-4 text-sm border border-border">
+
+  // Figure (code block container from rehype-pretty-code)
+  figure: ({ className, ...props }: React.ComponentProps<"figure">) => {
+    const isCodeBlock =
+      typeof className === "string" &&
+      className.includes("rehype-pretty-code");
+    if (isCodeBlock) {
+      return <figure className={`${className} group/code`} {...props} />;
+    }
+    return <figure className={className} {...props} />;
+  },
+
+  // Figcaption (code block title from rehype-pretty-code)
+  figcaption: ({
+    className,
+    children,
+    ...props
+  }: React.ComponentProps<"figcaption"> & { "data-language"?: string }) => {
+    const language = props["data-language"];
+    const icon = language ? getIconForLanguageExtension(language) : null;
+
+    return (
+      <figcaption
+        className={`flex items-center gap-2 ${className || ""}`}
+        {...props}
+      >
+        {icon}
       {children}
-    </pre>
-  ),
+      </figcaption>
+    );
+  },
 
   // Blockquote
   blockquote: ({ children }) => (
@@ -169,32 +208,10 @@ const components: MDXComponents = {
     </summary>
   ),
 
-  // Inline images
-  img: ({ src, alt }) => {
-    // Handle external images with Next.js Image component
-    if (src?.startsWith("http")) {
-      return (
-        <Image
-          src={src}
-          alt={alt || ""}
-          width={800}
-          height={400}
-          className="max-w-full h-auto rounded-lg my-4 border border-border"
-          unoptimized
-        />
-      );
-    }
-    // For local images, use standard img tag or handle accordingly
-    return (
-      <Image
-        src={src || ""}
-        alt={alt || ""}
-        width={800}
-        height={400}
-        className="max-w-full h-auto rounded-lg my-4 border border-border"
-      />
-    );
-  },
+  // Inline images - use ImageViewer for click-to-open functionality
+  img: ({ src, alt, title }) => (
+    <ImageViewer src={src || ""} alt={alt || ""} caption={title} />
+  ),
 
   // Deleted text (strikethrough from GFM)
   del: ({ children }) => (
