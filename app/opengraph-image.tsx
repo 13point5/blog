@@ -56,7 +56,6 @@ export default async function Image() {
         </div>
 
         {/* Right side - Zoro image */}
-        {/* @ts-expect-error Satori accepts ArrayBuffer for img src */}
         <img
           src={zoroSrc}
           alt="Zoro"
