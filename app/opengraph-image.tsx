@@ -1,8 +1,8 @@
 import { ImageResponse } from "next/og";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
-export const runtime = "edge";
-
-export const alt = "sriraam - Founding Engineer at Decode";
+export const alt = "Sriraam - Founding Engineer at Decode";
 export const size = {
   width: 1200,
   height: 630,
@@ -10,9 +10,8 @@ export const size = {
 export const contentType = "image/png";
 
 export default async function Image() {
-  const zoroImage = await fetch(
-    new URL("../public/zoro.png", import.meta.url)
-  ).then((res) => res.arrayBuffer());
+  const zoroData = await readFile(join(process.cwd(), "public/zoro.png"));
+  const zoroSrc = Uint8Array.from(zoroData).buffer;
 
   return new ImageResponse(
     (
@@ -57,8 +56,9 @@ export default async function Image() {
         </div>
 
         {/* Right side - Zoro image */}
+        {/* @ts-expect-error Satori accepts ArrayBuffer for img src */}
         <img
-          src={zoroImage as unknown as string}
+          src={zoroSrc}
           alt="Zoro"
           width={280}
           height={280}
