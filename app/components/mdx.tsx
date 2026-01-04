@@ -80,17 +80,22 @@ function Code({
   ...props
 }: React.HTMLAttributes<HTMLElement> & {
   "data-language"?: string;
+  "data-line-numbers"?: string;
   __raw__?: string;
 }) {
-  const isInlineCode =
-    typeof children === "string" && !className?.includes("language-");
+  // Check if this is a code block processed by rehype-pretty-code
+  // Code blocks will have data-line-numbers or data-language attributes
+  const dataLineNumbers = (props as Record<string, unknown>)["data-line-numbers"];
+  const dataLanguage = (props as Record<string, unknown>)["data-language"];
+  const rawCode = (props as { __raw__?: string }).__raw__;
+  
+  const isCodeBlock = dataLineNumbers !== undefined || dataLanguage !== undefined || rawCode !== undefined;
 
-  // Inline code
-  if (isInlineCode) {
+  // Inline code - no rehype-pretty-code attributes
+  if (!isCodeBlock) {
     return (
       <code
         className="bg-accent px-1.5 py-0.5 rounded text-sm font-mono text-foreground border border-border"
-        {...props}
       >
         {children}
       </code>
@@ -98,8 +103,6 @@ function Code({
   }
 
   // Code block - rehype-pretty-code will handle the syntax highlighting
-  const rawCode = (props as { __raw__?: string }).__raw__;
-
   return (
     <>
       {rawCode && <CopyButton value={rawCode} />}
@@ -255,6 +258,7 @@ const rehypePrettyCodeOptions: Options = {
   },
   keepBackground: false,
   defaultLang: "plaintext",
+  bypassInlineCode: true, // Don't process inline code (single backticks)
   transformers: [
     {
       pre(node) {
