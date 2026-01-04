@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 type Theme = "light" | "dark" | "warm";
-type FontFamily = "sans" | "serif" | "dyslexia" | "mono";
+type FontFamily = "sans" | "dyslexia";
 
 export function SettingsDropdown() {
   const { theme, setTheme, fontFamily, setFontFamily } = useTheme();
@@ -28,8 +28,6 @@ export function SettingsDropdown() {
 
   const fonts = [
     { value: "sans", label: "Sans" },
-    { value: "serif", label: "Serif" },
-    { value: "mono", label: "Mono" },
     { value: "dyslexia", label: "Open Dyslexia" },
   ] as const;
 
@@ -83,15 +81,7 @@ export function SettingsDropdown() {
               <DropdownMenuRadioItem
                 key={value}
                 value={value}
-                className={
-                  value === "dyslexia"
-                    ? "font-dyslexia"
-                    : value === "serif"
-                    ? "font-serif"
-                    : value === "mono"
-                    ? "font-mono"
-                    : "font-sans"
-                }
+                className={value === "dyslexia" ? "font-dyslexia" : "font-sans"}
               >
                 {label}
               </DropdownMenuRadioItem>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Merriweather, JetBrains_Mono } from "next/font/google";
+import { Geist } from "next/font/google";
 // OpenDyslexic font for dyslexia-friendly reading - all weights and styles
 import "@fontsource/opendyslexic/400.css"; // Regular
 import "@fontsource/opendyslexic/400-italic.css"; // Regular Italic
@@ -13,18 +13,6 @@ import { Footer } from "./components/footer";
 const geist = Geist({
   subsets: ["latin"],
   variable: "--font-geist",
-});
-
-const merriweather = Merriweather({
-  subsets: ["latin"],
-  weight: ["300", "400", "700", "900"],
-  style: ["normal", "italic"],
-  variable: "--font-merriweather",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains-mono",
 });
 
 export const metadata: Metadata = {
@@ -41,7 +29,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geist.variable} ${merriweather.variable} ${jetbrainsMono.variable} font-sans`}
+      className={`${geist.variable} font-sans`}
       suppressHydrationWarning
     >
       <head>
@@ -62,7 +50,7 @@ export default function RootLayout({
                   }
                   
                   // Apply font (remove all font classes first)
-                  root.classList.remove('font-sans', 'font-serif', 'font-dyslexia', 'font-mono');
+                  root.classList.remove('font-sans', 'font-dyslexia');
                   root.classList.add('font-' + fontFamily);
                 } catch (e) {}
               })();

@@ -9,7 +9,7 @@ import React, {
 } from "react";
 
 type Theme = "light" | "dark" | "warm";
-type FontFamily = "sans" | "serif" | "dyslexia" | "mono";
+type FontFamily = "sans" | "dyslexia";
 
 interface ThemeContextType {
   theme: Theme;
@@ -67,12 +67,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (!hasMounted) return;
 
     const root = document.documentElement;
-    root.classList.remove(
-      "font-sans",
-      "font-serif",
-      "font-dyslexia",
-      "font-mono"
-    );
+    root.classList.remove("font-sans", "font-dyslexia");
     root.classList.add(`font-${fontFamily}`);
 
     localStorage.setItem("fontFamily", fontFamily);
