@@ -74,10 +74,10 @@ export default async function BlogPost({
             }),
           }}
         />
-        <h1 className="text-3xl font-semibold mb-4 mt-8 text-foreground">
+        <h1 className="text-3xl font-semibold mb-4 mt-8 text-foreground text-center">
           {post.metadata.title}
         </h1>
-        <div className="flex items-center gap-2 text-sm text-foreground-muted mb-6">
+        <div className="flex items-center justify-center gap-2 text-sm text-foreground-muted mb-6">
           <time>{formatDate(post.metadata.publishedAt)}</time>
           {post.metadata.author && (
             <>
