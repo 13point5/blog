@@ -16,9 +16,37 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "13point5",
+  title: {
+    default: "sriraam",
+    template: "%s | sriraam",
+  },
   description:
     "Founding Engineer at Decode. Building browsers, agents, and RL environments.",
+  metadataBase: new URL("https://13point5.github.io"),
+  icons: {
+    icon: "/zoro.png",
+    shortcut: "/zoro.png",
+    apple: "/zoro.png",
+  },
+  openGraph: {
+    title: "sriraam",
+    description:
+      "Founding Engineer at Decode. Building browsers, agents, and RL environments.",
+    url: "https://13point5.github.io",
+    siteName: "sriraam",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "sriraam",
+    description:
+      "Founding Engineer at Decode. Building browsers, agents, and RL environments.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({
