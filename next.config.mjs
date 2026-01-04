@@ -6,14 +6,6 @@ import { transformers } from "./lib/highlight-code.mjs";
 const nextConfig = {
   // Configure `pageExtensions` to include markdown and MDX files
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-      },
-    ],
-  },
 };
 
 /** @type {import('rehype-pretty-code').Options} */
