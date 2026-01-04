@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   },
   description:
     "Founding Engineer at Decode. Building browsers, agents, and RL environments.",
-  metadataBase: new URL("https://13point5.github.io"),
+  metadataBase: new URL("https://www.sriraam.me"),
   icons: {
     icon: "/zoro.png",
     shortcut: "/zoro.png",
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     title: "sriraam",
     description:
       "Founding Engineer at Decode. Building browsers, agents, and RL environments.",
-    url: "https://13point5.github.io",
+    url: "https://www.sriraam.me",
     siteName: "sriraam",
     locale: "en_US",
     type: "website",
