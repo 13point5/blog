@@ -34,7 +34,7 @@ export function CopyButton({
           size="icon"
           variant="ghost"
           className={cn(
-            "absolute top-3 right-3 z-10 size-7 text-code-foreground opacity-0 transition-opacity group-hover/code:opacity-100 hover:bg-code-highlight hover:text-code-foreground focus-visible:opacity-100",
+            "absolute top-3 right-3 z-10 size-7 text-code-foreground bg-code-bg opacity-100 transition-opacity hover:bg-code-highlight hover:text-code-foreground",
             className
           )}
           onClick={() => {
