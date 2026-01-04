@@ -66,7 +66,7 @@ export default async function Image() {
 
         {/* Right side - Zoro image */}
         <img
-          src={zoroSrc}
+          src={zoroSrc as unknown as string}
           alt="Zoro"
           width={280}
           height={280}

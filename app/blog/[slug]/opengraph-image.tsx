@@ -10,24 +10,6 @@ export const size = {
 };
 export const contentType = "image/png";
 
-export async function generateImageMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = await params;
-  const post = getBlogPosts().find((post) => post.slug === slug);
-
-  return [
-    {
-      id: slug,
-      alt: post?.metadata.title || "Blog Post",
-      size,
-      contentType,
-    },
-  ];
-}
-
 export default async function Image({
   params,
 }: {
@@ -90,7 +72,7 @@ export default async function Image({
 
         {/* Right side - Zoro image */}
         <img
-          src={zoroSrc}
+          src={zoroSrc as unknown as string}
           alt="Zoro"
           width={220}
           height={220}
