@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import React from "react";
+import { Tweet } from "react-tweet";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
@@ -65,7 +66,7 @@ function createHeading(level: number) {
           className: "anchor",
         }),
       ],
-      children
+      children,
     );
   };
 
@@ -85,18 +86,21 @@ function Code({
 }) {
   // Check if this is a code block processed by rehype-pretty-code
   // Code blocks will have data-line-numbers or data-language attributes
-  const dataLineNumbers = (props as Record<string, unknown>)["data-line-numbers"];
+  const dataLineNumbers = (props as Record<string, unknown>)[
+    "data-line-numbers"
+  ];
   const dataLanguage = (props as Record<string, unknown>)["data-language"];
   const rawCode = (props as { __raw__?: string }).__raw__;
-  
-  const isCodeBlock = dataLineNumbers !== undefined || dataLanguage !== undefined || rawCode !== undefined;
+
+  const isCodeBlock =
+    dataLineNumbers !== undefined ||
+    dataLanguage !== undefined ||
+    rawCode !== undefined;
 
   // Inline code - no rehype-pretty-code attributes
   if (!isCodeBlock) {
     return (
-      <code
-        className="bg-accent px-1.5 py-0.5 rounded text-sm font-mono text-foreground border border-border"
-      >
+      <code className="bg-accent px-1.5 py-0.5 rounded text-sm font-mono text-foreground border border-border">
         {children}
       </code>
     );
@@ -147,7 +151,10 @@ function Figcaption({
   const icon = language ? getIconForLanguageExtension(language) : null;
 
   return (
-    <figcaption className={`flex items-center gap-2 ${className || ""}`} {...props}>
+    <figcaption
+      className={`flex items-center gap-2 ${className || ""}`}
+      {...props}
+    >
       {icon}
       {children}
     </figcaption>
@@ -168,6 +175,11 @@ function Pre({
 }
 
 const components = {
+  Tweet: ({ id }: { id: string }) => (
+    <div className="flex justify-center [&>div]:max-w-[550px]">
+      <Tweet id={id} />
+    </div>
+  ),
   h1: createHeading(1),
   h2: createHeading(2),
   h3: createHeading(3),
