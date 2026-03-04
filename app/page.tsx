@@ -14,9 +14,9 @@ export default function Home() {
       {/* <WorkSection /> */}
 
       {/* Contact Section */}
-      <section id="contact" className="animate-fade-blur animation-delay-200">
+      {/* <section id="contact" className="animate-fade-blur animation-delay-200">
         <Contact />
-      </section>
+      </section> */}
     </main>
   );
 }

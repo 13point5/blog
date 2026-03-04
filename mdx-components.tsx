@@ -54,7 +54,7 @@ const components: MDXComponents = {
 
   // Links
   a: ({ href, children }) => (
-    <Link href={href || "#"} variant="underline">
+    <Link href={href || "#"} variant="default">
       {children}
     </Link>
   ),
