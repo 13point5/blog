@@ -1,0 +1,47 @@
+---
+title: "My first Vibe RL experience"
+publishedAt: "2026-03-03"
+summary: "A devlog of how I used Codex and Prime Intellect to Vibe RL a toy environment."
+author: "Sriraam"
+---
+
+A devlog of how I used Codex and Prime Intellect to Vibe RL and got Qwen3-4B to beat GPT 4.1 mini by ~2x.
+
+# tl;dr (what I learned)
+
+1. Choose an RL stack that has CLI/MCP/API access. I used Prime Intellect.
+1. Build the environment and a simple reward function as the golden skeleton for the agent to follow.
+1. Ask your agent to **vibecode an RL Studio** to inspect rollouts, rubric bugs, reward hacking, etc.
+   The key is to be able to select multiple rollouts at once and have a **"Copy Rollouts" button** to copy agent-friendly markdown.
+1. **Maintain testcases for your reward functions** to gain confidence in your rubric.
+1. Prompt your agent to **write scripts for repetitive tasks** like:
+   - Processing raw rollouts for your RL Studio
+   - Running your reward test suite against live rollouts
+   - Analyze the dataset for diversity
+1. Codex spotted reward hacking better by looking at images instead of text because the task is a weakness for frontier LLMs.
+
+# The Task
+
+The task is to draw aligned ASCII diagrams.
+
+If you've used coding agents to draw DB schemas, sequence diagrams, state machines, etc you probably know that even GPT 5.3 Codex and Claude Opus 4.6 can't do this well.
+
+# My RL Stack
+
+I had been playing around with Verifiers and Prime RL for a while and got early access to the Prime Intellect Lab so I gave it a try.
+
+I got early access to the Prime Intellect Lab which is a hosted platform for LLM post-training, from agentic RL to evaluation and inference.
+The cool part is you don't have to worry about managing GPU infrastructure (IYKYK 😭).
+
+All you need to do is build your environment using Verifiers with the following pieces:
+
+- A dataset for your task
+- A harness for the LLM. This includes tools, prompts, vector DBs, sandoxes, etc
+- A rubric aka a set of reward functions to score the model
+- A set of TOML files with configurations for your RL runs
+
+Then it's as simple as running the following command:
+
+```bash
+prime rl run config.toml
+```
