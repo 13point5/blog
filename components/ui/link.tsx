@@ -47,7 +47,7 @@ export function Link({
           alt=""
           width={iconSize}
           height={iconSize}
-          className={cn("rounded-sm self-center translate-y-px", iconClassName)}
+          className={cn("rounded-sm shrink-0 translate-y-[0.15em]", iconClassName)}
         />
       )}
       {children}

@@ -13,6 +13,7 @@ import { rehypeCodeMaxHeight } from "@/lib/rehype-code-max-height";
 import { CopyButton } from "@/components/ui/copy-button";
 import { ImageGallery } from "@/components/ui/image-gallery";
 import { ImageWithFullscreen } from "@/components/ui/image-with-fullscreen";
+import { Link as LinkWithIcon } from "@/components/ui/link";
 import { getIconForLanguageExtension } from "@/components/language-icons";
 
 function CustomLink({
@@ -292,6 +293,7 @@ const components = {
   h5: createHeading(5),
   h6: createHeading(6),
   Image: RoundedImage,
+  Link: LinkWithIcon,
   a: CustomLink,
   code: Code,
   pre: Pre,
