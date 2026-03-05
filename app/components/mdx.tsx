@@ -3,6 +3,7 @@ import Image from "next/image";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import React from "react";
 import { Tweet } from "react-tweet";
+import { TweetGallery } from "./tweet-gallery";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
@@ -176,10 +177,19 @@ function Pre({
 
 const components = {
   Tweet: ({ id }: { id: string }) => (
-    <div className="flex justify-center [&>div]:max-w-[550px]">
+    <div className="flex w-fit justify-center [&>div]:max-w-[400px]">
       <Tweet id={id} />
     </div>
   ),
+  TweetGallery: ({
+    ids,
+    width,
+    height,
+  }: {
+    ids: string;
+    width?: string;
+    height?: string;
+  }) => <TweetGallery ids={ids} width={width} height={height} />,
   h1: createHeading(1),
   h2: createHeading(2),
   h3: createHeading(3),

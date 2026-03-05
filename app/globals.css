@@ -575,6 +575,33 @@ summary::marker {
   padding-right: 1rem;
 }
 
+/* Pasito Tweet Gallery stepper - theme-aware */
+.tweet-gallery-stepper {
+  --pill-bg: color-mix(in oklab, var(--foreground) 15%, transparent);
+  --pill-active-bg: var(--foreground);
+  --pill-fill-bg: color-mix(in oklab, var(--foreground) 45%, transparent);
+  --pill-container-bg: color-mix(in oklab, var(--foreground) 4%, transparent);
+  --pill-container-border: color-mix(in oklab, var(--foreground) 6%, transparent);
+}
+
+/* Dark theme - light pills on dark background */
+.dark .tweet-gallery-stepper {
+  --pill-bg: rgba(255, 255, 255, 0.15);
+  --pill-active-bg: rgba(255, 255, 255, 0.9);
+  --pill-fill-bg: rgba(255, 255, 255, 0.3);
+  --pill-container-bg: rgba(255, 255, 255, 0.1);
+  --pill-container-border: rgba(255, 255, 255, 0.12);
+}
+
+/* Warm theme - warm-tinted pills */
+.warm .tweet-gallery-stepper {
+  --pill-bg: color-mix(in oklch, var(--foreground) 15%, transparent);
+  --pill-active-bg: var(--foreground);
+  --pill-fill-bg: color-mix(in oklch, var(--foreground) 45%, transparent);
+  --pill-container-bg: color-mix(in oklch, var(--foreground) 4%, transparent);
+  --pill-container-border: color-mix(in oklch, var(--foreground) 6%, transparent);
+}
+
 /* Definition lists */
 dl {
   margin-bottom: 1rem;

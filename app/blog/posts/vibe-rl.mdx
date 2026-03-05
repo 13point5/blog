@@ -24,21 +24,40 @@ A devlog of how I used Codex and Prime Intellect to Vibe RL and got Qwen3-4B to 
 
 The task is to draw aligned ASCII diagrams.
 
-If you've used coding agents to draw DB schemas, sequence diagrams, state machines, etc you probably know that even GPT 5.3 Codex and Claude Opus 4.6 can't do this well.
+A powerful use case for coding agents is to draw DB schemas, sequence diagrams, state machines, etc but they are often **_misaligned_**. Even GPT 5.3 Codex and Claude Opus 4.6 struggle with this task.
 
-<Tweet id="2008016280306249848" />
+Here is an example of how Prime Intellect's Hosted Training works with a misaligned diagram:
+
+```
+┌─────────────────┐                    ┌─────────────────┐
+│    TRAINER      │──notifies weights─▶│  ORCHESTRATOR   │
+│  GPU 0..7       │                    │      CPU        │
+│  batches→weights│──writes batch─────▶│  data+scheduling│
+└─────────────────┘                    └────────┬────────┘
+                                                │
+                    schedules rollouts          │ notifies weights
+                    + new weights               │
+                                               ▼
+┌─────────────────┐                    ┌─────────────────┐
+│   INFERENCE     │──collects rollouts─▶│ receives rollouts│
+│  GPU 0..7       │                     │   (Orchestrator) │
+│  OAI API server │                     └────────────────┘
+└─────────────────┘
+```
+
+I chose this task because its a single turn task, easy to generate synthetic data for, and easy to evaluate (or so I thought).
 
 # My RL Stack
 
 I had been playing around with Verifiers and Prime RL for a while and got early access to the Prime Intellect Lab so I gave it a try.
 
-I got early access to the Prime Intellect Lab which is a hosted platform for LLM post-training, from agentic RL to evaluation and inference.
+The Lab is a full-stack hosted platform for LLM post-training, from agentic RL to evaluation and inference.
 The cool part is you don't have to worry about managing GPU infrastructure (IYKYK 😭).
 
 All you need to do is build your environment using Verifiers with the following pieces:
 
 - A dataset for your task
-- A harness for the LLM. This includes tools, prompts, vector DBs, sandoxes, etc
+- A harness for the LLM. This includes prompts, tools, vector DBs, sandoxes, etc
 - A rubric aka a set of reward functions to score the model
 - A set of TOML files with configurations for your RL runs
 
@@ -47,3 +66,19 @@ Then it's as simple as running the following command:
 ```bash
 prime rl run config.toml
 ```
+
+# Setting up the Environment skeleton
+
+# Generating the Dataset
+
+# First RL Run
+
+# Add testcases to the reward function
+
+# Reward Hacking
+
+# Add Layout Diversity reward
+
+## Try different configurations
+
+# Lessons Learned

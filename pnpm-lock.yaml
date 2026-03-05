@@ -53,6 +53,9 @@ dependencies:
   next-mdx-remote:
     specifier: ^6.0.0
     version: 6.0.0(@types/react@19.2.14)(react@19.2.1)
+  pasito:
+    specifier: ^0.1.3
+    version: 0.1.3(react-dom@19.2.1)(react@19.2.1)
   react:
     specifier: 19.2.1
     version: 19.2.1
@@ -5977,6 +5980,24 @@ packages:
     resolution: {integrity: sha512-CiyeOxFT/JZyN5m0z9PfXw4SCBJ6Sygz1Dpl0wqjlhDEGGBP1GnsUVEL0p63hoG1fcj3fHynXi9NYO4nWOL+qQ==}
     engines: {node: '>= 0.8'}
     dev: true
+
+  /pasito@0.1.3(react-dom@19.2.1)(react@19.2.1):
+    resolution: {integrity: sha512-fPR9Fs22RWJN7CR7bBrcNv6bfYTd57qLRTrQVLpyDXhCLVmFb8F6YLGzmrmW21+XOhupxrPvUVle77YzJg/ILQ==}
+    peerDependencies:
+      react: '>=18'
+      react-dom: '>=18'
+      vue: '>=3'
+    peerDependenciesMeta:
+      react:
+        optional: true
+      react-dom:
+        optional: true
+      vue:
+        optional: true
+    dependencies:
+      react: 19.2.1
+      react-dom: 19.2.1(react@19.2.1)
+    dev: false
 
   /path-browserify@1.0.1:
     resolution: {integrity: sha512-b7uo2UCUOYZcnF/3ID0lulOJi/bafxa1xPe7ZPsammBSpjSWQkjNxlt635YGS2MiR9GjvuXCtz2emr3jbsz98g==}
