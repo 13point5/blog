@@ -92,13 +92,61 @@ Then starting an RL run is as simple as running the following command:
 prime rl run config.toml
 ```
 
+This is the core of an enviornment in Verifiers:
+
+```python
+def load_environment() -> vf.Environment:
+      rubric = vf.Rubric(
+        funcs=[format_reward, alignment_reward],
+        weights=[1.0, 1.0],
+    )
+
+    return vf.SingleTurnEnv(
+        dataset=train_dataset,
+        eval_dataset=eval_dataset,
+        system_prompt=SYSTEM_PROMPT,
+        rubric=rubric,
+    )
+```
+
+and here is a real RL config file from my runs:
+
+```toml
+name = "ascii-layout-alpha-128-qwen3-4b-instruct-2507-difficulty-filter"
+model = "Qwen/Qwen3-4B-Instruct-2507"
+max_steps = 300
+batch_size = 512
+rollouts_per_example = 16
+trajectory_strategy = "interleaved"
+learning_rate = 1e-6
+lora_alpha = 128
+oversampling_factor = 2.0
+max_async_level = 4
+
+[sampling]
+max_tokens = 5000
+
+[[env]]
+id = "13point5/ascii-align"
+
+[val]
+num_examples = 32
+rollouts_per_example = 3
+interval = 10
+
+[wandb]
+project = "ascii-align"
+name = "ascii-layout-alpha-128-qwen3-4b-instruct-2507-difficulty-filter"
+entity = "13point5-labs"
+```
+
 > NOTE: This blog post is not a full tutorial but rather a messy walkthrough of my journey.
 >
 > I would recommend reading the [Official Docs](https://docs.primeintellect.ai/hosted-training/getting-started) and the [Lab's launch blog post](https://www.primeintellect.ai/blog/lab) which are detailed and easy to follow.
 
 # 1. Synthetic Data Generation
 
-I wanted a dataset with diverse use cases for ASCII diagrams so I prompted Codex to write a script to generate a synthetic dataset using GPT 4.1 mini.
+Before I even began building the environment, I needed a dataset because this is a new task. I wanted one with diverse use cases for ASCII diagrams so I prompted Codex to write a script to generate a synthetic dataset using GPT 4.1 mini.
 The result is a **dataset of 7,200 samples**.
 
 I started with a 200 sample dataset to figure out the parameters, formatting, and data that would be useful for deterministic evaluation. I did not want to use an LLM as a judge
@@ -165,8 +213,8 @@ And it did! The model got almost a perfect `2.0` reward in just 82 steps!
 <Image
   src="/images/blog/vibe-rl/run-0.png"
   alt="Prime Lab run overview for the first synthetic-data-backed training run"
-  width={400}
-  height={225}
+  width={600}
+  height={300}
 />
 
 The Lab also provides a nice overview of 8 rollouts at every interval for your validation set.
@@ -176,8 +224,8 @@ I was so excited when I saw so many green `2.0` rewards!
 <Image
   src="/images/blog/vibe-rl/run-0-data-table.png"
   alt="Data table for the first synthetic-data-backed training run"
-  width={400}
-  height={225}
+  width={600}
+  height={300}
 />
 
 I wanted to see the beautiful ASCII diagrams that my model drew, and this is what I saw:
@@ -185,8 +233,8 @@ I wanted to see the beautiful ASCII diagrams that my model drew, and this is wha
 <Image
   src="/images/blog/vibe-rl/run-0-rollout-overview.png"
   alt="Rollouts for the first synthetic-data-backed training run"
-  width={400}
-  height={225}
+  width={600}
+  height={300}
 />
 
 I thought that there might have been a rendering issue with their UI, so I copied the response and pasted it in Cursor and got this:
@@ -194,8 +242,8 @@ I thought that there might have been a rendering issue with their UI, so I copie
 <Image
   src="/images/blog/vibe-rl/run-0-rollout-cursor.png"
   alt="Rollouts for the first synthetic-data-backed training run in Cursor"
-  width={400}
-  height={225}
+  width={600}
+  height={300}
 />
 
 This showed me that there's more nuance to the task than just misaligned boxes. The algorithm had a lot more factors to consider.
@@ -371,6 +419,22 @@ It's so obvious to a human but not to an LLM.
 The model found out that stacking all blocks vertically leads to a perfect reward!
 
 This revealed a flaw in my Rubric: **I never rewarded for _diagramness/taste_**. I only rewarded for aligning the boxes, arrows, and lines.
+
+A cool thing here is that Codex tried different configs with different batch sizes and LoRA alphas and found early that a minimum LoRa alpha of 128 was needed for the model to get better at the task.
+Here are some failed runs:
+
+<ImageGallery
+  images={[
+    {
+      src: "/images/blog/vibe-rl/failed-run-alpha-16.png",
+      alt: "Alpha 16 run",
+    },
+    {
+      src: "/images/blog/vibe-rl/failed-run-alpha-64.png",
+      alt: "Alpha 64 run",
+    },
+  ]}
+/>
 
 # 7. Rewarding Layout Diversity
 

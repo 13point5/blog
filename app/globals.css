@@ -599,17 +599,23 @@ summary::marker {
   padding-right: 1rem;
 }
 
-/* Pasito Tweet Gallery stepper - theme-aware */
-.tweet-gallery-stepper {
-  --pill-bg: color-mix(in oklab, var(--foreground) 15%, transparent);
-  --pill-active-bg: var(--foreground);
-  --pill-fill-bg: color-mix(in oklab, var(--foreground) 45%, transparent);
-  --pill-container-bg: color-mix(in oklab, var(--foreground) 4%, transparent);
-  --pill-container-border: color-mix(in oklab, var(--foreground) 6%, transparent);
+/* Pasito steppers - match joshpuckett.me/pasito styling */
+.tweet-gallery-stepper,
+.image-gallery-stepper {
+  --pill-dot-size: 8px;
+  --pill-active-width: 24px;
+  --pill-gap: 6px;
+  --pill-container-radius: 999px;
+  --pill-bg: rgba(0, 0, 0, 0.12);
+  --pill-active-bg: rgba(0, 0, 0, 0.8);
+  --pill-fill-bg: rgba(255, 255, 255, 0.45);
+  --pill-container-bg: rgba(0, 0, 0, 0.04);
+  --pill-container-border: rgba(0, 0, 0, 0.06);
 }
 
-/* Dark theme - light pills on dark background */
-.dark .tweet-gallery-stepper {
+/* Dark theme - light pills (Pasito blog style) */
+.dark .tweet-gallery-stepper,
+.dark .image-gallery-stepper {
   --pill-bg: rgba(255, 255, 255, 0.15);
   --pill-active-bg: rgba(255, 255, 255, 0.9);
   --pill-fill-bg: rgba(255, 255, 255, 0.3);
@@ -617,13 +623,39 @@ summary::marker {
   --pill-container-border: rgba(255, 255, 255, 0.12);
 }
 
-/* Warm theme - warm-tinted pills */
-.warm .tweet-gallery-stepper {
+/* Warm theme */
+.warm .tweet-gallery-stepper,
+.warm .image-gallery-stepper {
   --pill-bg: color-mix(in oklch, var(--foreground) 15%, transparent);
   --pill-active-bg: var(--foreground);
   --pill-fill-bg: color-mix(in oklch, var(--foreground) 45%, transparent);
   --pill-container-bg: color-mix(in oklch, var(--foreground) 4%, transparent);
   --pill-container-border: color-mix(in oklch, var(--foreground) 6%, transparent);
+}
+
+/* Glass overlay - light pills/buttons (visible on dark images) */
+.image-gallery-stepper-glass {
+  --pill-bg: rgba(255, 255, 255, 0.5);
+  --pill-active-bg: rgba(255, 255, 255, 0.95);
+  --pill-fill-bg: rgba(0, 0, 0, 0.25);
+  --pill-container-bg: rgba(255, 255, 255, 0.15);
+  --pill-container-border: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Gallery fullscreen overlay - always light stepper (ignore app theme) */
+.gallery-fullscreen .image-gallery-stepper,
+.gallery-fullscreen .image-gallery-stepper-fullscreen {
+  --pill-bg: rgba(255, 255, 255, 0.4) !important;
+  --pill-active-bg: rgba(255, 255, 255, 0.95) !important;
+  --pill-fill-bg: rgba(0, 0, 0, 0.2) !important;
+  --pill-container-bg: rgba(255, 255, 255, 0.12) !important;
+  --pill-container-border: rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 /* Definition lists */

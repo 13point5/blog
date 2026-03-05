@@ -10,6 +10,8 @@ import remarkGfm from "remark-gfm";
 import rehypePrettyCode from "rehype-pretty-code";
 import type { Options } from "rehype-pretty-code";
 import { CopyButton } from "@/components/ui/copy-button";
+import { ImageGallery } from "@/components/ui/image-gallery";
+import { ImageWithFullscreen } from "@/components/ui/image-with-fullscreen";
 import { getIconForLanguageExtension } from "@/components/language-icons";
 
 function CustomLink({
@@ -78,8 +80,8 @@ function RoundedImage({
   const resolvedWidth = resolveImageDimension(width, 1200);
   const resolvedHeight = resolveImageDimension(height, 800);
   const mergedClassName = className
-    ? `rounded-lg mb-4 ${className}`
-    : "rounded-lg mb-4";
+    ? `rounded-lg mb-4 block mx-auto ${className}`
+    : "rounded-lg mb-4 block mx-auto";
   const mergedStyle: React.CSSProperties = {
     maxWidth: "100%",
     width: typeof style?.width !== "undefined" ? style.width : resolvedWidth,
@@ -88,14 +90,23 @@ function RoundedImage({
   };
 
   return (
-    <Image
-      {...props}
+    <ImageWithFullscreen
+      src={String(props.src ?? "")}
       alt={alt ?? ""}
+      caption={typeof props.title === "string" ? props.title : undefined}
       width={resolvedWidth}
       height={resolvedHeight}
-      className={mergedClassName}
-      style={mergedStyle}
-    />
+      showBorder={true}
+    >
+      <Image
+        {...props}
+        alt={alt ?? ""}
+        width={resolvedWidth}
+        height={resolvedHeight}
+        className={mergedClassName}
+        style={mergedStyle}
+      />
+    </ImageWithFullscreen>
   );
 }
 
@@ -255,6 +266,22 @@ const components = {
     width?: string;
     height?: string;
   }) => <TweetGallery ids={ids} width={width} height={height} />,
+  ImageGallery,
+  img: ({
+    src,
+    alt,
+    title,
+  }: {
+    src?: string;
+    alt?: string;
+    title?: string;
+  }) => (
+    <ImageWithFullscreen
+      src={src ?? ""}
+      alt={alt ?? ""}
+      caption={title}
+    />
+  ),
   h1: createHeading(1),
   h2: createHeading(2),
   h3: createHeading(3),
@@ -372,6 +399,7 @@ export function CustomMDX(props: { source: string }) {
     <MDXRemote
       source={props.source}
       options={{
+        blockJS: false,
         mdxOptions: {
           remarkPlugins: [remarkGfm, remarkMath],
           rehypePlugins: [

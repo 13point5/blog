@@ -3,6 +3,7 @@ import { Socials } from "./app/components/socials";
 import { Link } from "./components/ui/link";
 import { ImageViewer } from "./components/ui/image-viewer";
 import { ImageGallery } from "./components/ui/image-gallery";
+import { ImageWithFullscreen } from "./components/ui/image-with-fullscreen";
 import { CopyButton } from "./components/ui/copy-button";
 import { CodeCollapsibleWrapper } from "./components/code-collapsible-wrapper";
 import { getIconForLanguageExtension } from "./components/language-icons";
@@ -11,7 +12,7 @@ import { getIconForLanguageExtension } from "./components/language-icons";
 const components: MDXComponents = {
   Socials,
   Link,
-  Image: ImageViewer,
+  Image: ImageWithFullscreen,
   ImageGallery,
   CodeCollapsibleWrapper,
 
@@ -208,9 +209,9 @@ const components: MDXComponents = {
     </summary>
   ),
 
-  // Inline images - use ImageViewer for click-to-open functionality
+  // Inline images - use ImageWithFullscreen for click-to-open fullscreen
   img: ({ src, alt, title }) => (
-    <ImageViewer src={src || ""} alt={alt || ""} caption={title} />
+    <ImageWithFullscreen src={src || ""} alt={alt || ""} caption={title} />
   ),
 
   // Deleted text (strikethrough from GFM)
