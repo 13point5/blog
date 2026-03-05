@@ -128,6 +128,18 @@ export function Button({
 }
 ```
 
+### Code Block with Max Height
+
+Add `maxHeight="400px"` (or `maxHeight=20rem`, etc.) to make tall code blocks scrollable:
+
+```tsx maxHeight="200px"
+// This block is limited to 200px height with scroll
+import { cn } from "@/lib/utils";
+export function Example() {
+  return <div className={cn("foo", "bar")}>Hello</div>;
+}
+```
+
 ### Line Highlighting
 
 You can highlight specific lines to draw attention to important code:

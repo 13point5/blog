@@ -42,7 +42,7 @@ A powerful use case for coding agents is to draw DB schemas, sequence diagrams, 
 
 Here is an example of how Prime Intellect's Hosted Training works with a misaligned diagram:
 
-```
+```text
 ┌─────────────────┐                    ┌─────────────────┐
 │    TRAINER      │──notifies weights─▶│  ORCHESTRATOR   │
 │  GPU 0..7       │                    │      CPU        │
@@ -94,7 +94,7 @@ prime rl run config.toml
 
 This is the core of an enviornment in Verifiers:
 
-```python
+```python title="environment.py"
 def load_environment() -> vf.Environment:
       rubric = vf.Rubric(
         funcs=[format_reward, alignment_reward],
@@ -111,7 +111,7 @@ def load_environment() -> vf.Environment:
 
 and here is a real RL config file from my runs:
 
-```toml
+```toml title="config.toml"
 name = "ascii-layout-alpha-128-qwen3-4b-instruct-2507-difficulty-filter"
 model = "Qwen/Qwen3-4B-Instruct-2507"
 max_steps = 300
@@ -157,7 +157,7 @@ there is no single right diagram for a prompt.
 
 You can read the entire script [here](https://github.com/13point5/ascii-align-env/blob/main/environments/ascii_align/dataset.py) but this is the main function:
 
-```python
+```python title="dataset.py"
 def build_meta_prompt(row: Dict[str, str], examples: str) -> str:
     return (
         "Generate a user prompt asking an LLM to draw a {theme} diagram."
@@ -257,7 +257,7 @@ I edited some of them manually and then let it try multiple algorithms in worktr
 
 The new algorithm was very complex and introduced **connectors** and **arrows** along with rectangles. Here's some sample testcases:
 
-```python
+```python title="test_alignment.py" maxHeight="400px"
 def test_arrow_right_wrong_incoming_side() -> None:
     diagram = """\
 ┌────┐   ┌────┐
@@ -312,7 +312,7 @@ This allowed it to continuously monitor the rollouts and run them against our te
 
 The cool part is that I was able to cook, eat, and study while Codex was doing this. This was when I realized the power of Vibe RL.
 
-```bash
+```bash title="prime-cli-commands.sh"
 # find your run id
 prime rl list
 prime rl get <run_id>
@@ -368,7 +368,7 @@ So I decided to look at the rollouts myself and found such a clever reward hack.
 
 It's so obvious to a human but not to an LLM.
 
-```text
+```text title="reward-hack-rollout.txt" maxHeight="400px"
 ┌──────────────────┐
 │    User          │
 └──────────────────┘
@@ -436,7 +436,124 @@ Here are some failed runs:
   ]}
 />
 
-# 7. Rewarding Layout Diversity
+# 7. Rewarding Layout Spread
+
+After that clever reward hack, I prompted for a reward to encourage layout spread. This means using 2D space better.
+
+In the words of Codex, this is how the new `layout_spread_reward` is calculated:
+
+1. Parse fenced ` ```text ` diagram, reject missing/empty output, reject disallowed box chars.
+2. Normalize grid and detect valid boxes, then compute each box's horizontal center.
+3. Cluster centers into columns (`threshold=2.0` chars) to get `unique_columns`.
+4. Compute expected columns from prompt metadata:
+   - if `box_count <= 2`: expected = `2`
+   - if `theme == "sequence"`: expected = `3`
+   - else if `shape_budget >= 10`: expected = `3`
+   - else if `shape_budget <= 4`: expected = `2`
+   - else if `box_count >= 6`: expected = `3`
+   - else expected = `2`
+
+5. Compute component scores:
+   - `column_score = clamp((unique_columns - 1) / (expected_columns - 1), 0, 1)`
+   - `normalized_span = (max_center - min_center) / (width - 1)`
+   - `span_target = 0.22` when `expected_columns >= 3`, else `0.12`
+   - `span_score = min(1, normalized_span / span_target)`
+
+6. Apply anti-stack and density penalties:
+   - `stack_penalty = 0.0` if single column
+   - `stack_penalty = 0.75` if a dominant column has >=85% of boxes and `box_count >= 4`
+   - otherwise `stack_penalty = 1.0`
+   - `boxes_per_column = box_count / unique_columns`
+   - `desired_boxes_per_column`:
+     - sequence: `1.6`
+     - state_machines: `2.0` if `shape_budget >= 12`, else `2.3`
+     - other themes: `2.2` if `shape_budget >= 12`, else `2.8`
+   - `column_density_penalty = min(1.0, desired / max(1.0, boxes_per_column))`
+
+7. Final score:
+
+```python
+layout_spread_reward =
+  (0.7 * column_score + 0.3 * span_score)
+  * stack_penalty
+  * column_density_penalty
+
+clamped to [0.0, 1.0]
+```
+
+Here are some testcases to understand the reward better. I want to point out that some of the testcases are inspired by real rollouts obtained from the Prime CLI:
+
+````python title="test_layout_spread.py" maxHeight="400px"
+def test_layout_spread_architecture_with_side_branch_scores_high() -> None:
+    # Based on architecture prompts in the dataset (API, queue, workers, metrics).
+    response = """```text
+      ┌──────────┐
+      │   API    │
+      └──────────┘
+           │
+   ┌───────┼───────┐
+   ▼               ▼
+┌──────────┐   ┌──────────┐
+│ Queue    │   │ Metrics  │
+└──────────┘   └──────────┘
+      │
+      ▼
+┌──────────┐
+│ Worker   │
+└──────────┘
+      │
+      ▼
+┌──────────┐
+│ Postgres │
+└──────────┘
+```"""
+    score = layout_spread_reward(
+        _completion(response),
+        info={"theme": "architecture", "shape_budget": 8},
+    )
+    assert score >= 0.55
+
+def test_layout_spread_sequence_horizontal_layout_scores_high() -> None:
+    # Based on sequence-style prompts present in the dataset.
+    response = """```text
+┌────────┐   ┌────────┐   ┌────────┐   ┌────────────┐
+│ Client │──▶│ API    │──▶│ AuthDB │──▶│ Session    │
+└────────┘   └────────┘   └────────┘   └────────────┘
+   ▲                                           │
+   └──────────────────────────◀────────────────┘
+```"""
+    score = layout_spread_reward(
+        _completion(response),
+        info={"theme": "sequence", "shape_budget": 8},
+    )
+    assert score >= 0.9
+
+def test_layout_spread_rollout_sequence_vertical_stack_is_low() -> None:
+    # Inspired by rollout qckmeg2wm4dsyn9npvwzczs2 (step 290, sequence sample).
+    response = """```text
+┌────────────┐
+│   Client   │
+└────────────┘
+      ↓
+┌────────────┐
+│ Edge Cache │
+└────────────┘
+      ↓
+┌────────────┐
+│ Vector DB  │
+└────────────┘
+      ↓
+┌────────────┐
+│ Monitoring │
+└────────────┘
+```"""
+    score = layout_spread_reward(
+        _completion(response),
+        info={"theme": "sequence", "shape_budget": 8},
+    )
+    assert score == 0.0
+
+````
 
 # Just one more TOML file bro
 

@@ -1,5 +1,6 @@
 export function getIconForLanguageExtension(language: string) {
   const iconClass = getDeviconClass(language);
+  if (!iconClass) return null;
 
   return <i className={`${iconClass} text-sm opacity-70`} aria-hidden="true" />;
 }
@@ -126,6 +127,12 @@ function getDeviconClass(language: string): string {
       return "devicon-vim-plain";
     case "git":
       return "devicon-git-plain";
+
+    // Plain text - no icon (devicon-devicon-plain looks odd)
+    case "text":
+    case "plaintext":
+    case "txt":
+      return "";
 
     // Default - generic code icon
     default:

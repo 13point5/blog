@@ -469,7 +469,7 @@ summary::marker {
 [data-rehype-pretty-code-figure] {
   background-color: var(--color-code-bg);
   color: var(--color-code-foreground);
-  border-radius: 0.75rem;
+  border-radius: 0.375rem;
   border: 1px solid var(--color-code-border);
   margin-top: 1.5rem;
   margin-bottom: 1.5rem;
@@ -591,6 +591,39 @@ summary::marker {
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* Scrollbar for code blocks with max-height (no-scrollbar omitted for these) */
+[data-rehype-pretty-code-figure] pre.max-h-scroll,
+[data-rehype-pretty-code-figure] pre[data-max-height] {
+  -ms-overflow-style: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-code-border) transparent;
+}
+[data-rehype-pretty-code-figure] pre.max-h-scroll::-webkit-scrollbar,
+[data-rehype-pretty-code-figure] pre[data-max-height]::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+  background: transparent;
+  margin-right: 0;
+  padding-right: 0;
+}
+[data-rehype-pretty-code-figure] pre.max-h-scroll::-webkit-scrollbar-track,
+[data-rehype-pretty-code-figure] pre[data-max-height]::-webkit-scrollbar-track {
+  background: transparent;
+  margin-block: 0.5rem;
+  margin-right: 0;
+  padding-right: 0;
+  border-radius: 3px;
+}
+[data-rehype-pretty-code-figure] pre.max-h-scroll::-webkit-scrollbar-thumb,
+[data-rehype-pretty-code-figure] pre[data-max-height]::-webkit-scrollbar-thumb {
+  background: var(--color-code-border);
+  border-radius: 3px;
+}
+[data-rehype-pretty-code-figure] pre.max-h-scroll::-webkit-scrollbar-thumb:hover,
+[data-rehype-pretty-code-figure] pre[data-max-height]::-webkit-scrollbar-thumb:hover {
+  background: var(--color-code-line-number);
 }
 
 /* Code block without line numbers */

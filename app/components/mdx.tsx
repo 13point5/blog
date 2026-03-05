@@ -9,6 +9,7 @@ import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
 import rehypePrettyCode from "rehype-pretty-code";
 import type { Options } from "rehype-pretty-code";
+import { rehypeCodeMaxHeight } from "@/lib/rehype-code-max-height";
 import { CopyButton } from "@/components/ui/copy-button";
 import { ImageGallery } from "@/components/ui/image-gallery";
 import { ImageWithFullscreen } from "@/components/ui/image-with-fullscreen";
@@ -244,8 +245,10 @@ function Pre({
   className,
   ...props
 }: React.HTMLAttributes<HTMLPreElement>) {
+  const hasMaxHeight = typeof className === "string" && className.includes("max-h-scroll");
+  const scrollbarClass = hasMaxHeight ? "" : "no-scrollbar";
   return (
-    <pre className={`no-scrollbar ${className || ""}`} {...props}>
+    <pre className={`${scrollbarClass} ${className || ""}`.trim()} {...props}>
       {children}
     </pre>
   );
@@ -383,8 +386,7 @@ const rehypePrettyCodeOptions: Options = {
         if (node.tagName === "code") {
           // Store raw code for copy button
           node.properties["__raw__"] = this.source;
-          // Add line numbers
-          node.properties["data-line-numbers"] = "";
+          // Line numbers added by rehype plugin when showLineNumbers in meta
         }
       },
       line(node) {
@@ -405,6 +407,7 @@ export function CustomMDX(props: { source: string }) {
           rehypePlugins: [
             rehypeKatex,
             [rehypePrettyCode, rehypePrettyCodeOptions],
+            rehypeCodeMaxHeight,
           ],
         },
       }}
