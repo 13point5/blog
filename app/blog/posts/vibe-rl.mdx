@@ -59,12 +59,12 @@ Here is an example of how Prime Intellect's Hosted Training works with a misalig
 └─────────────────┘
 ```
 
-I chose this task because its a single turn task, easy to generate synthetic data for, and easy to evaluate (or so I thought).
+I chose this task because its a single turn task without a fixed answer, easy to generate synthetic data for, and easy to evaluate (or so I thought).
 
 # My RL Stack
 
 1. [Codex](https://openai.com/codex/) as my coding agent with GPT 5.3 Codex X-high
-1. [Qwen3-4B](https://huggingface.co/Qwen/Qwen3-4B) as my LLM for the RL runs
+1. [Qwen3-4B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-4B-Instruct-2507) as my LLM for the RL runs
 1. [Verifiers](https://docs.primeintellect.ai/verifiers/overview) for the RL Environment
 1. [Prime RL](https://docs.primeintellect.ai/prime-rl/index) for the Trainer
 1. [Prime Lab](https://docs.primeintellect.ai/hosted-training/getting-started) for Hosted Training with LoRA, Evaluation, and Inference
@@ -96,20 +96,290 @@ prime rl run config.toml
 >
 > I would recommend reading the [Official Docs](https://docs.primeintellect.ai/hosted-training/getting-started) and the [Lab's launch blog post](https://www.primeintellect.ai/blog/lab) which are detailed and easy to follow.
 
-# Setting up the Environment skeleton
+# 1. Synthetic Data Generation
 
-# Generating the Dataset
+I wanted a dataset with diverse use cases for ASCII diagrams so I prompted Codex to write a script to generate a synthetic dataset using GPT 4.1 mini.
+The result is a **dataset of 7,200 samples**.
 
-# First RL Run
+I started with a 200 sample dataset to figure out the parameters, formatting, and data that would be useful for deterministic evaluation. I did not want to use an LLM as a judge
+for this task because with some preliminary testing with ChatGPT and Codex, I found that this is a task they're bad at. I guess since they're bad at generating aligned diagrams, they're bad at judging them too.
 
-# Add testcases to the reward function
+One thing to note is that for my task, I only need user prompts, and not the expected outputs, unlike most synthetic data generation tasks. This is because
+there is no single right diagram for a prompt.
 
-# Reward Hacking
+You can read the entire script [here](https://github.com/13point5/ascii-align-env/blob/main/environments/ascii_align/dataset.py) but this is the main function:
 
-# Add Layout Diversity reward
+```python
+def build_meta_prompt(row: Dict[str, str], examples: str) -> str:
+    return (
+        "Generate a user prompt asking an LLM to draw a {theme} diagram."
+        "Use a different use case when compared to the examples."
+        "The prompt should be for: {use_case}."
+        "Audience: {audience}. Detail level: {detail_level}. Style: {style}."
+        "Keep the diagram {complexity_hint} with an appropriate number of entities and connections."
+        "{constraint} {output_rule}"
+        f"\nExamples:\n{examples}"
+    ).format(**row)
+```
+
+Here are some values for the parameters that we sample from:
+
+- **theme**: flowcharts, architecture, sequence, state_machines
+- **use_case**: combinations like "failure recovery path for payments platform involving queue" or "check-in flow for hospital intake"
+- **audience**: new hires, engineers, product managers, executives, support agents, customers, students
+- **detail_level**: high level, medium detail, low level with edge cases
+- **style**: concise labels, clear step names, human-friendly phrasing, short sentences
+- **constraint**: prompts like “Include a retry loop and a timeout” or “Include a manual review step”
+- **shape_budget**: 4, 6, 8, 10, 12, 16, 20 (mapped to a complexity hint such as “tiny and very simple” to “very complex but still readable”)
+
+Later on I'll show why some of these parameters are important for the environment rubric.
+
+### A few tips for scripts like these:
+
+1. Use **semaphores and retries** for concurrency limiting. There's a lot to improve but this is often a good starting point.
+2. The script should have **parameters to test quickly and cheaply**.
+
+   For example: `python dataset.py --num_samples 100 --num_threads 4 --timeout 10`
+
+3. Use parameters/features to **combinatorically and stochastically** generate diverse data.
+4. Provide examples to the LLM generating the dataset to help it understand the task.
+
+# 2. First RL Run
+
+I was impatient and thought the issue was _only misaligned boxes_, so I asked Codex to do the following:
+
+1. Write a simple system prompt asking the LLM to draw an ASCII diagram inside ` ```text ` blocks.
+1. Add a binary `format_reward` to see if we had some text inside ` ```text ` blocks.
+1. Come up with an algorithm that counts the number of aligned and misaligned boxes by checking for corners and closing edges.
+1. Add an `alignment_reward` with values from `0.0` to `1.0` based on the number of aligned and misaligned boxes.
+1. I also added checks to only use these characters for the boxes: `┌┐ └  ┘ ─ │ ├ ┤ ┬ ┴ ┼`.
+
+Codex beautifully explained its algorithm and I was shocked by its LeetCode skills and confident that it would work.
+
+I chose INTELLECT-3 as the model out of curiosity because I had never used it for RL before.
+
+I pushed my enviornment to the Environment Hub, started my first RL run, and waited for the rewards to go up.
+
+And it did! The model got almost a perfect `2.0` reward in just 82 steps!
+
+<Image
+  src="/images/blog/vibe-rl/run-0.png"
+  alt="Prime Lab run overview for the first synthetic-data-backed training run"
+  width={400}
+  height={225}
+/>
+
+The Lab also provides a nice overview of 8 rollouts at every interval for your validation set.
+
+I was so excited when I saw so many green `2.0` rewards!
+
+<Image
+  src="/images/blog/vibe-rl/run-0-data-table.png"
+  alt="Data table for the first synthetic-data-backed training run"
+  width={400}
+  height={225}
+/>
+
+I wanted to see the beautiful ASCII diagrams that my model drew, and this is what I saw:
+
+<Image
+  src="/images/blog/vibe-rl/run-0-rollout-overview.png"
+  alt="Rollouts for the first synthetic-data-backed training run"
+  width={400}
+  height={225}
+/>
+
+I thought that there might have been a rendering issue with their UI, so I copied the response and pasted it in Cursor and got this:
+
+<Image
+  src="/images/blog/vibe-rl/run-0-rollout-cursor.png"
+  alt="Rollouts for the first synthetic-data-backed training run in Cursor"
+  width={400}
+  height={225}
+/>
+
+This showed me that there's more nuance to the task than just misaligned boxes. The algorithm had a lot more factors to consider.
+
+# 3. Adding testcases to the reward function
+
+I tried prompting and manually testing the new algorithms that Codex made but the process was very manual.
+
+So I asked Codex to make testcases for the reward function.
+I edited some of them manually and then let it try multiple algorithms in worktrees until it got the tests to pass.
+
+The new algorithm was very complex and introduced **connectors** and **arrows** along with rectangles. Here's some sample testcases:
+
+```python
+def test_arrow_right_wrong_incoming_side() -> None:
+    diagram = """\
+┌────┐   ┌────┐
+│ A  │▶──│ B  │
+└────┘   └────┘
+"""
+    stats = detect_misaligned(diagram, require_at_least_one_rect=False)
+    assert stats["arrow_errors"] == 1
+    assert stats["misaligned"] >= 1
+
+
+def test_arrow_left_valid_incoming_from_right() -> None:
+    diagram = """\
+┌────┐   ┌────┐
+│ A  │◀──│ B  │
+└────┘   └────┘
+"""
+    stats = detect_misaligned(diagram, require_at_least_one_rect=False)
+    assert stats["arrow_errors"] == 0
+    assert stats["misaligned"] == 0
+
+CASE_SPECS = {
+    "rect_empty_input": {
+        "description": "Empty input should fail minimum rectangle requirement.",
+        "expected": {
+            "correct_rectangles": 0,
+            "rectangle_errors": 1,
+            "connector_errors": 0,
+            "arrow_errors": 0,
+            "misaligned": 1,
+        },
+    },
+    "rect_whitespace_only": {
+        "description": "Whitespace-only input should fail minimum rectangle requirement.",
+        "expected": {
+            "correct_rectangles": 0,
+            "rectangle_errors": 1,
+            "connector_errors": 0,
+            "arrow_errors": 0,
+            "misaligned": 1,
+        },
+    },
+}
+```
+
+# 4. Iterating on the reward function
+
+It wasn't easy to perfect the reward function because with each improvement, we would find new edge cases in the RL runs.
+
+However, Codex was able to kill the runs early because it had access to the Prime CLI which gave access to the rollouts and reward histograms.
+This allowed it to continuously monitor the rollouts and run them against our testcases to see if there were bugs in the reward function.
+
+The cool part is that I was able to cook, eat, and study while Codex was doing this. This was when I realized the power of Vibe RL.
+
+```bash
+# find your run id
+prime rl list
+prime rl get <run_id>
+
+# rollout samples (step is required)
+prime rl rollouts <run_id> --step <step>
+prime rl rollouts <run_id> --step <step> --limit 100 --page 1
+
+# training metrics
+prime rl metrics <run_id>
+prime rl metrics <run_id> --min-step 10 --max-step 50
+
+# reward/advantage histograms
+prime rl distributions <run_id>
+prime rl distributions <run_id> --type rewards --step 50
+prime rl distributions <run_id> --type advantages --step 50
+
+# what steps are available for samples/distributions
+prime rl progress <run_id>
+```
+
+# 5. Proposing an enhancement
+
+At this point I was using **INTELLECT-3** as the model for the RL runs but it had a few issues:
+
+1. Runs were slow
+1. The completions were long, especially the thinking tokens
+1. The model was iterating on the diagram several times and ran out of context before it could finish
+
+Codex noticed these issues and proposed to use **Qwen3-4B-Instruct-2507** for the following reasons:
+
+1. It's available on the Lab, found using the CLI
+1. It doesn't have thinking mode
+1. It has a large context window
+1. Runs were expected to be faster and would allow experimenting with different LoRA configs
+
+_I did not prompt this. It was an autonomous exploration and proposal by Codex._
+
+# 6. Reward Hacking
+
+After several days of improving the reward function, switching to **Qwen3-4B-Instruct-2507**, and experimenting with different LoRA configs,
+the model reached a near-perfect reward of `2.0` !! I saw the errors go down and the reward go up. Surely, it worked this time.
+
+<Image
+  src="/images/blog/vibe-rl/reward-hack-charts.png"
+  alt="Reward charts for the successful run reported by Codex"
+  width={400}
+  height={225}
+/>
+
+Codex reported that the model had no bugs in the reward function and that the run was successful.
+So I decided to look at the rollouts myself and found such a clever reward hack.
+
+It's so obvious to a human but not to an LLM.
+
+```text
+┌──────────────────┐
+│    User          │
+└──────────────────┘
+         ↓
+┌──────────────────┐
+│ Validate         │
+│ Credentials      │
+└──────────────────┘
+         ↓
+┌──────────────────┐
+│ Security Check   │
+│ (Authorization)  │
+└──────────────────┘
+         ↓
+   ┌──────────────┐
+   │  Yes         │
+   └──────────────┘
+         ↓
+┌──────────────────┐
+│ Send Auth Event  │
+│ to Queue         │
+└──────────────────┘
+         ↓
+┌──────────────────┐
+│ Message Queue    │
+└──────────────────┘
+         ↓
+┌──────────────────┐
+│ Process Recovery │
+│ Event            │
+└──────────────────┘
+         ↓
+┌──────────────────┐
+│ Update User      │
+│ Session          │
+└──────────────────┘
+         ↓
+┌──────────────────┐
+│ Recovery Success │
+└──────────────────┘
+         ↓
+┌──────────────────┐
+│ Log Recovery     │
+│ Details          │
+└──────────────────┘
+```
+
+The model found out that stacking all blocks vertically leads to a perfect reward!
+
+This revealed a flaw in my Rubric: **I never rewarded for _diagramness/taste_**. I only rewarded for aligning the boxes, arrows, and lines.
+
+# 7. Rewarding Layout Diversity
 
 # Just one more TOML file bro
 
 # Vibecode an RL Studio
 
 # What I would do **differently**
+
+```
+
+```

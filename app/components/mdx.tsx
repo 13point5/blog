@@ -51,8 +51,52 @@ function CustomLink({
   );
 }
 
-function RoundedImage(props: React.ComponentProps<typeof Image>) {
-  return <Image className="rounded-lg" {...props} />;
+function resolveImageDimension(
+  value: React.ComponentProps<typeof Image>["width"] | undefined,
+  fallback: number,
+) {
+  if (typeof value === "number" && value > 0) {
+    return value;
+  }
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+  return fallback;
+}
+
+function RoundedImage({
+  className,
+  width,
+  height,
+  alt,
+  style,
+  ...props
+}: React.ComponentProps<typeof Image>) {
+  const resolvedWidth = resolveImageDimension(width, 1200);
+  const resolvedHeight = resolveImageDimension(height, 800);
+  const mergedClassName = className
+    ? `rounded-lg mb-4 ${className}`
+    : "rounded-lg mb-4";
+  const mergedStyle: React.CSSProperties = {
+    maxWidth: "100%",
+    width: typeof style?.width !== "undefined" ? style.width : resolvedWidth,
+    height: typeof style?.height !== "undefined" ? style.height : "auto",
+    ...style,
+  };
+
+  return (
+    <Image
+      {...props}
+      alt={alt ?? ""}
+      width={resolvedWidth}
+      height={resolvedHeight}
+      className={mergedClassName}
+      style={mergedStyle}
+    />
+  );
 }
 
 function slugify(str: string) {
