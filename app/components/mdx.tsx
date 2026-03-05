@@ -12,22 +12,43 @@ import type { Options } from "rehype-pretty-code";
 import { CopyButton } from "@/components/ui/copy-button";
 import { getIconForLanguageExtension } from "@/components/language-icons";
 
-function CustomLink(props: React.AnchorHTMLAttributes<HTMLAnchorElement>) {
-  const href = props.href || "";
+function CustomLink({
+  href = "",
+  className,
+  children,
+  ...props
+}: React.AnchorHTMLAttributes<HTMLAnchorElement>) {
+  const linkClassName = className
+    ? `link-default ${className}`
+    : "link-default";
 
   if (href.startsWith("/")) {
     return (
-      <Link href={href} {...props}>
-        {props.children}
+      <Link href={href} className={linkClassName} {...props}>
+        {children}
       </Link>
     );
   }
 
   if (href.startsWith("#")) {
-    return <a {...props} />;
+    return (
+      <a href={href} className={linkClassName} {...props}>
+        {children}
+      </a>
+    );
   }
 
-  return <a target="_blank" rel="noopener noreferrer" {...props} />;
+  return (
+    <a
+      href={href}
+      className={linkClassName}
+      target="_blank"
+      rel="noopener noreferrer"
+      {...props}
+    >
+      {children}
+    </a>
+  );
 }
 
 function RoundedImage(props: React.ComponentProps<typeof Image>) {
@@ -203,7 +224,7 @@ const components = {
   figure: Figure,
   figcaption: Figcaption,
   blockquote: ({ children }: { children: React.ReactNode }) => (
-    <blockquote className="border-l-4 border-accent-light bg-accent/50 pl-4 py-2 italic text-foreground mb-4 rounded-r">
+    <blockquote className="border-l-4 border-accent-light bg-accent/50 pl-4 py-0.5 text-foreground mb-4 rounded-r [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
       {children}
     </blockquote>
   ),

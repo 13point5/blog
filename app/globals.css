@@ -7,6 +7,8 @@
   --background-card: oklch(1 0 0);
   --background-alt: oklch(0.92 0 0);
   --foreground-muted: oklch(0.55 0 0);
+  --link: oklch(0.53 0.18 257);
+  --link-hover: oklch(0.48 0.2 257);
   --accent: oklch(0.97 0 0);
   --accent-light: oklch(0.9 0 0);
   --border: oklch(0.82 0 0);
@@ -209,6 +211,24 @@ samp {
   width: 100%;
 }
 
+/* Shared default link style for MDX/body content */
+.link-default {
+  color: var(--link);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.link-default:hover {
+  color: var(--link-hover);
+}
+
+.link-default:focus-visible {
+  outline: 1px solid color-mix(in oklab, var(--link) 60%, transparent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
 /* Project card hover */
 .project-card {
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -234,6 +254,8 @@ samp {
   --background-card: oklch(0.27 0 0);
   --background-alt: oklch(0.3 0 0);
   --foreground-muted: oklch(0.7 0 0);
+  --link: oklch(0.76 0.14 257);
+  --link-hover: oklch(0.82 0.13 257);
   --accent: oklch(0.32 0 0);
   --accent-light: oklch(0.3 0 0);
   --border: oklch(1 0 0 / 15%);
@@ -280,6 +302,8 @@ samp {
   --background-card: oklch(0.97 0.015 85);
   --background-alt: oklch(0.92 0.025 85);
   --foreground-muted: oklch(0.5 0.02 60);
+  --link: oklch(0.5 0.15 250);
+  --link-hover: oklch(0.44 0.16 250);
   --accent: oklch(0.93 0.02 85);
   --accent-light: oklch(0.9 0.025 85);
   --border: oklch(0.85 0.03 80);

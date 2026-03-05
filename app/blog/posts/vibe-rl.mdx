@@ -5,14 +5,28 @@ summary: "A devlog of how I used Codex and Prime Intellect to Vibe RL and got Qw
 author: "Sriraam"
 ---
 
-A devlog of how I used Codex and Prime Intellect to Vibe RL and got Qwen3-4B to beat GPT 4.1 mini by ~2x at drawing ASCII diagrams.
+A log of how I used Codex and Prime Intellect to Vibe RL and got Qwen3-4B to beat GPT 4.1 mini by ~2x at drawing ASCII diagrams.
+
+Before we dive in, I want to clarify what I mean by Vibe RL and how it is different from [Vibe Coding](https://x.com/karpathy/status/1886192184808149383) as defined by Karpathy Sensei.
+
+In my opinion, Vibe RL is the practice of post-training a model with Reinforcement Learning where an agent generates synthetic data, observes experiment results in realtime, inspects rollouts, finds bugs, spots reward hacking,
+improves the reward functions, proves its iterations with testcases before starting new runs, builds bespoke UI for humans, proposes research improvements, and iterates
+with varying degrees of autonomy. A key requirement is that the agent must have access to all the tools and platforms that a human would.
+
+I know I gave a laundry list but this is my first time and would love to hear others' experiences and opinions.
+
+Of course Vibe RL involves Vibe Coding, but the key distinctions are:
+
+1. The agent interacts with experiment tools in realtime and makes decisions without much prompting.
+1. Proposes concrete hypotheses with verifiable steps to analyze the results.
+1. Builds custom interfaces for collaborating with humans.
 
 # tl;dr (what I learned)
 
 1. Choose an RL stack that has CLI/MCP/API access. I used Prime Intellect.
 1. Build the environment and a simple reward function as the golden skeleton for the agent to follow.
 1. Ask your agent to **vibecode an RL Studio** to inspect rollouts, rubric bugs, reward hacking, etc.
-   The key is to be able to select multiple rollouts at once and have a **"Copy Rollouts" button** to copy agent-friendly markdown.
+   The key is to be able to select multiple rollouts at once and have a **"Copy Rollouts" button** to prompt further.
 1. **Maintain testcases for your reward functions** to gain confidence in your rubric.
 1. Prompt your agent to **write scripts for repetitive tasks** like:
    - Processing raw rollouts for your RL Studio
@@ -49,10 +63,21 @@ I chose this task because its a single turn task, easy to generate synthetic dat
 
 # My RL Stack
 
-I had been playing around with Verifiers and Prime RL for a while and got early access to the Prime Intellect Lab so I gave it a try.
+1. [Codex](https://openai.com/codex/) as my coding agent with GPT 5.3 Codex X-high
+1. [Qwen3-4B](https://huggingface.co/Qwen/Qwen3-4B) as my LLM for the RL runs
+1. [Verifiers](https://docs.primeintellect.ai/verifiers/overview) for the RL Environment
+1. [Prime RL](https://docs.primeintellect.ai/prime-rl/index) for the Trainer
+1. [Prime Lab](https://docs.primeintellect.ai/hosted-training/getting-started) for Hosted Training with LoRA, Evaluation, and Inference
+1. [Prime CLI](https://docs.primeintellect.ai/cli-reference/introduction) for interacting with the RL runs
+1. [Hugging Face](https://huggingface.co/) for managing my dataset
+1. [Weights and Biases](https://wandb.ai/) for experiment tracking
+1. [Shadcn](https://ui.shadcn.com/) for my vibecoded RL Studio
+1. Bash and Python for scripts
+
+I had been playing around with Verifiers and Prime RL for a while and got early access to the Prime Intellect Lab so I gave it a try. However, you can choose your own RL stack as long as coding agents have a way to access the data you can.
 
 The Lab is a full-stack hosted platform for LLM post-training, from agentic RL to evaluation and inference.
-The cool part is you don't have to worry about managing GPU infrastructure (IYKYK 😭).
+The best part is you don't have to worry about managing GPU infrastructure (IYKYK 😭).
 
 All you need to do is build your environment using Verifiers with the following pieces:
 
@@ -61,11 +86,15 @@ All you need to do is build your environment using Verifiers with the following 
 - A rubric aka a set of reward functions to score the model
 - A set of TOML files with configurations for your RL runs
 
-Then it's as simple as running the following command:
+Then starting an RL run is as simple as running the following command:
 
 ```bash
 prime rl run config.toml
 ```
+
+> NOTE: This blog post is not a full tutorial but rather a messy walkthrough of my journey.
+>
+> I would recommend reading the [Official Docs](https://docs.primeintellect.ai/hosted-training/getting-started) and the [Lab's launch blog post](https://www.primeintellect.ai/blog/lab) which are detailed and easy to follow.
 
 # Setting up the Environment skeleton
 
@@ -83,4 +112,4 @@ prime rl run config.toml
 
 # Vibecode an RL Studio
 
-# What I would do differently
+# What I would do **differently**

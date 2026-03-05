@@ -14,8 +14,7 @@ type Props = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
 };
 
 const variantStyles: Record<LinkVariant, string> = {
-  default:
-    "text-foreground font-medium transition-colors hover:text-foreground-muted",
+  default: "link-default",
   muted:
     "text-foreground-muted hover:text-foreground transition-colors",
   underline:

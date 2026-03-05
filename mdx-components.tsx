@@ -149,7 +149,7 @@ const components: MDXComponents = {
 
   // Blockquote
   blockquote: ({ children }) => (
-    <blockquote className="border-l-4 border-accent-light bg-accent/50 pl-4 py-2 italic text-foreground mb-4 rounded-r">
+    <blockquote className="border-l-4 border-accent-light bg-accent/50 pl-4 py-0.5 text-foreground mb-4 rounded-r [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
       {children}
     </blockquote>
   ),
