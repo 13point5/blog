@@ -17,10 +17,11 @@ type GalleryImage = {
 type ImageGalleryProps = {
   images?: GalleryImage[];
   className?: string;
+  fullWidth?: boolean;
   showBorder?: boolean;
 };
 
-export function ImageGallery({ images = [], className, showBorder = true }: ImageGalleryProps) {
+export function ImageGallery({ images = [], className, fullWidth = true, showBorder = true }: ImageGalleryProps) {
   const [active, setActive] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -53,7 +54,7 @@ export function ImageGallery({ images = [], className, showBorder = true }: Imag
 
   const galleryContent = (
     <div className="flex flex-col items-center gap-4">
-      <div className="relative w-full max-w-[90vw] overflow-hidden rounded-lg">
+      <div className="relative w-full max-w-[90vw] overflow-hidden rounded-md">
         <NextImage
           src={currentImage.src}
           alt={currentImage.alt}
@@ -112,7 +113,8 @@ export function ImageGallery({ images = [], className, showBorder = true }: Imag
     return (
       <figure
         className={cn(
-          "group relative my-4 mx-auto max-w-lg cursor-pointer",
+          "group relative flex flex-col gap-2 mb-4 mx-auto cursor-pointer",
+          fullWidth ? "w-full" : "max-w-lg",
           className
         )}
         onClick={() => setIsFullscreen(true)}
@@ -123,7 +125,7 @@ export function ImageGallery({ images = [], className, showBorder = true }: Imag
           width={500}
           height={350}
           className={cn(
-            "w-full h-auto rounded-lg",
+            "w-full h-auto rounded-md",
             showBorder && "border border-border"
           )}
           unoptimized={currentImage.src.startsWith("http")}
@@ -140,7 +142,7 @@ export function ImageGallery({ images = [], className, showBorder = true }: Imag
           <Maximize2 className="size-3" />
         </button>
         {currentImage.caption && (
-          <figcaption className="text-center text-sm text-foreground-muted mt-2">
+          <figcaption className="text-center text-sm text-foreground-muted">
             {currentImage.caption}
           </figcaption>
         )}
@@ -161,12 +163,13 @@ export function ImageGallery({ images = [], className, showBorder = true }: Imag
     <>
       <figure
         className={cn(
-          "group relative my-4 mx-auto max-w-lg flex flex-col items-center cursor-pointer",
+          "group relative flex flex-col gap-2 mb-4 mx-auto items-center cursor-pointer",
+          fullWidth ? "w-full" : "max-w-lg",
           className
         )}
         onClick={() => setIsFullscreen(true)}
       >
-        <div className="relative w-full overflow-hidden rounded-lg">
+        <div className="relative w-full overflow-hidden rounded-md">
           <NextImage
             src={currentImage.src}
             alt={currentImage.alt}
@@ -224,7 +227,7 @@ export function ImageGallery({ images = [], className, showBorder = true }: Imag
           </div>
         </div>
         {currentImage.caption && (
-          <figcaption className="text-center text-sm text-foreground-muted mt-2">
+          <figcaption className="text-center text-sm text-foreground-muted">
             {currentImage.caption}
           </figcaption>
         )}

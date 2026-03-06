@@ -11,6 +11,7 @@ type ImageWithFullscreenProps = {
   alt: string;
   caption?: string;
   className?: string;
+  fullWidth?: boolean;
   showBorder?: boolean;
   width?: number;
   height?: number;
@@ -22,6 +23,7 @@ export function ImageWithFullscreen({
   alt,
   caption,
   className,
+  fullWidth = true,
   showBorder = true,
   width = 500,
   height = 350,
@@ -51,23 +53,32 @@ export function ImageWithFullscreen({
       width={width}
       height={height}
       className={cn(
-        "w-full h-auto rounded-lg",
+        "w-full h-auto rounded-md",
         showBorder && "border border-border"
       )}
       unoptimized={src.startsWith("http")}
     />
   );
 
+  const hasMaxWidthOverride =
+    fullWidth || (typeof className === "string" && /max-w-/.test(className));
+
   return (
     <>
       <figure
         className={cn(
-          "group my-4 mx-auto max-w-lg cursor-pointer",
+          "group flex flex-col gap-2 mb-4 mx-auto cursor-pointer",
+          fullWidth ? "w-full" : !hasMaxWidthOverride && "max-w-lg",
           className
         )}
         onClick={() => setIsOpen(true)}
       >
-        <div className="relative inline-block max-w-full mx-auto">
+        <div
+          className={cn(
+            "relative max-w-full mx-auto",
+            fullWidth ? "w-full" : "inline-block"
+          )}
+        >
           {inlineImage}
           <button
             type="button"
@@ -82,7 +93,7 @@ export function ImageWithFullscreen({
           </button>
         </div>
         {caption && (
-          <figcaption className="text-center text-sm text-foreground-muted mt-2">
+          <figcaption className="text-center text-sm text-foreground-muted">
             {caption}
           </figcaption>
         )}
@@ -115,7 +126,7 @@ export function ImageWithFullscreen({
               alt={alt}
               width={1920}
               height={1080}
-              className="max-w-full max-h-[85vh] w-auto h-auto object-contain rounded-lg"
+              className="max-w-full max-h-[85vh] w-auto h-auto object-contain rounded-md"
               unoptimized={src.startsWith("http")}
             />
             {caption && (

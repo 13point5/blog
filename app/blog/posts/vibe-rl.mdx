@@ -5,7 +5,7 @@ summary: "A devlog of how I used Codex and Prime Intellect to Vibe RL and got Qw
 author: "Sriraam"
 ---
 
-A log of how I used <Link href="https://www.primeintellect.ai/" icon="/prime.jpeg">Prime Intellect</Link> and Codex to Vibe RL and got Qwen3-4B to beat GPT 4.1 mini by ~2x at drawing ASCII diagrams.
+A log of how I used <Link href="https://www.primeintellect.ai/" icon="/prime.jpeg">Prime Intellect</Link> and [Codex](https://openai.com/codex/) to Vibe RL and got Qwen3-4B to beat GPT 4.1 mini by ~2x at ASCII diagrams.
 
 Before we dive in, I want to clarify what I mean by Vibe RL and how it is different from [Vibe Coding](https://x.com/karpathy/status/1886192184808149383) as defined by Karpathy Sensei.
 
@@ -13,13 +13,13 @@ In my opinion, Vibe RL is the practice of post-training a model with Reinforceme
 improves the reward functions, proves its iterations with testcases before starting new runs, builds bespoke UI for humans, proposes research improvements, and iterates
 with varying degrees of autonomy. A key requirement is that the agent must have access to all the tools and platforms that a human would.
 
-I know I gave a laundry list but this is my first time and would love to hear others' experiences and opinions.
-
-Of course Vibe RL involves Vibe Coding, but the key distinctions are:
+Vibe RL obviously involves Vibe Coding, but the key distinctions are:
 
 1. The agent interacts with experiment tools in realtime and makes decisions without much prompting.
 1. Proposes concrete hypotheses with verifiable steps to analyze the results.
 1. Builds custom interfaces for collaborating with humans.
+
+I know I gave a laundry list but this is my first time and would love to hear others' experiences and opinions.
 
 # tl;dr (what I learned)
 
@@ -215,6 +215,7 @@ And it did! The model got almost a perfect `2.0` reward in just 82 steps!
   alt="Prime Lab run overview for the first synthetic-data-backed training run"
   width={600}
   height={300}
+  title="First RL run on the Prime Lab"
 />
 
 The Lab also provides a nice overview of 8 rollouts at every interval for your validation set.
@@ -226,6 +227,7 @@ I was so excited when I saw so many green `2.0` rewards!
   alt="Data table for the first synthetic-data-backed training run"
   width={600}
   height={300}
+  title="Data table showing rollouts"
 />
 
 I wanted to see the beautiful ASCII diagrams that my model drew, and this is what I saw:
@@ -235,6 +237,7 @@ I wanted to see the beautiful ASCII diagrams that my model drew, and this is wha
   alt="Rollouts for the first synthetic-data-backed training run"
   width={600}
   height={300}
+  title="An expanded dialog to see the rollouts, rewards, and sample info in detail"
 />
 
 I thought that there might have been a rendering issue with their UI, so I copied the response and pasted it in Cursor and got this:
@@ -244,6 +247,7 @@ I thought that there might have been a rendering issue with their UI, so I copie
   alt="Rollouts for the first synthetic-data-backed training run in Cursor"
   width={600}
   height={300}
+  title="An example rollout pasted in Cursor showing the ASCII diagram"
 />
 
 This showed me that there's more nuance to the task than just misaligned boxes. The algorithm had a lot more factors to consider.
@@ -361,6 +365,7 @@ the model reached a near-perfect reward of `2.0` !! I saw the errors go down and
   alt="Reward charts for the successful run reported by Codex"
   width={400}
   height={225}
+  title="Charts showing near-perfect 2.0 reward before discovering the reward hack"
 />
 
 Codex reported that the model had no bugs in the reward function and that the run was successful.
@@ -428,10 +433,12 @@ Here are some failed runs:
     {
       src: "/images/blog/vibe-rl/failed-run-alpha-16.png",
       alt: "Alpha 16 run",
+      caption: "LoRA alpha 16: model stayed in local minima",
     },
     {
       src: "/images/blog/vibe-rl/failed-run-alpha-64.png",
       alt: "Alpha 64 run",
+      caption: "LoRA alpha 64: still insufficient for learning",
     },
   ]}
 />
@@ -555,12 +562,49 @@ def test_layout_spread_rollout_sequence_vertical_stack_is_low() -> None:
 
 ````
 
-# Just one more TOML file bro
+After several iterations on these testcases, and resuming failed runs, we got a successful run 🔥🔥🔥
 
-# Vibecode an RL Studio
+<Image
+  src="/images/blog/vibe-rl/successful-run-1.png"
+  alt="Successful run"
+  width={800}
+  height={400}
+  title="Successful run with layout spread reward after several iterations"
+/>
 
-# What I would do **differently**
+# Results
 
-```
+Now that I had a successful run, I wanted to try different configurations to experiment with training stability and efficiency.
+I also wanted to scale the training to more steps.
 
-```
+Lucky for us, with Prime RL you just need more TOML files. So I kept begging Codex for more TOML files to try different configurations.
+
+In the end, I evaluated my best model against GPT 4.1 mini and found that it beat it by ~2x! 🎉🎉🎉
+
+**Findings:**
+
+1. Small batch sizes like 128 are not enough. 512 was the sweet spot, I didn't go higher but might help.
+1. A minimum LoRA alpha of 128 is needed for this task. If you go lower, the model stayhs in a local minima and doesn't learn. I suspect this is because it did not have enough rollouts that performed well.
+1. Even with higher alpha, I had to increase the learning rate from `1e-6` to `2e-6` for a stable run.
+1. Higher LoRA alpha converges faster and is more stable if you fix the learning rate.
+1. Scaling the training to 600 steps not only resulted in near perfect rewards but the error metrics went to near zero!
+
+<Image
+  src="/images/blog/vibe-rl/final-evaluations.png"
+  alt="Final evaluations"
+  width={800}
+  height={400}
+  fullWidth
+  title="Prime Hosted Evaluation report"
+/>
+
+<Image
+  src="/images/blog/vibe-rl/successful-runs.png"
+  alt="Successful runs from Weights and Biases"
+  width={800}
+  height={400}
+  fullWidth
+  title="Successful runs from Weights and Biases"
+/>
+
+# What I would do differently the next time

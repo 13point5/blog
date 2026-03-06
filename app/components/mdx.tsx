@@ -77,18 +77,21 @@ function RoundedImage({
   height,
   alt,
   style,
+  fullWidth,
   ...props
-}: React.ComponentProps<typeof Image>) {
+}: React.ComponentProps<typeof Image> & { fullWidth?: boolean }) {
   const resolvedWidth = resolveImageDimension(width, 1200);
   const resolvedHeight = resolveImageDimension(height, 800);
+  const isFullWidth = fullWidth ?? true;
   const mergedClassName = className
-    ? `rounded-lg mb-4 block mx-auto ${className}`
-    : "rounded-lg mb-4 block mx-auto";
+    ? `rounded-md block mx-auto ${isFullWidth ? "w-full" : ""} ${className}`
+    : `rounded-md block mx-auto ${isFullWidth ? "w-full" : ""}`;
   const mergedStyle: React.CSSProperties = {
     maxWidth: "100%",
     width: typeof style?.width !== "undefined" ? style.width : resolvedWidth,
     height: typeof style?.height !== "undefined" ? style.height : "auto",
     ...style,
+    ...(isFullWidth && { width: "100%" }),
   };
 
   return (
@@ -99,6 +102,8 @@ function RoundedImage({
       width={resolvedWidth}
       height={resolvedHeight}
       showBorder={true}
+      fullWidth={fullWidth ?? true}
+      className={className}
     >
       <Image
         {...props}
