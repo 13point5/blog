@@ -60,16 +60,20 @@ export function Header() {
             />
             <span>sriraam</span>
           </Link>
-          <span className="text-foreground-muted">/</span>
-          <Link
-            href="/blog"
-            className={cn(
-              "hover:text-foreground-muted transition-colors",
-              isOnBlogPage && "text-foreground-muted"
-            )}
-          >
-            blog
-          </Link>
+          {isOnBlogPage && (
+            <>
+              <span className="text-foreground-muted">/</span>
+              <Link
+                href="/blog"
+                className={cn(
+                  "hover:text-foreground-muted transition-colors",
+                  blogSlug && "text-foreground-muted"
+                )}
+              >
+                blog
+              </Link>
+            </>
+          )}
           {blogSlug && (
             <>
               <span className="text-foreground-muted">/</span>
