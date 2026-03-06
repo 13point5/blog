@@ -20,60 +20,81 @@ export default async function Image() {
           height: "100%",
           width: "100%",
           display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          backgroundColor: "#ffffff",
-          padding: "80px 100px",
+          flexDirection: "column",
+          backgroundColor: "#0d1117",
+          padding: "60px 80px",
         }}
       >
-        {/* Left side - Text */}
         <div
           style={{
             display: "flex",
-            flexDirection: "column",
-            gap: 16,
+            alignItems: "center",
+            justifyContent: "space-between",
+            flex: 1,
           }}
         >
+          {/* Left side - Text */}
           <div
             style={{
-              fontSize: 80,
-              fontWeight: 700,
-              color: "#1a1a1a",
-              letterSpacing: "-0.03em",
+              display: "flex",
+              flexDirection: "column",
+              gap: 20,
             }}
           >
-            Sriraam
+            <div
+              style={{
+                fontSize: 72,
+                fontWeight: 700,
+                color: "#e6edf3",
+                letterSpacing: "-0.03em",
+              }}
+            >
+              Blog
+            </div>
+            <div
+              style={{
+                fontSize: 28,
+                color: "#8b949e",
+                lineHeight: 1.5,
+              }}
+            >
+              Thoughts on AI, engineering, and development
+            </div>
           </div>
+
+          {/* Right side - Profile pic */}
           <div
             style={{
-              fontSize: 28,
-              color: "#666666",
-              lineHeight: 1.4,
+              display: "flex",
+              width: 200,
+              height: 200,
+              borderRadius: "50%",
+              overflow: "hidden",
+              border: "3px solid #30363d",
+              flexShrink: 0,
+              marginLeft: 40,
             }}
           >
-            Founding Engineer at Decode. Learning RL
-          </div>
-          <div
-            style={{
-              fontSize: 24,
-              color: "#999999",
-              marginTop: 8,
-            }}
-          >
-            /blog
+            <img
+              src={zoroSrc as unknown as string}
+              alt="Profile"
+              width={200}
+              height={200}
+              style={{ objectFit: "cover" }}
+            />
           </div>
         </div>
 
-        {/* Right side - Zoro image */}
-        <img
-          src={zoroSrc as unknown as string}
-          alt="Zoro"
-          width={280}
-          height={280}
+        {/* Bottom - domain */}
+        <div
           style={{
-            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
           }}
-        />
+        >
+          <div style={{ fontSize: 20, color: "#484f58" }}>sriraam.me/blog</div>
+        </div>
       </div>
     ),
     {
