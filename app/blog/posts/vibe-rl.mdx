@@ -362,7 +362,20 @@ Codex noticed these issues and proposed to use **Qwen3-4B-Instruct-2507** for th
 # 6. Reward Hacking
 
 After several days of improving the reward function, switching to **Qwen3-4B-Instruct-2507**, and experimenting with different LoRA configs,
-the model reached a near-perfect reward of `2.0` !! I saw the errors go down and the reward go up. Surely, it worked this time.
+the model reached a near-perfect reward of `2.0` !!
+
+A change I made here was logging the errors that made up the final reward to understand the strengths and weaknesses of the model.
+This is useful for designing a curriculum for the model. Here are the metrics I tracked:
+
+1. `alignment_reward`
+1. `layout_spread_reward`
+1. `format_reward`
+1. `arrow_error_metric`
+1. `connector_error_metric`
+1. `rectangle_error_metric`
+1. `misaligned_total_metric`
+
+I saw the errors go down and the reward go up. Surely, it worked this time.
 
 <Image
   src="/images/blog/vibe-rl/reward-hack-charts.png"
