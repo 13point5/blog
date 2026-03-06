@@ -1,7 +1,7 @@
 ---
 title: "My first Vibe RL experience"
 publishedAt: "2026-03-03"
-summary: "A devlog of how I used Codex and Prime Intellect to Vibe RL and got Qwen3-4B to beat GPT 4.1 mini by ~2x at drawing ASCII diagrams."
+summary: "A log of how I used Prime Intellect and Codex to Vibe RL and got Qwen3-4B to beat GPT 4.1 mini by ~2x at drawing ASCII diagrams."
 author: "Sriraam"
 ---
 
@@ -572,7 +572,7 @@ After several iterations on these testcases, and resuming failed runs, we got a 
   title="Successful run with layout spread reward after several iterations"
 />
 
-# Results
+# 8. Results
 
 Now that I had a successful run, I wanted to try different configurations to experiment with training stability and efficiency.
 I also wanted to scale the training to more steps.
@@ -594,7 +594,6 @@ In the end, I evaluated my best model against GPT 4.1 mini and found that it bea
   alt="Final evaluations"
   width={800}
   height={400}
-  fullWidth
   title="Prime Hosted Evaluation report"
 />
 
@@ -603,8 +602,154 @@ In the end, I evaluated my best model against GPT 4.1 mini and found that it bea
   alt="Successful runs from Weights and Biases"
   width={800}
   height={400}
-  fullWidth
   title="Successful runs from Weights and Biases"
 />
 
 # What I would do differently the next time
+
+That was my messy journey Vibe RLing for the first time. The moment I wasted a lot of time on was finding bugs
+in the reward functions and spotting reward hacking.
+
+So as I mentioned in the beginning, I reflected and vibecoded a simple RL Studio to inspect several rollouts across checkpoints
+at once. I also added a button to copy the rollouts in an agent-friendly markdown format to prompt further.
+
+<Image
+  src="/images/blog/vibe-rl/rl-studio.png"
+  alt="RL Studio"
+  width={800}
+  height={400}
+  title="RL Studio"
+/>
+
+Here's a preview of the prompt that I got from the RL Studio:
+
+````text maxHeight="400px"
+# RL Studio Rollout Export
+Exported At: 2026-03-06T02:30:12.616Z
+Selected Rollouts: 2
+
+## Run Summary
+- Run ID: kqbiac60w97i4k8n2x4b8m2z
+  - Name: ascii-layout-alpha-256-qwen3-4b-instruct-2507-lr-2e6
+  - Environment: 13point5/ascii-align
+  - Model: Qwen/Qwen3-4B-Instruct-2507
+  - Status: COMPLETED
+  - Max Steps: 300
+
+## Run kqbiac60w97i4k8n2x4b8m2z
+- Name: ascii-layout-alpha-256-qwen3-4b-instruct-2507-lr-2e6
+- Environment: 13point5/ascii-align
+- Model: Qwen/Qwen3-4B-Instruct-2507
+- Status: COMPLETED
+
+### Checkpoint 280
+
+#### Rollout 1 (sample_id=0, problem_id=0, reward=3.000)
+
+System:
+You generate ASCII diagrams for the user's request.
+Respond with a single markdown code block fenced with ```text and ```
+containing only the ASCII diagram.
+
+For box structure, use only these corner characters: ┌, ┐, └, ┘.
+For box edges and junctions, use only: ─, │, ├, ┤, ┬, ┴, ┼.
+You may use normal text/content characters (letters, numbers, punctuation, symbols) for labels.
+
+User:
+
+Draw a simple architecture diagram for multi-region video transcoding with workers, showing primary and secondary regions, job queues, a failover path if the primary region fails, and a rollback branch to retry or recover failed transcoding jobs.
+
+Assistant:
+
+```text
+┌─────────────────┐     ┌─────────────────┐
+│ Primary Region  │     │ Secondary       │
+└─────────────────┘     └─────────────────┘
+      │                         │
+      ├─────────────────────────┤
+      │                         │
+      ▼                         ▼
+  ┌──────────────────┐   ┌──────────────────┐
+  │ Job Queue        │   │ Job Queue        │
+  └──────────────────┘   └──────────────────┘
+          │                         │
+          └─────────────────────────┘
+                    │
+           ┌─────────────────┐
+           │ Worker Pool     │
+           └─────────────────┘
+                    │
+         ┌────────────────────┐
+         │ Failover Path      │
+         └────────────────────┘
+                 │
+          ┌────────────────────┐
+          │ Rollback Branch    │
+          └────────────────────┘
+
+#### Rollout 2 (sample_id=0, problem_id=0, reward=2.857)
+
+System:
+
+You generate ASCII diagrams for the user's request.
+Respond with a single markdown code block fenced with ```text and ```
+containing only the ASCII diagram.
+
+For box structure, use only these corner characters: ┌, ┐, └, ┘.
+For box edges and junctions, use only: ─, │, ├, ┤, ┬, ┴, ┼.
+You may use normal text/content characters (letters, numbers, punctuation, symbols) for labels.
+
+User:
+
+Draw an architecture diagram illustrating a feature rollout for backup and restore using a message bus. Include these entities: Client, Feature Toggle Service, Backup API, Message Bus, Backup Worker, Restore Worker, Backup Storage, and Monitoring Service. Show the decision point at the Feature Toggle Service determining if the feature is enabled. Include normal backup and restore flows via the message bus. Add an error path where the Backup Worker fails to store data, triggering an alert to the Monitoring Service. Use concise labels and keep the diagram moderately complex with clear connections between components.
+
+Assistant:
+
+```text
+┌────────────┐     ┌─────────────────┐
+│  Client    │     │ Feature Toggle  │
+└────────────┘     └─────────────────┘
+          │                   │
+          ├───────────────────┤
+          │                   │
+          ▼                   ▼
+       ┌─────────────┐   ┌─────────────┐
+       │ Backup API  │   │ Message     │
+       └─────────────┘   │   Bus       │
+                       ┌─────────────┐
+                       │ Backup      │
+                       │ Worker      │
+                       └─────────────┘
+                              │
+                              └─────────────┐
+                                         │
+                                   ┌─────────────┐
+                                   │ Storage     │
+                                   └─────────────┘
+                                         │
+                      ┌─────────────────────────────────┐
+                      │           Monitoring            │
+                      │           Service               │
+                      └─────────────────────────────────┘
+```
+````
+
+In order to get the rollouts in a consistent format efficiently, I asked Codex to write a script to parse the Prime CLI output and convert it to a JSON file.
+Here is how the script can be used with arguments for run IDs and specific steps to quickly test.
+
+```bash
+python scripts/sync_prime_runs.py --run-id <run_id>
+python scripts/sync_prime_runs.py --run-id <id1> --run-id <id2> --steps last3
+```
+
+Understanding the reward algorithms was hard so I would ask Codex to explain the algorithm visually with examples in the RL Studio.
+
+Finally, this was a toy experiment so I didn't worry about the dataset too much but if I were to do this again,
+I would also analyze the dataset for exact and semantic duplicates, a good spread across themes and diagram types, and a good mix of difficulty levels.
+
+I found some cool libraries on X that would make this easier and more efficient:
+
+1. [NeMo Data Designer](https://nvidia-nemo.github.io/DataDesigner/latest/) from NVIDIA
+1. [Chatan](https://github.com/cdreetz/chatan) by [Christian](https://x.com/creet_z) from Prime Intellect
+
+Thank you for reading!
