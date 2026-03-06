@@ -1,6 +1,5 @@
-// import WorkSection from "./components/work-section";
+import WorkSection from "./components/work-section";
 import Bio from "@/content/bio.mdx";
-import Contact from "@/content/contact.mdx";
 
 export default function Home() {
   return (
@@ -10,8 +9,8 @@ export default function Home() {
         <Bio />
       </section>
 
-      {/* Work Section with filters */}
-      {/* <WorkSection /> */}
+      {/* Blog Section */}
+      <WorkSection />
 
       {/* Contact Section */}
       {/* <section id="contact" className="animate-fade-blur animation-delay-200">

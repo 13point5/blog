@@ -60,26 +60,22 @@ export function Header() {
             />
             <span>sriraam</span>
           </Link>
-          {isOnBlogPage && (
+          <span className="text-foreground-muted">/</span>
+          <Link
+            href="/blog"
+            className={cn(
+              "hover:text-foreground-muted transition-colors",
+              isOnBlogPage && "text-foreground-muted"
+            )}
+          >
+            blog
+          </Link>
+          {blogSlug && (
             <>
               <span className="text-foreground-muted">/</span>
-              <Link
-                href="/blog"
-                className={cn(
-                  "hover:text-foreground-muted transition-colors",
-                  blogSlug && "text-foreground-muted"
-                )}
-              >
-                blog
-              </Link>
-              {blogSlug && (
-                <>
-                  <span className="text-foreground-muted">/</span>
-                  <span className="truncate max-w-[45vw] sm:max-w-64">
-                    {blogSlug}
-                  </span>
-                </>
-              )}
+              <span className="truncate max-w-[45vw] sm:max-w-64">
+                {blogSlug}
+              </span>
             </>
           )}
         </div>
