@@ -9,15 +9,17 @@ A log of how I used <Link href="https://www.primeintellect.ai/" icon="/prime.jpe
 
 Before we dive in, I want to clarify what I mean by Vibe RL and how it is different from [Vibe Coding](https://x.com/karpathy/status/1886192184808149383) as defined by Karpathy Sensei.
 
-In my opinion, Vibe RL is the practice of post-training a model with Reinforcement Learning where an agent generates synthetic data, observes experiment results in realtime, inspects rollouts, finds bugs, spots reward hacking,
-improves the reward functions, proves its iterations with testcases before starting new runs, builds bespoke UI for humans, proposes research improvements, and iterates
-with varying degrees of autonomy. A key requirement is that the agent must have access to all the tools and platforms that a human would.
-
 Vibe RL obviously involves Vibe Coding, but the key distinctions are:
 
 1. The agent interacts with experiment tools in realtime and makes decisions without much prompting.
 1. Proposes concrete hypotheses with verifiable steps to analyze the results.
 1. Builds custom interfaces for collaborating with humans.
+
+Semi-formally, Vibe RL is the practice of post-training a model with Reinforcement Learning where an agent generates synthetic data, observes experiment results in realtime, inspects rollouts, finds bugs, spots reward hacking,
+improves the reward functions, proves its iterations with testcases before starting new runs, builds bespoke UI for humans, proposes research improvements, and iterates
+with varying degrees of autonomy.
+
+A key requirement is that the agent must have access to all the tools and platforms that a human would.
 
 I know I gave a laundry list but this is my first time and would love to hear others' experiences and opinions.
 
@@ -32,7 +34,7 @@ I know I gave a laundry list but this is my first time and would love to hear ot
    - Processing raw rollouts for your RL Studio
    - Running your reward test suite against live rollouts
    - Analyze the dataset for diversity
-1. Codex spotted reward hacking better by looking at images instead of text because the task is a weakness for frontier LLMs.
+1. Codex spotted reward hacking better by looking at images instead of text because this task is a weakness for frontier LLMs.
 
 # The Task
 
@@ -64,14 +66,14 @@ I chose this task because its a single turn task without a fixed answer, easy to
 # My RL Stack
 
 1. [Codex](https://openai.com/codex/) as my coding agent with GPT 5.3 Codex X-high
-1. [Qwen3-4B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-4B-Instruct-2507) as my LLM for the RL runs
+1. I chose [Qwen3-4B-Instruct-2507](https://huggingface.co/Qwen/Qwen3-4B-Instruct-2507) as my LLM but used [INTELLECT-3](https://www.primeintellect.ai/blog/intellect-3) in the beginning. Read on to see why 👀
 1. [Verifiers](https://docs.primeintellect.ai/verifiers/overview) for the RL Environment
 1. [Prime RL](https://docs.primeintellect.ai/prime-rl/index) for the Trainer
-1. [Prime Lab](https://docs.primeintellect.ai/hosted-training/getting-started) for Hosted Training with LoRA, Evaluation, and Inference
-1. [Prime CLI](https://docs.primeintellect.ai/cli-reference/introduction) for interacting with the RL runs
+1. [Prime Lab](https://docs.primeintellect.ai/hosted-training/getting-started) for Hosted Training, Evaluation, and Inference
+1. [Prime CLI](https://docs.primeintellect.ai/cli-reference/introduction) for Codex to interact with the RL runs in realtime
 1. [Hugging Face](https://huggingface.co/) for managing my dataset
 1. [Weights and Biases](https://wandb.ai/) for experiment tracking
-1. [Shadcn](https://ui.shadcn.com/) for my vibecoded RL Studio
+1. [Shadcn](https://ui.shadcn.com/) for my RL Studio
 1. Bash and Python for scripts
 
 I had been playing around with Verifiers and Prime RL for a while and got early access to the Prime Intellect Lab so I gave it a try. However, you can choose your own RL stack as long as coding agents have a way to access the data you can.
@@ -92,7 +94,7 @@ Then starting an RL run is as simple as running the following command:
 prime rl run config.toml
 ```
 
-This is the core of an enviornment in Verifiers:
+This is the core of my enviornment:
 
 ```python title="environment.py"
 def load_environment() -> vf.Environment:
@@ -112,7 +114,7 @@ def load_environment() -> vf.Environment:
 and here is a real RL config file from my runs:
 
 ```toml title="config.toml"
-name = "ascii-layout-alpha-128-qwen3-4b-instruct-2507-difficulty-filter"
+name = "ascii-layout-alpha-128-qwen3-4b-instruct-2507"
 model = "Qwen/Qwen3-4B-Instruct-2507"
 max_steps = 300
 batch_size = 512
@@ -120,8 +122,6 @@ rollouts_per_example = 16
 trajectory_strategy = "interleaved"
 learning_rate = 1e-6
 lora_alpha = 128
-oversampling_factor = 2.0
-max_async_level = 4
 
 [sampling]
 max_tokens = 5000
@@ -136,13 +136,13 @@ interval = 10
 
 [wandb]
 project = "ascii-align"
-name = "ascii-layout-alpha-128-qwen3-4b-instruct-2507-difficulty-filter"
+name = "ascii-layout-alpha-128-qwen3-4b-instruct-2507"
 entity = "13point5-labs"
 ```
 
 > NOTE: This blog post is not a full tutorial but rather a messy walkthrough of my journey.
 >
-> I would recommend reading the [Official Docs](https://docs.primeintellect.ai/hosted-training/getting-started) and the [Lab's launch blog post](https://www.primeintellect.ai/blog/lab) which are detailed and easy to follow.
+> I would recommend reading the official [Getting Started Guide](https://docs.primeintellect.ai/hosted-training/getting-started) and the [launch blog post](https://www.primeintellect.ai/blog/lab) which are detailed and easy to follow.
 
 # 1. Synthetic Data Generation
 
@@ -150,9 +150,9 @@ Before I even began building the environment, I needed a dataset because this is
 The result is a **dataset of 7,200 samples**.
 
 I started with a 200 sample dataset to figure out the parameters, formatting, and data that would be useful for deterministic evaluation. I did not want to use an LLM as a judge
-for this task because with some preliminary testing with ChatGPT and Codex, I found that this is a task they're bad at. I guess since they're bad at generating aligned diagrams, they're bad at judging them too.
+for this task because with some preliminary testing using ChatGPT and Codex, I found that this is a task they're bad at. I guess since they're bad at generating aligned diagrams, they're bad at judging them too.
 
-One thing to note is that for my task, I only need user prompts, and not the expected outputs, unlike most synthetic data generation tasks. This is because
+One thing to note is that for my task, I only need user prompts and not the expected outputs, unlike most synthetic data generation tasks. This is because
 there is no single right diagram for a prompt.
 
 You can read the entire script [here](https://github.com/13point5/ascii-align-env/blob/main/environments/ascii_align/dataset.py) but this is the main function:
@@ -194,7 +194,7 @@ Later on I'll show why some of these parameters are important for the environmen
 
 # 2. First RL Run
 
-I was impatient and thought the issue was _only misaligned boxes_, so I asked Codex to do the following:
+I was impatient and thought the issue was **just misaligned boxes**, so I asked Codex to do the following:
 
 1. Write a simple system prompt asking the LLM to draw an ASCII diagram inside ` ```text ` blocks.
 1. Add a binary `format_reward` to see if we had some text inside ` ```text ` blocks.
@@ -220,7 +220,7 @@ And it did! The model got almost a perfect `2.0` reward in just 82 steps!
 
 The Lab also provides a nice overview of 8 rollouts at every interval for your validation set.
 
-I was so excited when I saw so many green `2.0` rewards!
+I was excited when I saw so many green `2.0` rewards! 🎉
 
 <Image
   src="/images/blog/vibe-rl/run-0-data-table.png"
@@ -230,7 +230,7 @@ I was so excited when I saw so many green `2.0` rewards!
   title="Data table showing rollouts"
 />
 
-I wanted to see the beautiful ASCII diagrams that my model drew, and this is what I saw:
+I wanted to see the beautiful diagrams that my model drew, and this is what I saw 💀💀💀
 
 <Image
   src="/images/blog/vibe-rl/run-0-rollout-overview.png"
@@ -254,10 +254,12 @@ This showed me that there's more nuance to the task than just misaligned boxes. 
 
 # 3. Adding testcases to the reward function
 
-I tried prompting and manually testing the new algorithms that Codex made but the process was very manual.
+I tried prompting and manually testing the new algorithms that Codex made but the process was very tedious and time consuming.
 
 So I asked Codex to make testcases for the reward function.
 I edited some of them manually and then let it try multiple algorithms in worktrees until it got the tests to pass.
+
+My effort moved from working on the algorithm to designing the testcases.
 
 The new algorithm was very complex and introduced **connectors** and **arrows** along with rectangles. Here's some sample testcases:
 
@@ -307,6 +309,8 @@ CASE_SPECS = {
 }
 ```
 
+I really enjoyed this approach because I could look at the code after there was a working algorithm instead of having to continuously understand the code, point out issues, and iterate.
+
 # 4. Iterating on the reward function
 
 It wasn't easy to perfect the reward function because with each improvement, we would find new edge cases in the RL runs.
@@ -314,9 +318,9 @@ It wasn't easy to perfect the reward function because with each improvement, we 
 However, Codex was able to kill the runs early because it had access to the Prime CLI which gave access to the rollouts and reward histograms.
 This allowed it to continuously monitor the rollouts and run them against our testcases to see if there were bugs in the reward function.
 
-The cool part is that I was able to cook, eat, and study while Codex was doing this. This was when I realized the power of Vibe RL.
+The cool part is that I was able to cook and eat, while Codex was doing this. This was when I realized the power of Vibe RL.
 
-```bash title="prime-cli-commands.sh"
+```bash title="Useful Prime CLI commands"
 # find your run id
 prime rl list
 prime rl get <run_id>
@@ -348,12 +352,12 @@ At this point I was using **INTELLECT-3** as the model for the RL runs but it ha
 
 Codex noticed these issues and proposed to use **Qwen3-4B-Instruct-2507** for the following reasons:
 
-1. It's available on the Lab, found using the CLI
+1. It's available on the Lab which it found using the CLI
 1. It doesn't have thinking mode
 1. It has a large context window
 1. Runs were expected to be faster and would allow experimenting with different LoRA configs
 
-_I did not prompt this. It was an autonomous exploration and proposal by Codex._
+**NOTE:** I did not prompt this. It was an autonomous exploration and proposal by Codex.
 
 # 6. Reward Hacking
 
@@ -425,8 +429,9 @@ The model found out that stacking all blocks vertically leads to a perfect rewar
 
 This revealed a flaw in my Rubric: **I never rewarded for _diagramness/taste_**. I only rewarded for aligning the boxes, arrows, and lines.
 
-A cool thing here is that Codex tried different configs with different batch sizes and LoRA alphas and found early that a minimum LoRa alpha of 128 was needed for the model to get better at the task.
-Here are some failed runs:
+A cool thing here is that I asked Codex to try different configs with different batch sizes and LoRA alphas and found early that a minimum LoRa alpha of 128 was needed for the model to get better at the task.
+
+Here are some failed runs where the model either stayed in a local minima or took too long to learn:
 
 <ImageGallery
   images={[
@@ -584,9 +589,9 @@ In the end, I evaluated my best model against GPT 4.1 mini and found that it bea
 **Findings:**
 
 1. Small batch sizes like 128 are not enough. 512 was the sweet spot, I didn't go higher but might help.
-1. A minimum LoRA alpha of 128 is needed for this task. If you go lower, the model stayhs in a local minima and doesn't learn. I suspect this is because it did not have enough rollouts that performed well.
-1. Even with higher alpha, I had to increase the learning rate from `1e-6` to `2e-6` for a stable run.
-1. Higher LoRA alpha converges faster and is more stable if you fix the learning rate.
+1. A minimum LoRA alpha of 128 is needed for this task. If you go lower, the model stays in a local minima and doesn't learn. I suspect this is because it did not have enough rollouts with positive advantages.
+1. Even with higher alpha, I had to increase the learning rate from `1e-6` to `2e-6` for a stable run or else it collapses quite frequently.
+1. Higher LoRA alpha converges faster and is more stable even if you fix the learning rate.
 1. Scaling the training to 600 steps not only resulted in near perfect rewards but the error metrics went to near zero!
 
 <Image
@@ -611,7 +616,8 @@ That was my messy journey Vibe RLing for the first time. The moment I wasted a l
 in the reward functions and spotting reward hacking.
 
 So as I mentioned in the beginning, I reflected and vibecoded a simple RL Studio to inspect several rollouts across checkpoints
-at once. I also added a button to copy the rollouts in an agent-friendly markdown format to prompt further.
+at once. I also added a button to copy the rollouts in an agent-friendly markdown format to prompt further. This is going to be
+a core component of my RL stack.
 
 <Image
   src="/images/blog/vibe-rl/rl-studio.png"
@@ -749,7 +755,10 @@ I would also analyze the dataset for exact and semantic duplicates, a good sprea
 
 I found some cool libraries on X that would make this easier and more efficient:
 
-1. [NeMo Data Designer](https://nvidia-nemo.github.io/DataDesigner/latest/) from NVIDIA
 1. [Chatan](https://github.com/cdreetz/chatan) by [Christian](https://x.com/creet_z) from Prime Intellect
+1. [NeMo Data Designer](https://nvidia-nemo.github.io/DataDesigner/latest/) from NVIDIA
+
+I want to thank [Will](https://x.com/willccbb) and [Manveer](https://x.com/manveerxyz) for giving me early access to the Lab and for free 🔥. Huge shoutout to [Jannik](https://x.com/jannik_stra) who was crazy helpful with implementing
+features in the Lab, just a few hours after I asked on Discord 🐐, especially with the checkpoint resume flow.
 
 Thank you for reading!
