@@ -39,10 +39,36 @@ export function ImageWithFullscreen({
       if (e.key === "Escape") close();
     };
     document.addEventListener("keydown", handleEscape);
+
+    // Robust scroll lock for mobile (overflow:hidden is ignored on iOS)
+    const scrollY = window.scrollY;
+    const prev = {
+      position: document.body.style.position,
+      top: document.body.style.top,
+      left: document.body.style.left,
+      right: document.body.style.right,
+      width: document.body.style.width,
+      overflow: document.body.style.overflow,
+      touchAction: document.body.style.touchAction,
+    };
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.width = "100%";
     document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+
     return () => {
       document.removeEventListener("keydown", handleEscape);
-      document.body.style.overflow = "";
+      document.body.style.position = prev.position;
+      document.body.style.top = prev.top;
+      document.body.style.left = prev.left;
+      document.body.style.right = prev.right;
+      document.body.style.width = prev.width;
+      document.body.style.overflow = prev.overflow;
+      document.body.style.touchAction = prev.touchAction;
+      window.scrollTo(0, scrollY);
     };
   }, [isOpen, close]);
 
@@ -103,7 +129,7 @@ export function ImageWithFullscreen({
         typeof document !== "undefined" &&
         createPortal(
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 min-h-dvh touch-none overscroll-none"
             onClick={close}
             role="dialog"
             aria-modal="true"
