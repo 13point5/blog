@@ -1,11 +1,15 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import { createPortal } from "react-dom";
+import { useState } from "react";
 import NextImage from "next/image";
 import { ChevronLeft, ChevronRight, Maximize2, X } from "lucide-react";
 import { Stepper, useAutoPlay } from "pasito";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContentFullscreen,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import "pasito/styles.css";
 
 type GalleryImage = {
@@ -21,7 +25,12 @@ type ImageGalleryProps = {
   showBorder?: boolean;
 };
 
-export function ImageGallery({ images = [], className, fullWidth = true, showBorder = true }: ImageGalleryProps) {
+export function ImageGallery({
+  images = [],
+  className,
+  fullWidth = true,
+  showBorder = true,
+}: ImageGalleryProps) {
   const [active, setActive] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -32,47 +41,6 @@ export function ImageGallery({ images = [], className, fullWidth = true, showBor
     stepDuration: 4000,
     loop: true,
   });
-
-  const closeFullscreen = useCallback(() => setIsFullscreen(false), []);
-
-  useEffect(() => {
-    if (!isFullscreen) return;
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") closeFullscreen();
-    };
-    document.addEventListener("keydown", handleEscape);
-
-    // Robust scroll lock for mobile (overflow:hidden is ignored on iOS)
-    const scrollY = window.scrollY;
-    const prev = {
-      position: document.body.style.position,
-      top: document.body.style.top,
-      left: document.body.style.left,
-      right: document.body.style.right,
-      width: document.body.style.width,
-      overflow: document.body.style.overflow,
-      touchAction: document.body.style.touchAction,
-    };
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.left = "0";
-    document.body.style.right = "0";
-    document.body.style.width = "100%";
-    document.body.style.overflow = "hidden";
-    document.body.style.touchAction = "none";
-
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-      document.body.style.position = prev.position;
-      document.body.style.top = prev.top;
-      document.body.style.left = prev.left;
-      document.body.style.right = prev.right;
-      document.body.style.width = prev.width;
-      document.body.style.overflow = prev.overflow;
-      document.body.style.touchAction = prev.touchAction;
-      window.scrollTo(0, scrollY);
-    };
-  }, [isFullscreen, closeFullscreen]);
 
   if (!images?.length) return null;
 
@@ -137,51 +105,51 @@ export function ImageGallery({ images = [], className, fullWidth = true, showBor
 
   if (images.length === 1) {
     return (
-      <figure
-        className={cn(
-          "group relative flex flex-col gap-2 mb-4 mx-auto cursor-pointer",
-          fullWidth ? "w-full" : "max-w-lg",
-          className
-        )}
-        onClick={() => setIsFullscreen(true)}
-      >
-        <NextImage
-          src={currentImage.src}
-          alt={currentImage.alt}
-          width={500}
-          height={350}
+      <>
+        <figure
           className={cn(
-            "w-full h-auto rounded-md",
-            showBorder && "border border-border"
+            "group relative flex flex-col gap-2 mb-4 mx-auto cursor-pointer",
+            fullWidth ? "w-full" : "max-w-lg",
+            className
           )}
-          unoptimized={currentImage.src.startsWith("http")}
-        />
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setIsFullscreen(true);
-          }}
-          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-md bg-black/60 hover:bg-black/80 text-white"
-          aria-label="Open fullscreen"
+          onClick={() => setIsFullscreen(true)}
         >
-          <Maximize2 className="size-3" />
-        </button>
-        {currentImage.caption && (
-          <figcaption className="text-center text-sm text-foreground-muted">
-            {currentImage.caption}
-          </figcaption>
-        )}
-        {isFullscreen &&
-          typeof document !== "undefined" &&
-          createPortal(
-            <GalleryFullscreenOverlay
-              onClose={closeFullscreen}
-              content={galleryContent}
-            />,
-            document.body
+          <NextImage
+            src={currentImage.src}
+            alt={currentImage.alt}
+            width={500}
+            height={350}
+            className={cn(
+              "w-full h-auto rounded-md",
+              showBorder && "border border-border"
+            )}
+            unoptimized={currentImage.src.startsWith("http")}
+          />
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsFullscreen(true);
+            }}
+            className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-md bg-black/60 hover:bg-black/80 text-white"
+            aria-label="Open fullscreen"
+          >
+            <Maximize2 className="size-3" />
+          </button>
+          {currentImage.caption && (
+            <figcaption className="text-center text-sm text-foreground-muted">
+              {currentImage.caption}
+            </figcaption>
           )}
-      </figure>
+        </figure>
+        <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
+          <GalleryFullscreenDialog
+            onClose={() => setIsFullscreen(false)}
+            content={galleryContent}
+            title={currentImage.alt}
+          />
+        </Dialog>
+      </>
     );
   }
 
@@ -258,48 +226,46 @@ export function ImageGallery({ images = [], className, fullWidth = true, showBor
           </figcaption>
         )}
       </figure>
-      {isFullscreen &&
-        typeof document !== "undefined" &&
-        createPortal(
-          <GalleryFullscreenOverlay
-            onClose={closeFullscreen}
-            content={galleryContent}
-          />,
-          document.body
-        )}
+      <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
+        <GalleryFullscreenDialog
+          onClose={() => setIsFullscreen(false)}
+          content={galleryContent}
+          title={currentImage.alt}
+        />
+      </Dialog>
     </>
   );
 }
 
-function GalleryFullscreenOverlay({
+function GalleryFullscreenDialog({
   onClose,
   content,
+  title,
 }: {
   onClose: () => void;
   content: React.ReactNode;
+  title: string;
 }) {
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 min-h-dvh touch-none overscroll-none"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-label="Gallery fullscreen view"
+    <DialogContentFullscreen
+      className="cursor-default"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
     >
+      <DialogTitle className="sr-only">{title}</DialogTitle>
       <button
         type="button"
         onClick={onClose}
-        className="absolute top-4 right-4 p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+        className="absolute top-4 right-4 z-10 p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
         aria-label="Close fullscreen"
       >
         <X className="size-4" />
       </button>
       <div
-        className="relative flex flex-col items-center gallery-fullscreen"
+        className="relative flex flex-col items-center gallery-fullscreen cursor-default"
         onClick={(e) => e.stopPropagation()}
       >
         {content}
       </div>
-    </div>
+    </DialogContentFullscreen>
   );
 }

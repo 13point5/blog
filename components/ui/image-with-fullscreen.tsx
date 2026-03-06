@@ -1,10 +1,14 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
-import { createPortal } from "react-dom";
+import { useState } from "react";
 import NextImage from "next/image";
 import { Maximize2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContentFullscreen,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type ImageWithFullscreenProps = {
   src: string;
@@ -30,47 +34,6 @@ export function ImageWithFullscreen({
   children,
 }: ImageWithFullscreenProps) {
   const [isOpen, setIsOpen] = useState(false);
-
-  const close = useCallback(() => setIsOpen(false), []);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close();
-    };
-    document.addEventListener("keydown", handleEscape);
-
-    // Robust scroll lock for mobile (overflow:hidden is ignored on iOS)
-    const scrollY = window.scrollY;
-    const prev = {
-      position: document.body.style.position,
-      top: document.body.style.top,
-      left: document.body.style.left,
-      right: document.body.style.right,
-      width: document.body.style.width,
-      overflow: document.body.style.overflow,
-      touchAction: document.body.style.touchAction,
-    };
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.left = "0";
-    document.body.style.right = "0";
-    document.body.style.width = "100%";
-    document.body.style.overflow = "hidden";
-    document.body.style.touchAction = "none";
-
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-      document.body.style.position = prev.position;
-      document.body.style.top = prev.top;
-      document.body.style.left = prev.left;
-      document.body.style.right = prev.right;
-      document.body.style.width = prev.width;
-      document.body.style.overflow = prev.overflow;
-      document.body.style.touchAction = prev.touchAction;
-      window.scrollTo(0, scrollY);
-    };
-  }, [isOpen, close]);
 
   const inlineImage = children ?? (
     <NextImage
@@ -125,26 +88,22 @@ export function ImageWithFullscreen({
         )}
       </figure>
 
-      {isOpen &&
-        typeof document !== "undefined" &&
-        createPortal(
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 min-h-dvh touch-none overscroll-none"
-            onClick={close}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Image fullscreen view"
-          >
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContentFullscreen
+          className="cursor-default"
+          onClick={(e) => e.target === e.currentTarget && setIsOpen(false)}
+        >
+          <DialogTitle className="sr-only">{alt}</DialogTitle>
           <button
             type="button"
-            onClick={close}
-            className="absolute top-4 right-4 p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
+            onClick={() => setIsOpen(false)}
+            className="absolute top-4 right-4 z-10 p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors"
             aria-label="Close fullscreen"
           >
             <X className="size-4" />
           </button>
           <div
-            className="relative max-w-[90vw] max-h-[90vh] flex flex-col items-center"
+            className="relative max-w-[90vw] max-h-[90vh] flex flex-col items-center cursor-default"
             onClick={(e) => e.stopPropagation()}
           >
             <NextImage
@@ -161,9 +120,8 @@ export function ImageWithFullscreen({
               </p>
             )}
           </div>
-        </div>,
-          document.body
-        )}
+        </DialogContentFullscreen>
+      </Dialog>
     </>
   );
 }
