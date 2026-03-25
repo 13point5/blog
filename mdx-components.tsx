@@ -1,7 +1,6 @@
 import type { MDXComponents } from "mdx/types";
 import { Socials } from "./app/components/socials";
 import { Link } from "./components/ui/link";
-import { ImageViewer } from "./components/ui/image-viewer";
 import { ImageGallery } from "./components/ui/image-gallery";
 import { ImageWithFullscreen } from "./components/ui/image-with-fullscreen";
 import { CopyButton } from "./components/ui/copy-button";
