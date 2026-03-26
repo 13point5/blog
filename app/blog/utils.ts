@@ -3,6 +3,7 @@ import path from "path";
 
 export type Metadata = {
   title: string;
+  subtitle?: string;
   publishedAt: string;
   summary: string;
   image?: string;
