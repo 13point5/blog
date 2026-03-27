@@ -18,9 +18,10 @@ export default async function Image({
   const { slug } = await params;
   const post = getBlogPosts().find((post) => post.slug === slug);
   const title = post?.metadata.title || "Blog Post";
+  const summary = post?.metadata.summary;
 
   const zoroData = await readFile(join(process.cwd(), "public/zoro.png"));
-  const zoroSrc = Uint8Array.from(zoroData).buffer;
+  const zoroBase64 = `data:image/png;base64,${zoroData.toString("base64")}`;
 
   return new ImageResponse(
     (
@@ -31,53 +32,71 @@ export default async function Image({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          backgroundColor: "#ffffff",
-          padding: "80px 100px",
+          backgroundColor: "#0d1117",
+          padding: "60px 80px",
         }}
       >
-        {/* Left side - Text */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: 16,
-            maxWidth: 750,
+            flex: 1,
+            paddingRight: "60px",
           }}
         >
           <div
             style={{
-              fontSize: 48,
+              fontSize: 52,
               fontWeight: 700,
-              color: "#1a1a1a",
+              color: "#e6edf3",
+              lineHeight: 1.25,
               letterSpacing: "-0.02em",
-              lineHeight: 1.2,
             }}
           >
             {title}
           </div>
+          {summary && (
+            <div
+              style={{
+                fontSize: 24,
+                color: "#8b949e",
+                marginTop: 20,
+                lineHeight: 1.5,
+              }}
+            >
+              {summary.length > 120
+                ? summary.substring(0, 120) + "..."
+                : summary}
+            </div>
+          )}
           <div
             style={{
-              fontSize: 24,
-              color: "#666666",
               display: "flex",
               alignItems: "center",
-              gap: 8,
+              marginTop: 32,
+              gap: 10,
             }}
           >
-            <span style={{ fontWeight: 600 }}>Sriraam</span>
-            <span style={{ color: "#999999" }}>·</span>
-            <span>Founding Engineer at Decode. Learning RL</span>
+            <div
+              style={{
+                fontSize: 20,
+                color: "#58a6ff",
+                fontWeight: 600,
+              }}
+            >
+              sriraam.me
+            </div>
           </div>
         </div>
 
-        {/* Right side - Zoro image */}
         <img
-          src={zoroSrc as unknown as string}
-          alt="Zoro"
-          width={220}
-          height={220}
+          src={zoroBase64}
+          alt="Sriraam"
+          width={200}
+          height={200}
           style={{
             borderRadius: "50%",
+            border: "3px solid #30363d",
           }}
         />
       </div>

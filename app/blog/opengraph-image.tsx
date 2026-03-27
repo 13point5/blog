@@ -11,7 +11,7 @@ export const contentType = "image/png";
 
 export default async function Image() {
   const zoroData = await readFile(join(process.cwd(), "public/zoro.png"));
-  const zoroSrc = Uint8Array.from(zoroData).buffer;
+  const zoroBase64 = `data:image/png;base64,${zoroData.toString("base64")}`;
 
   return new ImageResponse(
     (
@@ -22,23 +22,21 @@ export default async function Image() {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          backgroundColor: "#ffffff",
-          padding: "80px 100px",
+          backgroundColor: "#0d1117",
+          padding: "60px 80px",
         }}
       >
-        {/* Left side - Text */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: 16,
           }}
         >
           <div
             style={{
-              fontSize: 80,
+              fontSize: 72,
               fontWeight: 700,
-              color: "#1a1a1a",
+              color: "#e6edf3",
               letterSpacing: "-0.03em",
             }}
           >
@@ -47,31 +45,33 @@ export default async function Image() {
           <div
             style={{
               fontSize: 28,
-              color: "#666666",
-              lineHeight: 1.4,
+              color: "#8b949e",
+              lineHeight: 1.5,
+              marginTop: 16,
             }}
           >
             Founding Engineer at Decode. Learning RL
           </div>
           <div
             style={{
-              fontSize: 24,
-              color: "#999999",
-              marginTop: 8,
+              fontSize: 22,
+              color: "#58a6ff",
+              marginTop: 12,
+              fontWeight: 600,
             }}
           >
             /blog
           </div>
         </div>
 
-        {/* Right side - Zoro image */}
         <img
-          src={zoroSrc as unknown as string}
-          alt="Zoro"
-          width={280}
-          height={280}
+          src={zoroBase64}
+          alt="Sriraam"
+          width={240}
+          height={240}
           style={{
             borderRadius: "50%",
+            border: "3px solid #30363d",
           }}
         />
       </div>
