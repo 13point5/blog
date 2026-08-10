@@ -17,17 +17,17 @@ const components: MDXComponents = {
 
   // Headings
   h1: ({ children }) => (
-    <h1 className="text-3xl font-semibold mb-6 mt-8 text-foreground">
+    <h1 className="font-[family-name:var(--font-display)] text-3xl font-semibold mb-6 mt-8 text-foreground tracking-tight">
       {children}
     </h1>
   ),
   h2: ({ children }) => (
-    <h2 className="text-2xl font-semibold mb-4 mt-6 text-foreground">
+    <h2 className="font-[family-name:var(--font-display)] text-2xl font-semibold mb-4 mt-6 text-foreground tracking-tight">
       {children}
     </h2>
   ),
   h3: ({ children }) => (
-    <h3 className="text-xl font-semibold mb-3 mt-5 text-foreground">
+    <h3 className="font-[family-name:var(--font-display)] text-xl font-semibold mb-3 mt-5 text-foreground tracking-tight">
       {children}
     </h3>
   ),

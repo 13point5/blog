@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Cormorant_Garamond, Instrument_Serif, Geist } from "next/font/google";
 // OpenDyslexic font for dyslexia-friendly reading - all weights and styles
 import "@fontsource/opendyslexic/400.css"; // Regular
 import "@fontsource/opendyslexic/400-italic.css"; // Regular Italic
@@ -15,13 +15,27 @@ const geist = Geist({
   variable: "--font-geist",
 });
 
+const display = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-display",
+});
+
+const script = Instrument_Serif({
+  subsets: ["latin"],
+  weight: ["400"],
+  style: ["normal", "italic"],
+  variable: "--font-script",
+});
+
 export const metadata: Metadata = {
   title: {
     default: "sriraam",
     template: "%s | sriraam",
   },
   description:
-    "Founding Engineer at Decode. Building browsers, agents, and RL environments.",
+    "Founding Engineer at Decode. Notes on LLMs, RL, architectures, and evals.",
   metadataBase: new URL("https://www.sriraam.me"),
   icons: {
     icon: "/zoro.png",
@@ -31,7 +45,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "sriraam",
     description:
-      "Founding Engineer at Decode. Building browsers, agents, and RL environments.",
+      "Founding Engineer at Decode. Notes on LLMs, RL, architectures, and evals.",
     url: "https://www.sriraam.me",
     siteName: "sriraam",
     locale: "en_US",
@@ -41,7 +55,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "sriraam",
     description:
-      "Founding Engineer at Decode. Building browsers, agents, and RL environments.",
+      "Founding Engineer at Decode. Notes on LLMs, RL, architectures, and evals.",
   },
   robots: {
     index: true,
@@ -57,7 +71,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geist.variable} font-sans`}
+      className={`${geist.variable} ${display.variable} ${script.variable} font-sans`}
       suppressHydrationWarning
     >
       <head>
@@ -101,7 +115,7 @@ export default function RootLayout({
         <ThemeProvider>
           <div className="min-h-screen flex flex-col bg-background">
             <Header />
-            <main className="flex-1">{children}</main>
+            <div className="flex-1">{children}</div>
             <Footer />
           </div>
         </ThemeProvider>
