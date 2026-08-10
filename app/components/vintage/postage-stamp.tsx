@@ -38,6 +38,7 @@ export function PostageStamp({
         width={dims.px}
         height={dims.px}
         priority={priority}
+        unoptimized
         className="h-full w-full object-cover"
       />
     </div>

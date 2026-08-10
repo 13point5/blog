@@ -54,6 +54,7 @@ export function Header() {
               alt=""
               width={22}
               height={22}
+              unoptimized
               className="rounded-[2px] border border-[var(--ink)]/20"
             />
             <span>sriraam</span>

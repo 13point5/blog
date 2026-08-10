@@ -34,6 +34,7 @@
     "rehype-pretty-code": "^0.14.1",
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
+    "sharp": "^0.35.3",
     "shiki": "^3.20.0",
     "sugar-high": "^0.9.5",
     "tailwind-merge": "^3.4.0",
