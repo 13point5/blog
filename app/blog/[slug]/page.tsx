@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { CustomMDX } from "@/app/components/mdx";
 import { formatDate, getBlogPosts } from "@/app/blog/utils";
 import Image from "next/image";
+import { PostageStamp } from "@/app/components/vintage/postage-stamp";
+import { MOTIF_STAMPS, resolveMotif } from "@/lib/blog-motifs";
 
 export async function generateStaticParams() {
   const posts = getBlogPosts();
@@ -57,9 +59,15 @@ export default async function BlogPost({
     notFound();
   }
 
+  const motif = resolveMotif(post.metadata.motif);
+  const stamp = post.metadata.stamp
+    ? { src: post.metadata.stamp, alt: post.metadata.title }
+    : MOTIF_STAMPS[motif];
+
   return (
-    <main className="max-w-5xl mx-auto px-6 pt-14 pb-16">
-      <article className="prose prose-lg animate-fade-blur">
+    <main className="relative mx-auto max-w-3xl px-6 pt-20 pb-20">
+      <div className="paper-grain pointer-events-none absolute inset-0 opacity-30" aria-hidden />
+      <article className="prose prose-lg animate-fade-blur relative">
         <script
           type="application/ld+json"
           suppressHydrationWarning
@@ -74,27 +82,43 @@ export default async function BlogPost({
             }),
           }}
         />
-        <h1 className="text-3xl font-semibold mb-4 mt-8 text-foreground text-center">
-          {post.metadata.title}
-        </h1>
-        <div className="flex items-center justify-center gap-2 text-sm text-foreground-muted mb-6">
-          <time>{formatDate(post.metadata.publishedAt)}</time>
-          {post.metadata.author && (
-            <>
-              <span>•</span>
-              <span>{post.metadata.author}</span>
-            </>
-          )}
+
+        <div className="mb-8 flex flex-col items-center text-center">
+          <PostageStamp
+            src={stamp.src}
+            alt={stamp.alt}
+            size="lg"
+            className="mb-6 rotate-[-2deg]"
+            priority
+          />
+          <p className="font-[family-name:var(--font-script)] text-lg text-[var(--mustard)] capitalize">
+            {motif === "default" ? "field note" : motif}
+          </p>
+          <h1 className="!mt-2 font-[family-name:var(--font-display)] !text-4xl font-semibold tracking-tight text-[var(--ink)] sm:!text-5xl">
+            {post.metadata.title}
+          </h1>
+          <div className="mt-4 flex items-center justify-center gap-2 text-sm text-[var(--ink-muted)]">
+            <time>{formatDate(post.metadata.publishedAt)}</time>
+            {post.metadata.author && (
+              <>
+                <span>·</span>
+                <span className="font-[family-name:var(--font-script)] text-base text-[var(--mustard)]">
+                  {post.metadata.author}
+                </span>
+              </>
+            )}
+          </div>
         </div>
 
         {post.metadata.image && (
-          <div className="max-w-lg mx-auto mb-8">
+          <div className="mx-auto mb-10 max-w-md overflow-hidden border border-[var(--ink)]/15 bg-[var(--parchment-deep)] p-2">
             <Image
               src={post.metadata.image}
               alt={post.metadata.title}
-              width={500}
-              height={350}
-              className="h-auto rounded-lg"
+              width={640}
+              height={800}
+              className="h-auto w-full object-cover"
+              priority
             />
           </div>
         )}

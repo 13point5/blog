@@ -129,12 +129,12 @@ function slugify(str: string) {
 }
 
 const headingStyles: Record<number, string> = {
-  1: "text-3xl font-semibold mb-6 mt-8 text-foreground",
-  2: "text-2xl font-semibold mb-4 mt-6 text-foreground",
-  3: "text-xl font-semibold mb-3 mt-5 text-foreground",
-  4: "text-lg font-semibold mb-2 mt-4 text-foreground",
-  5: "text-base font-semibold mb-2 mt-3 text-foreground",
-  6: "text-sm font-semibold mb-2 mt-3 text-foreground",
+  1: "font-[family-name:var(--font-display)] text-3xl font-semibold mb-6 mt-8 text-foreground tracking-tight",
+  2: "font-[family-name:var(--font-display)] text-2xl font-semibold mb-4 mt-6 text-foreground tracking-tight",
+  3: "font-[family-name:var(--font-display)] text-xl font-semibold mb-3 mt-5 text-foreground tracking-tight",
+  4: "font-[family-name:var(--font-display)] text-lg font-semibold mb-2 mt-4 text-foreground tracking-tight",
+  5: "font-[family-name:var(--font-display)] text-base font-semibold mb-2 mt-3 text-foreground tracking-tight",
+  6: "font-[family-name:var(--font-display)] text-sm font-semibold mb-2 mt-3 text-foreground tracking-tight",
 };
 
 function createHeading(level: number) {
