@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-export const alt = "Sriraam - Founding Engineer at Decode";
+export const alt = "Sriraam - Applied Researcher at Chakra Labs";
 export const size = {
   width: 1200,
   height: 630,
@@ -51,7 +51,7 @@ export default async function Image() {
               lineHeight: 1.4,
             }}
           >
-            Founding Engineer at Decode. Learning RL
+            Applied Researcher at Chakra Labs
           </div>
         </div>
 
