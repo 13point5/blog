@@ -66,7 +66,7 @@ export default async function Image({
           >
             <span style={{ fontWeight: 600 }}>Sriraam</span>
             <span style={{ color: "#999999" }}>·</span>
-            <span>Founding Engineer at Decode. Learning RL</span>
+            <span>Applied Researcher at Chakra Labs</span>
           </div>
         </div>
 

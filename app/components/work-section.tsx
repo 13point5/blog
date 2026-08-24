@@ -21,7 +21,7 @@ export default function WorkSection() {
 
         <Link href="/blog">
           <Button variant="ghost" className="gap-2 group">
-            View All
+            view all
             <ArrowRight
               size={16}
               className="transition-transform group-hover:translate-x-1"

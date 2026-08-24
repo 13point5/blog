@@ -10,7 +10,6 @@ import { getIconForLanguageExtension } from "./components/language-icons";
 // Custom components for MDX content
 const components: MDXComponents = {
   Socials,
-  Link,
   Image: ImageWithFullscreen,
   ImageGallery,
   CodeCollapsibleWrapper,

@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     template: "%s | sriraam",
   },
   description:
-    "Founding Engineer at Decode. Building browsers, agents, and RL environments.",
+    "Applied Researcher on the post-training team at Chakra Labs. Building RL environments for foundation labs.",
   metadataBase: new URL("https://www.sriraam.me"),
   icons: {
     icon: "/zoro.png",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "sriraam",
     description:
-      "Founding Engineer at Decode. Building browsers, agents, and RL environments.",
+      "Applied Researcher on the post-training team at Chakra Labs. Building RL environments for foundation labs.",
     url: "https://www.sriraam.me",
     siteName: "sriraam",
     locale: "en_US",
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "sriraam",
     description:
-      "Founding Engineer at Decode. Building browsers, agents, and RL environments.",
+      "Applied Researcher on the post-training team at Chakra Labs. Building RL environments for foundation labs.",
   },
   robots: {
     index: true,

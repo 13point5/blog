@@ -51,7 +51,7 @@ export default async function Image() {
               lineHeight: 1.4,
             }}
           >
-            Founding Engineer at Decode. Learning RL
+            Applied Researcher at Chakra Labs
           </div>
           <div
             style={{
