@@ -28,7 +28,7 @@ export function SettingsDropdown() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="text-sm font-normal tracking-tight hover:text-foreground-muted transition-colors outline-none focus-visible:text-foreground-muted cursor-pointer"
+          className="text-base font-normal tracking-tight hover:text-foreground-muted transition-colors outline-none focus-visible:text-foreground-muted cursor-pointer"
           aria-label="Menu"
         >
           menu
