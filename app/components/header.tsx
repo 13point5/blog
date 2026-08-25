@@ -38,9 +38,9 @@ export function Header() {
       <nav className="max-w-5xl mx-auto px-6 h-full flex items-center justify-between">
         <Link
           href="/"
-          className="text-sm font-bold tracking-[0.14em] uppercase hover:text-foreground-muted transition-colors"
+          className="text-sm font-bold tracking-tight hover:text-foreground-muted transition-colors"
         >
-          SRIRAAM
+          sriraam
         </Link>
         <SettingsDropdown />
       </nav>
