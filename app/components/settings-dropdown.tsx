@@ -35,10 +35,10 @@ export function SettingsDropdown() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="text-sm font-normal tracking-[0.14em] uppercase hover:text-foreground-muted transition-colors outline-none focus-visible:text-foreground-muted"
+          className="text-sm font-normal tracking-[0.14em] uppercase hover:text-foreground-muted transition-colors outline-none focus-visible:text-foreground-muted cursor-pointer"
           aria-label="Menu"
         >
-          Menu
+          MENU
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" sideOffset={8}>
