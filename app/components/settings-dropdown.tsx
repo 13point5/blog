@@ -1,17 +1,19 @@
 "use client";
 
-import { Sun, Moon, Palette, Type } from "lucide-react";
+import { Sun, Moon, Palette, Type, BookOpen } from "lucide-react";
 import { useTheme } from "../providers/theme-provider";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 type Theme = "light" | "dark" | "warm";
 type FontFamily = "sans" | "dyslexia";
@@ -26,8 +28,8 @@ export function SettingsDropdown() {
   ] as const;
 
   const fonts = [
-    { value: "sans", label: "Sans" },
-    { value: "dyslexia", label: "Open Dyslexia" },
+    { value: "sans", label: "Sans", icon: Type },
+    { value: "dyslexia", label: "Open Dyslexia", icon: BookOpen },
   ] as const;
 
   return (
@@ -41,51 +43,57 @@ export function SettingsDropdown() {
           MENU
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" sideOffset={8}>
-        <DropdownMenuGroup>
-          <DropdownMenuLabel className="flex items-center gap-2 text-xs font-medium">
-            <Sun className="size-3.5" />
-            Theme
-          </DropdownMenuLabel>
-          <DropdownMenuRadioGroup
-            value={theme}
-            onValueChange={(value) => setTheme(value as Theme)}
-          >
-            {themes.map(({ value, label, icon: Icon }) => (
-              <DropdownMenuRadioItem
-                key={value}
-                value={value}
-                className="flex items-center gap-2"
+      <DropdownMenuContent
+        className="flex items-center gap-1 p-1.5 min-w-0 w-auto"
+        align="end"
+        sideOffset={8}
+      >
+        {themes.map(({ value, label, icon: Icon }) => (
+          <Tooltip key={value}>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-label={label}
+                aria-pressed={theme === value}
+                onClick={() => setTheme(value as Theme)}
+                className={cn(
+                  "rounded-md",
+                  theme === value && "bg-accent text-foreground"
+                )}
               >
-                <Icon className="size-3.5" />
-                {label}
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
-        </DropdownMenuGroup>
+                <Icon className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">{label}</TooltipContent>
+          </Tooltip>
+        ))}
 
-        <DropdownMenuSeparator />
+        <div className="mx-0.5 h-5 w-px bg-border/60" aria-hidden="true" />
 
-        <DropdownMenuGroup>
-          <DropdownMenuLabel className="flex items-center gap-2 text-xs font-medium">
-            <Type className="size-3.5" />
-            Font Family
-          </DropdownMenuLabel>
-          <DropdownMenuRadioGroup
-            value={fontFamily}
-            onValueChange={(value) => setFontFamily(value as FontFamily)}
-          >
-            {fonts.map(({ value, label }) => (
-              <DropdownMenuRadioItem
-                key={value}
-                value={value}
-                className={value === "dyslexia" ? "font-dyslexia" : "font-sans"}
+        {fonts.map(({ value, label, icon: Icon }) => (
+          <Tooltip key={value}>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-label={label}
+                aria-pressed={fontFamily === value}
+                onClick={() => setFontFamily(value as FontFamily)}
+                className={cn(
+                  "rounded-md",
+                  fontFamily === value && "bg-accent text-foreground",
+                  value === "dyslexia" && "font-dyslexia"
+                )}
               >
-                {label}
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
-        </DropdownMenuGroup>
+                <Icon className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">{label}</TooltipContent>
+          </Tooltip>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );
