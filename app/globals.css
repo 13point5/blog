@@ -295,54 +295,6 @@ samp {
   --sidebar-ring: oklch(0.6 0 0);
 }
 
-/* Warm theme - paper-like appearance */
-.warm {
-  --background: oklch(0.95 0.02 85);
-  --foreground: oklch(0.25 0.02 50);
-  --background-card: oklch(0.97 0.015 85);
-  --background-alt: oklch(0.92 0.025 85);
-  --foreground-muted: oklch(0.5 0.02 60);
-  --link: oklch(0.5 0.15 250);
-  --link-hover: oklch(0.44 0.16 250);
-  --accent: oklch(0.93 0.02 85);
-  --accent-light: oklch(0.9 0.025 85);
-  --border: oklch(0.85 0.03 80);
-
-  /* Code block colors - Warm mode */
-  --code-bg: oklch(0.93 0.015 85);
-  --code-foreground: oklch(0.3 0.02 50);
-  --code-highlight: oklch(0.88 0.025 85);
-  --code-line-number: oklch(0.55 0.02 60);
-  --code-border: oklch(0.82 0.03 80);
-  --card: oklch(0.97 0.015 85);
-  --card-foreground: oklch(0.25 0.02 50);
-  --popover: oklch(0.97 0.015 85);
-  --popover-foreground: oklch(0.25 0.02 50);
-  --primary: oklch(0.35 0.05 50);
-  --primary-foreground: oklch(0.97 0.015 85);
-  --secondary: oklch(0.92 0.025 85);
-  --secondary-foreground: oklch(0.25 0.02 50);
-  --muted: oklch(0.92 0.025 85);
-  --muted-foreground: oklch(0.5 0.02 60);
-  --accent-foreground: oklch(0.25 0.02 50);
-  --destructive: oklch(0.577 0.245 27.325);
-  --input: oklch(0.9 0.025 85);
-  --ring: oklch(0.7 0.03 80);
-  --chart-1: oklch(0.646 0.15 41.116);
-  --chart-2: oklch(0.6 0.1 184.704);
-  --chart-3: oklch(0.398 0.06 227.392);
-  --chart-4: oklch(0.828 0.15 84.429);
-  --chart-5: oklch(0.769 0.15 70.08);
-  --sidebar: oklch(0.94 0.02 85);
-  --sidebar-foreground: oklch(0.25 0.02 50);
-  --sidebar-primary: oklch(0.35 0.05 50);
-  --sidebar-primary-foreground: oklch(0.97 0.015 85);
-  --sidebar-accent: oklch(0.92 0.025 85);
-  --sidebar-accent-foreground: oklch(0.25 0.02 50);
-  --sidebar-border: oklch(0.85 0.03 80);
-  --sidebar-ring: oklch(0.7 0.03 80);
-}
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -654,16 +606,6 @@ summary::marker {
   --pill-fill-bg: rgba(255, 255, 255, 0.3);
   --pill-container-bg: rgba(255, 255, 255, 0.1);
   --pill-container-border: rgba(255, 255, 255, 0.12);
-}
-
-/* Warm theme */
-.warm .tweet-gallery-stepper,
-.warm .image-gallery-stepper {
-  --pill-bg: color-mix(in oklch, var(--foreground) 15%, transparent);
-  --pill-active-bg: var(--foreground);
-  --pill-fill-bg: color-mix(in oklch, var(--foreground) 45%, transparent);
-  --pill-container-bg: color-mix(in oklch, var(--foreground) 4%, transparent);
-  --pill-container-border: color-mix(in oklch, var(--foreground) 6%, transparent);
 }
 
 /* Glass overlay - light pills/buttons (visible on dark images) */

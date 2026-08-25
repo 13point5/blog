@@ -1,6 +1,6 @@
 "use client";
 
-import { Sun, Moon, Palette, Type, BookOpen } from "lucide-react";
+import { Sun, Moon, Type } from "lucide-react";
 import { useTheme } from "../providers/theme-provider";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,21 +15,12 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
-type Theme = "light" | "dark" | "warm";
-type FontFamily = "sans" | "dyslexia";
-
 export function SettingsDropdown() {
   const { theme, setTheme, fontFamily, setFontFamily } = useTheme();
 
   const themes = [
     { value: "light", label: "Light", icon: Sun },
     { value: "dark", label: "Dark", icon: Moon },
-    { value: "warm", label: "Warm", icon: Palette },
-  ] as const;
-
-  const fonts = [
-    { value: "sans", label: "Sans", icon: Type },
-    { value: "dyslexia", label: "Open Dyslexia", icon: BookOpen },
   ] as const;
 
   return (
@@ -57,7 +48,7 @@ export function SettingsDropdown() {
                 size="icon-sm"
                 aria-label={label}
                 aria-pressed={theme === value}
-                onClick={() => setTheme(value as Theme)}
+                onClick={() => setTheme(value)}
                 className={cn(
                   "rounded-md",
                   theme === value && "bg-accent text-foreground"
@@ -72,28 +63,45 @@ export function SettingsDropdown() {
 
         <div className="mx-0.5 h-5 w-px bg-border/60" aria-hidden="true" />
 
-        {fonts.map(({ value, label, icon: Icon }) => (
-          <Tooltip key={value}>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                aria-label={label}
-                aria-pressed={fontFamily === value}
-                onClick={() => setFontFamily(value as FontFamily)}
-                className={cn(
-                  "rounded-md",
-                  fontFamily === value && "bg-accent text-foreground",
-                  value === "dyslexia" && "font-dyslexia"
-                )}
-              >
-                <Icon className="size-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">{label}</TooltipContent>
-          </Tooltip>
-        ))}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Sans"
+              aria-pressed={fontFamily === "sans"}
+              onClick={() => setFontFamily("sans")}
+              className={cn(
+                "rounded-md",
+                fontFamily === "sans" && "bg-accent text-foreground"
+              )}
+            >
+              <Type className="size-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">Sans</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Open Dyslexia"
+              aria-pressed={fontFamily === "dyslexia"}
+              onClick={() => setFontFamily("dyslexia")}
+              className={cn(
+                "rounded-md font-dyslexia text-xs font-bold tracking-tight",
+                fontFamily === "dyslexia" && "bg-accent text-foreground"
+              )}
+            >
+              OD
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">Open Dyslexia</TooltipContent>
+        </Tooltip>
       </DropdownMenuContent>
     </DropdownMenu>
   );
