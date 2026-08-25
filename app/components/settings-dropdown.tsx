@@ -35,7 +35,7 @@ export function SettingsDropdown() {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="flex items-center gap-1 sm:gap-1.5 p-1.5 sm:p-2 min-w-0 w-auto"
+        className="flex items-center gap-1 sm:gap-1.5 p-1.5 sm:p-2 min-w-0 w-auto bg-background text-foreground"
         align="end"
         sideOffset={8}
       >
