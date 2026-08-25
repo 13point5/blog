@@ -28,14 +28,14 @@ export function SettingsDropdown() {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="text-base font-normal tracking-tight hover:text-foreground-muted transition-colors outline-none focus-visible:text-foreground-muted cursor-pointer"
+          className="text-base sm:text-lg font-normal tracking-tight hover:text-foreground-muted transition-colors outline-none focus-visible:text-foreground-muted cursor-pointer"
           aria-label="Menu"
         >
           menu
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="flex items-center gap-1 p-1.5 min-w-0 w-auto"
+        className="flex items-center gap-1 sm:gap-1.5 p-1.5 sm:p-2 min-w-0 w-auto"
         align="end"
         sideOffset={8}
       >
@@ -50,18 +50,21 @@ export function SettingsDropdown() {
                 aria-pressed={theme === value}
                 onClick={() => setTheme(value)}
                 className={cn(
-                  "rounded-md",
+                  "rounded-md sm:size-9",
                   theme === value && "bg-accent text-foreground"
                 )}
               >
-                <Icon className="size-4" />
+                <Icon className="size-4 sm:size-[18px]" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">{label}</TooltipContent>
           </Tooltip>
         ))}
 
-        <div className="mx-0.5 h-5 w-px bg-border/60" aria-hidden="true" />
+        <div
+          className="mx-0.5 h-5 sm:h-6 w-px bg-border/60"
+          aria-hidden="true"
+        />
 
         <Tooltip>
           <TooltipTrigger asChild>
@@ -73,11 +76,11 @@ export function SettingsDropdown() {
               aria-pressed={fontFamily === "sans"}
               onClick={() => setFontFamily("sans")}
               className={cn(
-                "rounded-md",
+                "rounded-md sm:size-9",
                 fontFamily === "sans" && "bg-accent text-foreground"
               )}
             >
-              <Type className="size-4" />
+              <Type className="size-4 sm:size-[18px]" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">Sans</TooltipContent>
@@ -93,7 +96,7 @@ export function SettingsDropdown() {
               aria-pressed={fontFamily === "dyslexia"}
               onClick={() => setFontFamily("dyslexia")}
               className={cn(
-                "rounded-md font-dyslexia text-xs font-bold tracking-tight",
+                "rounded-md font-dyslexia text-xs sm:text-sm font-bold tracking-tight sm:size-9",
                 fontFamily === "dyslexia" && "bg-accent text-foreground"
               )}
             >

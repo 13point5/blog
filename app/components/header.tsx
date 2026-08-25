@@ -31,14 +31,14 @@ export function Header() {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 h-12 bg-background/80 backdrop-blur-xs transition-transform duration-300",
+        "fixed top-0 left-0 right-0 z-50 h-12 sm:h-14 bg-background/80 backdrop-blur-xs transition-transform duration-300",
         isVisible ? "translate-y-0" : "-translate-y-full"
       )}
     >
       <nav className="max-w-5xl mx-auto px-6 h-full flex items-center justify-between">
         <Link
           href="/"
-          className="text-base font-bold tracking-tight hover:text-foreground-muted transition-colors"
+          className="text-base sm:text-lg font-bold tracking-tight hover:text-foreground-muted transition-colors"
         >
           sriraam
         </Link>
