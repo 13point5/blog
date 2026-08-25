@@ -8,7 +8,7 @@ import React, {
   useSyncExternalStore,
 } from "react";
 
-type Theme = "light" | "dark" | "warm";
+type Theme = "light" | "dark";
 type FontFamily = "sans" | "dyslexia";
 
 interface ThemeContextType {
@@ -22,15 +22,18 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 function getStoredTheme(): Theme {
   if (typeof window === "undefined") return "light";
-  return (localStorage.getItem("theme") as Theme) || "light";
+  const stored = localStorage.getItem("theme");
+  if (stored === "dark") return "dark";
+  return "light";
 }
 
 function getStoredFont(): FontFamily {
   if (typeof window === "undefined") return "sans";
-  return (localStorage.getItem("fontFamily") as FontFamily) || "sans";
+  const stored = localStorage.getItem("fontFamily");
+  if (stored === "dyslexia") return "dyslexia";
+  return "sans";
 }
 
-// Custom hook for hydration-safe mounting
 function useHasMounted() {
   return useSyncExternalStore(
     () => () => {},
@@ -46,7 +49,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     getStoredFont()
   );
 
-  // Apply theme class
   useEffect(() => {
     if (!hasMounted) return;
 
@@ -55,14 +57,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     if (theme === "dark") {
       root.classList.add("dark");
-    } else if (theme === "warm") {
-      root.classList.add("warm");
     }
 
     localStorage.setItem("theme", theme);
   }, [theme, hasMounted]);
 
-  // Apply font class
   useEffect(() => {
     if (!hasMounted) return;
 

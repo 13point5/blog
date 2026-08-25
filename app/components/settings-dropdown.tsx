@@ -1,21 +1,19 @@
 "use client";
 
-import { Settings, Sun, Moon, Palette, Type } from "lucide-react";
+import { Sun, Moon, Type } from "lucide-react";
 import { useTheme } from "../providers/theme-provider";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-type Theme = "light" | "dark" | "warm";
-type FontFamily = "sans" | "dyslexia";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 export function SettingsDropdown() {
   const { theme, setTheme, fontFamily, setFontFamily } = useTheme();
@@ -23,71 +21,93 @@ export function SettingsDropdown() {
   const themes = [
     { value: "light", label: "Light", icon: Sun },
     { value: "dark", label: "Dark", icon: Moon },
-    { value: "warm", label: "Warm", icon: Palette },
-  ] as const;
-
-  const fonts = [
-    { value: "sans", label: "Sans" },
-    { value: "dyslexia", label: "Open Dyslexia" },
   ] as const;
 
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="p-1.5 rounded-md"
-          aria-label="Settings"
+        <button
+          type="button"
+          className="text-base sm:text-lg font-normal tracking-tight hover:text-foreground-muted transition-colors outline-none focus-visible:text-foreground-muted cursor-pointer"
+          aria-label="Menu"
         >
-          <Settings className="size-4" />
-        </Button>
+          menu
+        </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" sideOffset={8}>
-        <DropdownMenuGroup>
-          <DropdownMenuLabel className="flex items-center gap-2 text-xs font-medium">
-            <Sun className="size-3.5" />
-            Theme
-          </DropdownMenuLabel>
-          <DropdownMenuRadioGroup
-            value={theme}
-            onValueChange={(value) => setTheme(value as Theme)}
-          >
-            {themes.map(({ value, label, icon: Icon }) => (
-              <DropdownMenuRadioItem
-                key={value}
-                value={value}
-                className="flex items-center gap-2"
+      <DropdownMenuContent
+        className="flex items-center gap-1 sm:gap-1.5 p-1.5 sm:p-2 min-w-0 w-auto bg-background text-foreground"
+        align="end"
+        sideOffset={8}
+      >
+        {themes.map(({ value, label, icon: Icon }) => (
+          <Tooltip key={value}>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                aria-label={label}
+                aria-pressed={theme === value}
+                onClick={() => setTheme(value)}
+                className={cn(
+                  "rounded-md sm:size-9",
+                  theme === value &&
+                    "bg-foreground text-background hover:bg-foreground hover:text-background"
+                )}
               >
-                <Icon className="size-3.5" />
-                {label}
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
-        </DropdownMenuGroup>
+                <Icon className="size-4 sm:size-[18px]" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">{label}</TooltipContent>
+          </Tooltip>
+        ))}
 
-        <DropdownMenuSeparator />
+        <div
+          className="mx-0.5 h-5 sm:h-6 w-px bg-border/60"
+          aria-hidden="true"
+        />
 
-        <DropdownMenuGroup>
-          <DropdownMenuLabel className="flex items-center gap-2 text-xs font-medium">
-            <Type className="size-3.5" />
-            Font Family
-          </DropdownMenuLabel>
-          <DropdownMenuRadioGroup
-            value={fontFamily}
-            onValueChange={(value) => setFontFamily(value as FontFamily)}
-          >
-            {fonts.map(({ value, label }) => (
-              <DropdownMenuRadioItem
-                key={value}
-                value={value}
-                className={value === "dyslexia" ? "font-dyslexia" : "font-sans"}
-              >
-                {label}
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
-        </DropdownMenuGroup>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Sans"
+              aria-pressed={fontFamily === "sans"}
+              onClick={() => setFontFamily("sans")}
+              className={cn(
+                "rounded-md sm:size-9",
+                fontFamily === "sans" &&
+                  "bg-foreground text-background hover:bg-foreground hover:text-background"
+              )}
+            >
+              <Type className="size-4 sm:size-[18px]" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">Sans</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Open Dyslexia"
+              aria-pressed={fontFamily === "dyslexia"}
+              onClick={() => setFontFamily("dyslexia")}
+              className={cn(
+                "rounded-md font-dyslexia text-xs sm:text-sm font-bold tracking-tight sm:size-9",
+                fontFamily === "dyslexia" &&
+                  "bg-foreground text-background hover:bg-foreground hover:text-background"
+              )}
+            >
+              OD
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">Open Dyslexia</TooltipContent>
+        </Tooltip>
       </DropdownMenuContent>
     </DropdownMenu>
   );

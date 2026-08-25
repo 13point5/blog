@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { SettingsDropdown } from "./settings-dropdown";
 import { cn } from "@/lib/utils";
@@ -12,9 +11,6 @@ export function Header() {
   const [lastScrollY, setLastScrollY] = useState(0);
   const pathname = usePathname();
   const isOnBlogPage = pathname.startsWith("/blog");
-  const blogSlug = pathname.startsWith("/blog/")
-    ? pathname.split("/")[2]
-    : null;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -38,48 +34,32 @@ export function Header() {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 h-12 bg-background/80 backdrop-blur-xs border-b border-border/30 transition-transform duration-300",
+        "fixed top-0 left-0 right-0 z-50 h-12 sm:h-14 bg-background/80 backdrop-blur-xs transition-transform duration-300",
         isVisible ? "translate-y-0" : "-translate-y-full"
       )}
     >
-      <nav className="max-w-5xl mx-auto px-6 h-full flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-sm font-medium tracking-tight">
+      <nav className="max-w-5xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between gap-4">
+        <div className="flex items-center gap-1.5 min-w-0 text-base sm:text-lg tracking-tight">
           <Link
             href="/"
             className={cn(
-              "flex items-center gap-1.5 hover:text-foreground-muted transition-colors",
+              "font-bold hover:text-foreground-muted transition-colors shrink-0",
               isOnBlogPage && "text-foreground-muted"
             )}
           >
-            <Image
-              src="/zoro.png"
-              alt="Zoro"
-              width={20}
-              height={20}
-              className="rounded-full"
-            />
-            <span>sriraam</span>
+            sriraam
           </Link>
           {isOnBlogPage && (
             <>
-              <span className="text-foreground-muted">/</span>
+              <span className="text-foreground-muted" aria-hidden="true">
+                /
+              </span>
               <Link
                 href="/blog"
-                className={cn(
-                  "hover:text-foreground-muted transition-colors",
-                  blogSlug && "text-foreground-muted"
-                )}
+                className="font-normal hover:text-foreground-muted transition-colors"
               >
                 blog
               </Link>
-            </>
-          )}
-          {blogSlug && (
-            <>
-              <span className="text-foreground-muted">/</span>
-              <span className="truncate max-w-[45vw] sm:max-w-64">
-                {blogSlug}
-              </span>
             </>
           )}
         </div>

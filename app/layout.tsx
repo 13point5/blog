@@ -71,15 +71,18 @@ export default function RootLayout({
                   const root = document.documentElement;
                   
                   // Apply theme
+                  root.classList.remove('dark', 'warm');
                   if (theme === 'dark') {
                     root.classList.add('dark');
-                  } else if (theme === 'warm') {
-                    root.classList.add('warm');
                   }
                   
                   // Apply font (remove all font classes first)
                   root.classList.remove('font-sans', 'font-dyslexia');
-                  root.classList.add('font-' + fontFamily);
+                  if (fontFamily === 'dyslexia') {
+                    root.classList.add('font-dyslexia');
+                  } else {
+                    root.classList.add('font-sans');
+                  }
                 } catch (e) {}
               })();
             `,
