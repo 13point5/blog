@@ -11,9 +11,6 @@ export function Header() {
   const [lastScrollY, setLastScrollY] = useState(0);
   const pathname = usePathname();
   const isOnBlogPage = pathname.startsWith("/blog");
-  const blogSlug = pathname.startsWith("/blog/")
-    ? pathname.split("/")[2]
-    : null;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,44 +34,33 @@ export function Header() {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xs transition-transform duration-300",
-        isOnBlogPage ? "py-2.5 sm:py-3" : "h-12 sm:h-14",
+        "fixed top-0 left-0 right-0 z-50 h-12 sm:h-14 bg-background/80 backdrop-blur-xs transition-transform duration-300",
         isVisible ? "translate-y-0" : "-translate-y-full"
       )}
     >
-      <nav
-        className={cn(
-          "max-w-5xl mx-auto px-6 flex items-center justify-between gap-4",
-          !isOnBlogPage && "h-full"
-        )}
-      >
-        <div className="flex flex-col gap-0.5 min-w-0">
+      <nav className="max-w-5xl mx-auto px-6 h-full flex items-center justify-between gap-4">
+        <div className="flex items-center gap-1.5 min-w-0 text-base sm:text-lg tracking-tight">
           <Link
             href="/"
-            className="text-base sm:text-lg font-bold tracking-tight hover:text-foreground-muted transition-colors w-fit"
+            className={cn(
+              "font-bold hover:text-foreground-muted transition-colors shrink-0",
+              isOnBlogPage && "text-foreground-muted"
+            )}
           >
             sriraam
           </Link>
           {isOnBlogPage && (
-            <div className="flex items-center gap-1.5 text-xs sm:text-sm text-foreground-muted tracking-tight min-w-0">
+            <>
+              <span className="text-foreground-muted" aria-hidden="true">
+                /
+              </span>
               <Link
                 href="/blog"
-                className={cn(
-                  "hover:text-foreground transition-colors shrink-0",
-                  !blogSlug && "text-foreground"
-                )}
+                className="font-normal hover:text-foreground-muted transition-colors"
               >
                 blog
               </Link>
-              {blogSlug && (
-                <>
-                  <span aria-hidden="true">/</span>
-                  <span className="truncate max-w-[45vw] sm:max-w-64">
-                    {blogSlug}
-                  </span>
-                </>
-              )}
-            </div>
+            </>
           )}
         </div>
         <SettingsDropdown />
