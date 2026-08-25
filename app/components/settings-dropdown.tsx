@@ -1,8 +1,7 @@
 "use client";
 
-import { Settings, Sun, Moon, Palette, Type } from "lucide-react";
+import { Sun, Moon, Palette, Type } from "lucide-react";
 import { useTheme } from "../providers/theme-provider";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,14 +33,13 @@ export function SettingsDropdown() {
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="p-1.5 rounded-md"
-          aria-label="Settings"
+        <button
+          type="button"
+          className="text-sm font-normal tracking-[0.14em] uppercase hover:text-foreground-muted transition-colors outline-none focus-visible:text-foreground-muted"
+          aria-label="Menu"
         >
-          <Settings className="size-4" />
-        </Button>
+          Menu
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" sideOffset={8}>
         <DropdownMenuGroup>
