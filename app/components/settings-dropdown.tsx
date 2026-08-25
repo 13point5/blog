@@ -51,7 +51,8 @@ export function SettingsDropdown() {
                 onClick={() => setTheme(value)}
                 className={cn(
                   "rounded-md sm:size-9",
-                  theme === value && "bg-accent text-foreground"
+                  theme === value &&
+                    "bg-foreground text-background hover:bg-foreground hover:text-background"
                 )}
               >
                 <Icon className="size-4 sm:size-[18px]" />
@@ -77,7 +78,8 @@ export function SettingsDropdown() {
               onClick={() => setFontFamily("sans")}
               className={cn(
                 "rounded-md sm:size-9",
-                fontFamily === "sans" && "bg-accent text-foreground"
+                fontFamily === "sans" &&
+                  "bg-foreground text-background hover:bg-foreground hover:text-background"
               )}
             >
               <Type className="size-4 sm:size-[18px]" />
@@ -97,7 +99,8 @@ export function SettingsDropdown() {
               onClick={() => setFontFamily("dyslexia")}
               className={cn(
                 "rounded-md font-dyslexia text-xs sm:text-sm font-bold tracking-tight sm:size-9",
-                fontFamily === "dyslexia" && "bg-accent text-foreground"
+                fontFamily === "dyslexia" &&
+                  "bg-foreground text-background hover:bg-foreground hover:text-background"
               )}
             >
               OD
