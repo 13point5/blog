@@ -58,7 +58,7 @@ export default async function BlogPost({
   }
 
   return (
-    <main className="max-w-5xl mx-auto px-6 pt-14 pb-16">
+    <main className="max-w-5xl mx-auto px-6 pt-20 pb-16">
       <article className="prose prose-lg animate-fade-blur">
         <script
           type="application/ld+json"
