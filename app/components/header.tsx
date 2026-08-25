@@ -2,19 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { usePathname } from "next/navigation";
 import { SettingsDropdown } from "./settings-dropdown";
 import { cn } from "@/lib/utils";
 
 export function Header() {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  const pathname = usePathname();
-  const isOnBlogPage = pathname.startsWith("/blog");
-  const blogSlug = pathname.startsWith("/blog/")
-    ? pathname.split("/")[2]
-    : null;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,46 +36,12 @@ export function Header() {
       )}
     >
       <nav className="max-w-5xl mx-auto px-6 h-full flex items-center justify-between">
-        <div className="flex items-center gap-1.5 text-sm font-medium tracking-tight">
-          <Link
-            href="/"
-            className={cn(
-              "flex items-center gap-1.5 hover:text-foreground-muted transition-colors",
-              isOnBlogPage && "text-foreground-muted"
-            )}
-          >
-            <Image
-              src="/zoro.png"
-              alt="Zoro"
-              width={20}
-              height={20}
-              className="rounded-full"
-            />
-            <span>sriraam</span>
-          </Link>
-          {isOnBlogPage && (
-            <>
-              <span className="text-foreground-muted">/</span>
-              <Link
-                href="/blog"
-                className={cn(
-                  "hover:text-foreground-muted transition-colors",
-                  blogSlug && "text-foreground-muted"
-                )}
-              >
-                blog
-              </Link>
-            </>
-          )}
-          {blogSlug && (
-            <>
-              <span className="text-foreground-muted">/</span>
-              <span className="truncate max-w-[45vw] sm:max-w-64">
-                {blogSlug}
-              </span>
-            </>
-          )}
-        </div>
+        <Link
+          href="/"
+          className="text-sm font-bold tracking-[0.14em] uppercase hover:text-foreground-muted transition-colors"
+        >
+          SRIRAAM
+        </Link>
         <SettingsDropdown />
       </nav>
     </header>
