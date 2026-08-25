@@ -38,7 +38,7 @@ export function Header() {
         isVisible ? "translate-y-0" : "-translate-y-full"
       )}
     >
-      <nav className="max-w-5xl mx-auto px-6 h-full flex items-center justify-between gap-4">
+      <nav className="max-w-5xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between gap-4">
         <div className="flex items-center gap-1.5 min-w-0 text-base sm:text-lg tracking-tight">
           <Link
             href="/"

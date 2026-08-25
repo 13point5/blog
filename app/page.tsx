@@ -3,7 +3,7 @@ import Bio from "@/content/bio.mdx";
 
 export default function Home() {
   return (
-    <main className="max-w-5xl mx-auto px-6 pt-14 pb-25 flex flex-col">
+    <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-14 pb-25 flex flex-col">
       {/* Hero Section */}
       <section className="animate-fade-blur">
         <Bio />
