@@ -6,7 +6,7 @@ export default function Home() {
     <main className="folio-home folio-width">
       <section className="intro-section" aria-labelledby="intro-title">
         <div className="intro-heading">
-          <h1 id="intro-title">Hey, I’m <em>Sriraam.</em></h1>
+          <h1 id="intro-title">Hey, I’m Sriraam</h1>
           <Image src="/images/folio/learning-sketch.webp" width={1024} height={1024}
             alt="A small ink sketch of an open book and an iron flywheel."
             className="ink-sketch home-sketch" priority sizes="150px" />

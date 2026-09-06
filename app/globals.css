@@ -682,7 +682,6 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--display); }
 .intro-section { padding-block: 60px 48px; font-size: 1.0625rem; line-height: 1.85; }
 .intro-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 24px; }
 .intro-heading h1 { font: 400 2.8rem/1.15 var(--display); letter-spacing: -.025em; }
-.intro-heading h1 em { font-weight: 400; color: var(--link); }
 .home-sketch { width: 150px; flex-shrink: 0; }
 .intro-section > p { margin-bottom: 21px; text-wrap: pretty; }
 .intro-section a { color: var(--link); transition: color 0.2s ease; }
