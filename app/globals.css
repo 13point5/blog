@@ -693,8 +693,7 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--display); }
 .section-heading h2 { font: 400 1.8rem/1.2 var(--display); letter-spacing: -.02em; }
 .writing-section { padding-bottom: 40px; }
 .essay-list { display: flex; flex-direction: column; gap: 0; }
-.essay-row { display: flex; align-items: baseline; justify-content: space-between; gap: 16px 24px; padding-block: 10px; border-bottom: 1px solid color-mix(in oklab, var(--border) 55%, transparent); }
-.essay-row:last-child { border-bottom: 0; }
+.essay-row { display: flex; align-items: baseline; justify-content: space-between; gap: 16px 24px; padding-block: 10px; }
 .essay-details { min-width: 0; flex: 1; }
 .essay-details h3 { font: 400 1.125rem/1.4 var(--display); letter-spacing: -.01em; }
 .essay-details h3 a { color: var(--foreground); transition: color 0.2s ease; }
