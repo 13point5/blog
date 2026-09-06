@@ -12,7 +12,7 @@ Remove the framed hero, illustration captions, Roman-numbered research grid, fea
 
 Article headers center the title, then the image directly underneath, then the metadata. The redundant summary and both notebook back links are removed; navigation remains in the header. The table of contents accordion is labeled “Table of contents”.
 
-The footer keeps Socials and the Feynman quote (“What I cannot create, I do not understand.”), restyled quietly for the folio.
+The footer keeps Socials and the Feynman quote (“What I cannot create, I do not understand.”), restyled quietly for the folio: roman (not italic) quote text, serif attribution with a plain hyphen (`- Richard Feynman`).
 
 Two small ink-only spot illustrations replace the three dense engravings. Source PNGs were generated with actual RGBA transparency, then encoded as WebP with alpha preserved. CSS colors only the ink: charcoal in light mode, pale ink in dark mode. No background fill, framing, cropping, or blend-mode paper matching. Both original generations are 1254 × 1254, displayed at about 105–170px wide.
 
