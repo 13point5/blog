@@ -6,7 +6,7 @@ export function Footer() {
       <div className="folio-footer-inner">
         <figure className="folio-quote">
           <blockquote>What I cannot create, I do not understand.</blockquote>
-          <figcaption>— Richard Feynman</figcaption>
+          <figcaption>- Richard Feynman</figcaption>
         </figure>
         <div className="folio-socials">
           <Socials />

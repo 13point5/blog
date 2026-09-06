@@ -702,8 +702,8 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--display); }
 .folio-footer { padding-block: 28px 48px; border-top: 1px solid color-mix(in oklab, var(--border) 55%, transparent); margin-top: 12px; }
 .folio-footer-inner { display: flex; flex-direction: column; align-items: center; gap: 18px; }
 .folio-quote { margin: 0; text-align: center; max-width: 28rem; }
-.folio-quote blockquote { margin: 0; font: italic .875rem/1.7 var(--display); color: var(--foreground-muted); }
-.folio-quote figcaption { margin-top: 6px; font: .75rem/1.5 var(--sans); color: var(--foreground-muted); opacity: .85; }
+.folio-quote blockquote { margin: 0; font: 400 .875rem/1.7 var(--display); font-style: normal; color: var(--foreground-muted); }
+.folio-quote figcaption { margin-top: 6px; font: 400 .75rem/1.5 var(--display); color: var(--foreground-muted); opacity: .85; }
 .folio-footer .folio-socials { font: .8rem/1.7 var(--sans); }
 .archive-page { padding-block: 65px 45px; }
 .archive-page > h1 { font: 400 2.8rem/1.15 var(--display); letter-spacing: -.025em; margin-bottom: 28px; }
