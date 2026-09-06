@@ -4,13 +4,15 @@ Branch: `experiment/research-folio`, draft PR #13. The original elaborate direct
 
 ## Direction
 
-A quiet, single-column personal blog. Use EB Garamond for all headings (h1–h6) and the understated header; Geist for body text and metadata. Keep parchment/oxblood light colors, and cream-on-dark evening colors.
+A quiet, single-column personal blog. Use EB Garamond for all headings (h1–h6) and the understated header; Geist for body text and metadata. Colors match `main`: cool gray paper (`#f2f2f2`) with cool blue links in light mode, and neutral charcoal with cooler blue links in dark mode — not parchment or oxblood.
 
-The header contains a small, regular-weight serif “sriraam”, Writing, and the theme toggle. There is no separate About link. Top padding is 6px on desktop and 4px on mobile, with a 48px navigation row.
+The header contains a small, regular-weight serif “Sriraam”, Writing, and the theme toggle. There is no separate About link. Top padding is 6px on desktop and 4px on mobile, with a 48px navigation row.
 
-Remove the framed hero, illustration captions, Roman-numbered research grid, featured article card, badges, decorative section rules, drop cap, repeated arrows, flourishes, and elaborate footer. Research interests are prose; writing is a plain list. Sample essays remain explicitly labeled and excluded from indexing.
+Remove the framed hero, illustration captions, Roman-numbered research grid, featured article card, badges, decorative section rules, drop cap, repeated arrows, flourishes, and elaborate footer chrome. Research interests are prose; writing is a compact title + date list (no summaries in listing UIs). Sample essays remain explicitly labeled and excluded from indexing.
 
-Article headers center the title, then the image directly underneath, then the metadata. The redundant summary and both notebook back links are removed; navigation remains in the header. The “In these notes” accordion is unchanged.
+Article headers center the title, then the image directly underneath, then the metadata. The redundant summary and both notebook back links are removed; navigation remains in the header. The table of contents accordion is labeled “Table of contents”.
+
+The footer keeps Socials and the Feynman quote (“What I cannot create, I do not understand.”), restyled quietly for the folio.
 
 Two small ink-only spot illustrations replace the three dense engravings. Source PNGs were generated with actual RGBA transparency, then encoded as WebP with alpha preserved. CSS colors only the ink: charcoal in light mode, pale ink in dark mode. No background fill, framing, cropping, or blend-mode paper matching. Both original generations are 1254 × 1254, displayed at about 105–170px wide.
 

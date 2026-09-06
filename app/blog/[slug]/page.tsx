@@ -35,7 +35,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
         </div>
         {sample && <p className="sample-notice">Sample text for the design preview; not a published essay by Sriraam.</p>}
       </header>
-      <div className="article-layout">{headings.length > 0 && <nav className="article-toc" aria-label="On this page"><details><summary>In these notes</summary>{headings.map((heading) => <a href={`#${heading.slug}`} key={heading.slug}>{heading.title}</a>)}</details></nav>}<div className="article-body"><CustomMDX source={post.content} /></div></div>
+      <div className="article-layout">{headings.length > 0 && <nav className="article-toc" aria-label="Table of contents"><details><summary>Table of contents</summary>{headings.map((heading) => <a href={`#${heading.slug}`} key={heading.slug}>{heading.title}</a>)}</details></nav>}<div className="article-body"><CustomMDX source={post.content} /></div></div>
     </article>
   </main>;
 }
