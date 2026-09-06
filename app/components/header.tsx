@@ -6,6 +6,6 @@ export function Header() {
   const pathname = usePathname();
   return <header className="folio-header"><nav className="folio-nav" aria-label="Main navigation">
     <Link className="wordmark" href="/" aria-label="Sriraam, home">sriraam<span aria-hidden="true">.</span></Link>
-    <div className="nav-links"><Link href="/" aria-current={pathname === "/" ? "page" : undefined}>About</Link><Link href="/blog" aria-current={pathname.startsWith("/blog") ? "page" : undefined}>Writing</Link><span className="nav-divider" aria-hidden="true" /><SettingsDropdown /></div>
+    <div className="nav-links"><Link href="/" aria-current={pathname === "/" ? "page" : undefined}>About</Link><Link href="/blog" aria-current={pathname.startsWith("/blog") ? "page" : undefined}>Writing</Link><SettingsDropdown /></div>
   </nav></header>;
 }

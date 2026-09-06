@@ -1,38 +1,24 @@
-# Research folio experiment
+# Research folio experiment — simpler edition
 
-Branch: `experiment/research-folio`. This is a design experiment; do not merge sample essays into production without editorial review.
+Branch: `experiment/research-folio`, draft PR #13. The original elaborate direction is preserved in Git history.
 
-## Design
+## Direction
 
-- EB Garamond for titles, numbers, and expressive italic details; Source Serif 4 for sustained reading; Geist for navigation and metadata. Fonts use Next's self-hosting, Latin subsets, and swap.
-- Paper #f4f0e5, ink #302d28, and oxblood #854734. Evening mode is green-black #22241f with cream text #e8e1d0.
-- 680px reading measure, 18px desktop / 17px mobile prose, 1.85 leading. Mobile single-column layouts, visible keyboard focus, skip link, reduced-motion and print styles.
-- Original generated engravings with dark-mode ink inversion; no generated scientific charts. Existing result screenshots and the original Vibe RL article text are preserved.
-- Light/dark control replaces the font-selection menu. Existing saved theme persists; font selection is intentionally retired.
-- Three sample MDX essays have `sample: "true"`, explicit notices, noindex metadata, and are excluded from the sitemap. Delete them when the experiment is over.
-- Existing social preview images and generation routes are preserved.
+A quiet, single-column personal blog. Keep EB Garamond headings, Source Serif 4 prose, Geist metadata, parchment/oxblood light colors, and cream-on-dark evening colors.
+
+Remove the framed hero, illustration captions, Roman-numbered research grid, featured article card, badges, decorative section rules, drop cap, repeated arrows, flourishes, and elaborate footer. Research interests are prose; writing is a plain list. Sample essays remain explicitly labeled and excluded from indexing.
+
+Two small ink-only spot illustrations replace the three dense engravings. Source PNGs were generated with actual RGBA transparency, then encoded as WebP with alpha preserved. CSS colors only the ink: charcoal in light mode, pale ink in dark mode. No background fill, framing, cropping, or blend-mode paper matching. Both original generations are 1254 × 1254, displayed at about 105–170px wide.
 
 ## Artwork
 
-Generated using the built-in image generation tool, one request per asset, no variants. Sources are in `public/images/folio/`.
+Built-in image generation, two requests, no variants or retries. Project assets:
+- `public/images/folio/learning-sketch.webp`
+- `public/images/folio/drawing-sketch.webp`
 
-### observatory.webp
-Use case: stylized-concept
-Asset type: decorative hero editorial artwork for a personal reinforcement learning researcher blog, vintage research folio.
-Primary request: Landscape 3:2 illustration, delicate sepia and charcoal Renaissance pen-and-ink engraving of a tiny scholar's observatory with a gothic arched window, brass orrery, open notebook, small mechanical thinking apparatus and branching map paths. Imaginative Hogwarts library meets da Vinci study of learning machines.
-Composition: sparse isolated vignette with generous blank warm ivory background #f4f0e5, fine delicate linework, calm refined scholarly composition rather than a busy scene.
-Constraints: no characters, logos, text, lettering, labels or watermarks. Decorative editorial artwork, not a precise scientific diagram.
+Exact generation prompts:
 
-### automaton.webp
-Use case: stylized-concept
-Asset type: square decorative editorial illustration for a personal reinforcement learning researcher blog, vintage research folio.
-Primary request: Antique copperplate illustration of an automaton hand holding a quill and drawing precise rectangles on a manuscript, a visual metaphor for training a model to draw ASCII diagrams.
-Style: elegant fine engraved linework, offwhite background, sepia ink with restrained oxblood ink accents. Sparse scholarly composition and generous negative space.
-Constraints: no text, lettering, labels, logos or watermarks. Decorative editorial artwork, not a precise scientific diagram.
+```json
+{"prompts":{"drawing-sketch":"Use case: illustration-story.\nAsset type: tiny website spot illustration, drawing-sketch.\nCreate ONE simple handmade charcoal ink sketch: ONE old-fashioned drafting compass poised above exactly TWO small rectangular outlines, a sparse illustration of a tool drawing geometric shapes. Modest industrial revolution / 1850 printer's spot illustration, as simple and charming as the line drawing within an old postage stamp, but absolutely NO stamp border or frame. Thin slightly irregular hand-drawn lines, only roughly 30–60 pen strokes total, very sparse hatching, broad blank spaces, no elaborate detail. Clearly recognizable old-fashioned compass with two open pointed legs and small hinge. No hand, person, robot, extra objects or scenery. Readable when displayed at 170 pixels wide.\n1024x1024 square canvas, isolated objects together occupying central 65–75% of canvas. Ink-only dark charcoal marks on genuinely transparent alpha background. All blank spaces, including within the compass and rectangle outlines, must be fully transparent. No sheet of paper, white fill, paper texture, colored background, wash, shadows, checkerboard drawing, text, border, photorealism, or dense engraved shading.","learning-sketch":"Use case: illustration-story.\nAsset type: tiny website spot illustration, learning-sketch.\nCreate ONE simple handmade charcoal ink sketch: ONE small open book beside ONE simple iron flywheel with exactly four spokes. Modest industrial revolution / 1850 printer's spot illustration, as simple and charming as the line drawing within an old postage stamp, but absolutely NO stamp border or frame. Thin slightly irregular hand-drawn lines, only roughly 30–60 pen strokes total, very sparse hatching, broad blank spaces, no elaborate detail. The open book has blank pages and a few page-edge strokes; the flywheel has a simple rim, hub and four spokes. No extra objects or scenery. Readable when displayed at 160 pixels wide.\n1024x1024 square canvas, isolated objects together occupying central 65–75% of canvas. Ink-only dark charcoal marks on genuinely transparent alpha background. All blank spaces, including inside book pages and wheel, must be fully transparent. No white fill, paper, paper texture, colored background, wash, shadows, checkerboard drawing, text, border, photorealism, dense engraved shading, or complex gears."},"paths":{"learning-sketch":"/workspace/scratch/b8dedf1f94b2/generated_images/exec-f7f32a6a-41b8-4997-a7c4-ecf32898c3a7.png","drawing-sketch":"/workspace/scratch/b8dedf1f94b2/generated_images/exec-bea2f6a2-f9ee-435e-82a4-535a237a3d00.png"}}
 
-### adaptive-paths.webp
-Use case: stylized-concept
-Asset type: landscape 3:2 decorative editorial illustration for a personal reinforcement learning researcher blog, vintage research folio.
-Primary request: An antique cartographer's map of branching winding paths through small gothic doorways; one path loops to an earlier fork, an adaptive reasoning metaphor.
-Style: fine engraved sepia strokes on clean warm ivory background #f4f0e5, sparse Victorian cartographic embellishment, generous negative space, refined scholarly folio aesthetic.
-Constraints: no labels, text, lettering, logos or watermarks. Decorative editorial artwork, not a precise scientific diagram.
+```
