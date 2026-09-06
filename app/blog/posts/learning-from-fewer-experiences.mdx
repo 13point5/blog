@@ -1,0 +1,49 @@
+---
+title: "Learning from fewer experiences"
+publishedAt: "2026-09-03"
+summary: "Some notes on sample efficiency, useful mistakes, and choosing what a model gets to practice."
+sample: "true"
+category: "Sample efficiency · Notebook fragment"
+---
+Two learners can spend the same amount of time practicing and come away with very different things. One repeats a familiar move. The other encounters a mistake that exposes a misunderstanding. Counting the repetitions tells us something, but it does not tell us everything.
+
+The same question appears when building reinforcement learning tasks: what makes an experience worth collecting?
+
+## What is the denominator?
+
+Sample efficiency only becomes a concrete claim after we say what counts as a sample. A prompt, a completed episode, a tool call, and a generated token are different units of experience. An agent that solves a task in fewer episodes might still use more tokens or spend longer interacting with its environment.
+
+A toy comparison makes the ambiguity visible:
+
+| Learner | Episodes | Tokens per episode | Total tokens |
+| --- | ---: | ---: | ---: |
+| A | 100 | 8,000 | 800,000 |
+| B | 200 | 2,000 | 400,000 |
+
+These are illustrative numbers. Learner A uses fewer episodes. Learner B uses fewer tokens. Neither statement tells us which learner achieves the better result, or how much the environment interactions cost.
+
+For a particular target quality, one useful ratio is:
+
+$$
+\text{experience per success} = \frac{\text{total collected experience}}{\text{number of successful tasks}}
+$$
+
+That ratio is still incomplete. We would also want to know whether the successes cover diverse tasks and whether the behavior transfers beyond the training set.
+
+## A useful mistake
+
+Suppose an agent repeatedly fails because it never checks whether a file exists. One carefully chosen environment can make that omission consequential. A hundred unrelated failures might teach less about the same behavior.
+
+This suggests a curriculum question: can we choose tasks that expose an important gap without reducing the curriculum to a tiny collection of tricks?
+
+> A task can be difficult without being instructive. Difficulty is a property worth measuring; usefulness is a hypothesis worth testing.
+
+The hypothesis could be tested by holding the training budget fixed and varying how experiences are selected. Evaluation would include both the practiced behavior and nearby situations that demand the same principle in a different form.
+
+## Borrowing carefully from human learning
+
+Human learning offers questions to ask: when is feedback useful, what should be practiced together, and when does a worked example help? It does not automatically supply answers for a language model.
+
+The productive connection is experimental. Take one learning principle, translate it into an explicit change to a training setup, and test whether it helps. If it does, ask what mechanism might explain the improvement. If it does not, ask where the analogy stopped working.
+
+A notebook is a good place to keep those unanswered questions. The most promising ones often begin with a surprisingly ordinary observation.

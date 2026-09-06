@@ -1,19 +1,4 @@
 import { Socials } from "./socials";
-
 export function Footer() {
-  return (
-    <footer className="border-t border-border/30 bg-background/80 backdrop-blur-xs">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 flex flex-col items-center justify-center gap-4">
-        <figure className="flex flex-col items-center">
-          <blockquote className="text-foreground-muted text-sm text-center">
-            What I cannot create, I do not understand.
-          </blockquote>
-          <figcaption className="text-foreground-muted text-sm mt-1 self-end">
-            - Richard Feynman
-          </figcaption>
-        </figure>
-        <Socials />
-      </div>
-    </footer>
-  );
+  return <footer className="folio-footer folio-width"><figure className="footer-quote"><blockquote>“What I cannot create, I do not understand.”</blockquote><figcaption>Richard Feynman</figcaption></figure><div className="footer-bottom"><span className="footer-signature">Sriraam Raja</span><Socials /><span className="colophon" title="I solemnly swear that I am up to no good.">Mischief, managed.</span></div></footer>;
 }
