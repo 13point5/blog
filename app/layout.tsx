@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, EB_Garamond, Source_Serif_4 } from "next/font/google";
+import { Geist, EB_Garamond } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "./providers/theme-provider";
 import { Header } from "./components/header";
@@ -11,7 +11,6 @@ const geist = Geist({
 });
 
 const garamond = EB_Garamond({ subsets: ["latin"], variable: "--font-display", style: ["normal", "italic"], display: "swap" });
-const sourceSerif = Source_Serif_4({ subsets: ["latin"], variable: "--font-reading", style: ["normal", "italic"], display: "swap" });
 
 export const metadata: Metadata = {
   title: {
@@ -55,7 +54,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geist.variable} ${garamond.variable} ${sourceSerif.variable}`}
+      className={`${geist.variable} ${garamond.variable}`}
       suppressHydrationWarning
     >
       <head>

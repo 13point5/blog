@@ -5,7 +5,7 @@ import { SettingsDropdown } from "./settings-dropdown";
 export function Header() {
   const pathname = usePathname();
   return <header className="folio-header"><nav className="folio-nav" aria-label="Main navigation">
-    <Link className="wordmark" href="/" aria-label="Sriraam, home">sriraam<span aria-hidden="true">.</span></Link>
-    <div className="nav-links"><Link href="/" aria-current={pathname === "/" ? "page" : undefined}>About</Link><Link href="/blog" aria-current={pathname.startsWith("/blog") ? "page" : undefined}>Writing</Link><SettingsDropdown /></div>
+    <Link className="wordmark" href="/" aria-label="Sriraam, home">sriraam</Link>
+    <div className="nav-links"><Link href="/blog" aria-current={pathname.startsWith("/blog") ? "page" : undefined}>Writing</Link><SettingsDropdown /></div>
   </nav></header>;
 }

@@ -4,7 +4,9 @@ Branch: `experiment/research-folio`, draft PR #13. The original elaborate direct
 
 ## Direction
 
-A quiet, single-column personal blog. Keep EB Garamond headings, Source Serif 4 prose, Geist metadata, parchment/oxblood light colors, and cream-on-dark evening colors.
+A quiet, single-column personal blog. Use EB Garamond for all headings (h1–h6) and the understated header; Geist for body text and metadata. Keep parchment/oxblood light colors, and cream-on-dark evening colors.
+
+The header contains a small, regular-weight serif “sriraam”, Writing, and the theme toggle. There is no separate About link.
 
 Remove the framed hero, illustration captions, Roman-numbered research grid, featured article card, badges, decorative section rules, drop cap, repeated arrows, flourishes, and elaborate footer. Research interests are prose; writing is a plain list. Sample essays remain explicitly labeled and excluded from indexing.
 
