@@ -8,7 +8,7 @@ A quiet, single-column personal blog. Use EB Garamond for all headings (h1–h6)
 
 The header contains a small, regular-weight serif “Sriraam”, Writing, and the theme toggle. There is no separate About link. Top padding is 6px on desktop and 4px on mobile, with a 48px navigation row.
 
-Remove the framed hero, illustration captions, Roman-numbered research grid, featured article card, badges, decorative section rules, drop cap, repeated arrows, flourishes, and elaborate footer chrome. Research interests are prose; writing is a compact title + date list (no summaries in listing UIs). Published post bodies and frontmatter stay identical to `main` (do not rewrite essays for the folio). Homepage and archive Writing lists show the same real posts as `main`; sample-only essays are not listed there.
+Remove the framed hero, illustration captions, Roman-numbered research grid, featured article card, badges, decorative section rules, drop cap, repeated arrows, flourishes, and elaborate footer chrome. Research interests are prose; writing is a compact title + date list (no summaries and no divider lines between rows—spacing only). Published post bodies and frontmatter stay identical to `main` (do not rewrite essays for the folio). Homepage and archive Writing lists show the same real posts as `main`; sample-only essays are not listed there.
 
 Article headers center the title, then the image directly underneath, then the metadata. The redundant summary and both notebook back links are removed; navigation remains in the header. The table of contents accordion is labeled “Table of contents”.
 
