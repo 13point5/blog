@@ -7,6 +7,9 @@ export type Metadata = {
   summary: string;
   image?: string;
   author?: string;
+  sample?: string;
+  category?: string;
+  illustration?: string;
 };
 
 function parseFrontmatter(fileContent: string) {
@@ -88,4 +91,8 @@ export function formatDate(date: string, includeRelative = false, abbreviated = 
   }
 
   return `${fullDate} (${formattedDate})`;
+}
+
+export function readingTime(content: string) {
+  return Math.max(1, Math.ceil(content.replace(/<[^>]*>/g, "").split(/\s+/).length / 220));
 }

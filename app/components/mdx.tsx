@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { slugifyHeading } from "@/lib/headings";
 import Image from "next/image";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import React from "react";
@@ -116,17 +117,6 @@ function RoundedImage({
   );
 }
 
-function slugify(str: string) {
-  return str
-    .toString()
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/&/g, "-and-")
-    .replace(/[^\w\-]+/g, "")
-    .replace(/\-\-+/g, "-");
-}
-
 const headingStyles: Record<number, string> = {
   1: "text-3xl font-semibold mb-6 mt-8 text-foreground",
   2: "text-2xl font-semibold mb-4 mt-6 text-foreground",
@@ -138,7 +128,7 @@ const headingStyles: Record<number, string> = {
 
 function createHeading(level: number) {
   const Heading = ({ children }: { children: React.ReactNode }) => {
-    const slug = slugify(String(children));
+    const slug = slugifyHeading(React.Children.toArray(children).map((child) => typeof child === "string" || typeof child === "number" ? String(child) : React.isValidElement<{ children?: React.ReactNode }>(child) ? String(child.props.children ?? "") : "").join(""));
     return React.createElement(
       `h${level}`,
       { id: slug, className: headingStyles[level] },
@@ -328,7 +318,7 @@ const components = {
   ),
   hr: () => <hr className="section-divider my-8" />,
   table: ({ children }: { children: React.ReactNode }) => (
-    <div className="overflow-x-auto mb-6 rounded-lg border border-border overflow-hidden">
+    <div className="overflow-x-auto mb-6 rounded-sm border border-border">
       <table className="min-w-full">{children}</table>
     </div>
   ),

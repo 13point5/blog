@@ -1,10 +1,5 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
-// OpenDyslexic font for dyslexia-friendly reading - all weights and styles
-import "@fontsource/opendyslexic/400.css"; // Regular
-import "@fontsource/opendyslexic/400-italic.css"; // Regular Italic
-import "@fontsource/opendyslexic/700.css"; // Bold
-import "@fontsource/opendyslexic/700-italic.css"; // Bold Italic
+import { Geist, EB_Garamond } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "./providers/theme-provider";
 import { Header } from "./components/header";
@@ -14,6 +9,8 @@ const geist = Geist({
   subsets: ["latin"],
   variable: "--font-geist",
 });
+
+const garamond = EB_Garamond({ subsets: ["latin"], variable: "--font-display", style: ["normal", "italic"], display: "swap" });
 
 export const metadata: Metadata = {
   title: {
@@ -57,7 +54,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geist.variable} font-sans`}
+      className={`${geist.variable} ${garamond.variable}`}
       suppressHydrationWarning
     >
       <head>
@@ -67,22 +64,7 @@ export default function RootLayout({
               (function() {
                 try {
                   const theme = localStorage.getItem('theme') || 'light';
-                  const fontFamily = localStorage.getItem('fontFamily') || 'sans';
-                  const root = document.documentElement;
-                  
-                  // Apply theme
-                  root.classList.remove('dark', 'warm');
-                  if (theme === 'dark') {
-                    root.classList.add('dark');
-                  }
-                  
-                  // Apply font (remove all font classes first)
-                  root.classList.remove('font-sans', 'font-dyslexia');
-                  if (fontFamily === 'dyslexia') {
-                    root.classList.add('font-dyslexia');
-                  } else {
-                    root.classList.add('font-sans');
-                  }
+                  document.documentElement.classList.toggle('dark', theme === 'dark');
                 } catch (e) {}
               })();
             `,
@@ -102,9 +84,10 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <ThemeProvider>
-          <div className="min-h-screen flex flex-col bg-background">
+          <div className="site-shell min-h-screen flex flex-col">
+            <a className="skip-link" href="#main-content">Skip to content</a>
             <Header />
-            <main className="flex-1">{children}</main>
+            <div className="flex-1" id="main-content">{children}</div>
             <Footer />
           </div>
         </ThemeProvider>
