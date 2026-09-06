@@ -84,10 +84,10 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <ThemeProvider>
-          <div className="site-shell min-h-screen flex flex-col">
+          <div className="site-shell">
             <a className="skip-link" href="#main-content">Skip to content</a>
             <Header />
-            <div className="flex-1" id="main-content">{children}</div>
+            <div id="main-content">{children}</div>
             <Footer />
           </div>
         </ThemeProvider>

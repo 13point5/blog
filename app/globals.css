@@ -691,15 +691,19 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--display); }
 .text-link:hover { text-decoration: underline; }
 .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; margin-bottom: 25px; }
 .section-heading h2 { font: 400 1.8rem/1.2 var(--display); letter-spacing: -.02em; }
-.writing-section { padding-bottom: 40px; }
+.writing-section { padding-bottom: 32px; }
+.essay-list > .essay-row:last-child { padding-bottom: 0; }
 .essay-row { display: block; padding-block: 0 26px; }
 .essay-details h3 { font: 400 1.5rem/1.3 var(--display); letter-spacing: -.015em; }
 .essay-details h3 a { text-underline-offset: 4px; text-decoration-thickness: 1px; }
 .essay-details h3 a:hover { color: var(--link); text-decoration: underline; }
 .essay-details p { font: .9375rem/1.75 var(--reading); color: var(--foreground-muted); margin-top: 7px; max-width: 630px; }
 .essay-date { font: .75rem/1.7 var(--sans); color: var(--foreground-muted); margin-top: 8px; }
-.folio-footer { padding-block: 10px 40px; }
-.folio-footer > div { font: .8rem/1.7 var(--sans); }
+.folio-footer { padding-block: 0 max(20px, env(safe-area-inset-bottom)); text-align: center; }
+.footer-quote { margin: 0 0 20px; }
+.footer-quote blockquote { font: italic 1.25rem/1.5 var(--display); color: var(--foreground-muted); text-wrap: balance; }
+.footer-quote figcaption { margin-top: 6px; font: .75rem/1.6 var(--sans); color: var(--foreground-muted); }
+.folio-footer > div { justify-content: center; font: .875rem/1.7 var(--sans); }
 .archive-page { padding-block: 65px 45px; }
 .archive-page > h1 { font: 400 2.8rem/1.15 var(--display); letter-spacing: -.025em; margin-bottom: 20px; }
 .archive-intro { font-size: 1.0625rem; line-height: 1.8; color: var(--foreground-muted); margin-bottom: 38px; }
@@ -739,7 +743,7 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--display); }
   .intro-section > p { margin-bottom: 20px; }
   .section-heading { margin-bottom: 23px; }.section-heading h2 { font-size: 1.7rem; }
   .essay-details h3 { font-size: 1.45rem; }.essay-details p { font-size: .9375rem; }
-  .writing-section { padding-bottom: 26px; }.folio-footer { padding-bottom: 30px; }
+  .writing-section { padding-bottom: 28px; }
   .archive-page { padding-block: 40px; }.archive-page > h1 { font-size: 2.4rem; }.archive-intro { font-size: 1rem; }
   .desktop-break { display: none; }.reading-page { padding-block: 30px 45px; }
   .article-header h1 { font-size: 2.4rem; }
