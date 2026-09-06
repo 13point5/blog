@@ -6,9 +6,11 @@ Branch: `experiment/research-folio`, draft PR #13. The original elaborate direct
 
 A quiet, single-column personal blog. Use EB Garamond for all headings (h1–h6) and the understated header; Geist for body text and metadata. Keep parchment/oxblood light colors, and cream-on-dark evening colors.
 
-The header contains a small, regular-weight serif “sriraam”, Writing, and the theme toggle. There is no separate About link.
+The header contains a small, regular-weight serif “sriraam”, Writing, and the theme toggle. There is no separate About link. Top padding is 6px on desktop and 4px on mobile, with a 48px navigation row.
 
 Remove the framed hero, illustration captions, Roman-numbered research grid, featured article card, badges, decorative section rules, drop cap, repeated arrows, flourishes, and elaborate footer. Research interests are prose; writing is a plain list. Sample essays remain explicitly labeled and excluded from indexing.
+
+Article headers center the title, then the image directly underneath, then the metadata. The redundant summary and both notebook back links are removed; navigation remains in the header. The “In these notes” accordion is unchanged.
 
 Two small ink-only spot illustrations replace the three dense engravings. Source PNGs were generated with actual RGBA transparency, then encoded as WebP with alpha preserved. CSS colors only the ink: charcoal in light mode, pale ink in dark mode. No background fill, framing, cropping, or blend-mode paper matching. Both original generations are 1254 × 1254, displayed at about 105–170px wide.
 

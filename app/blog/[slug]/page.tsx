@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
 import { CustomMDX } from "@/app/components/mdx";
 import { formatDate, getBlogPosts, readingTime } from "@/app/blog/utils";
@@ -19,15 +18,24 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
   const sample = post.metadata.sample === "true";
   const headings = getTableOfContents(post.content);
   const illustration = slug === "vibe-rl" ? "/images/folio/drawing-sketch.webp" : undefined;
-  return <main className="folio-width reading-page"><Link className="back-link" href="/blog">← Back to the notebook</Link>
+  return <main className="folio-width reading-page">
     <article>
       {!sample && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "BlogPosting", headline: post.metadata.title, datePublished: post.metadata.publishedAt, description: post.metadata.summary }).replace(/</g, "\\u003c") }} />}
-      <header className="article-header"><h1>{post.metadata.title}</h1><p className="article-deck">{post.metadata.summary}</p><div className="post-meta"><span>{sample ? "Design sample" : post.metadata.author || "Sriraam Raja"}</span><span>·</span>{!sample && <><time dateTime={post.metadata.publishedAt}>{formatDate(post.metadata.publishedAt, false, true)}</time><span>·</span></>}<span>{readingTime(post.content)} min read</span></div>
-      {sample && <p className="sample-notice">Sample text for the design preview; not a published essay by Sriraam.</p>}</header>
-      {illustration && <div className="article-sketch"><Image src={illustration} width={1024} height={1024} className="ink-sketch" alt="A simple ink sketch of a drafting compass and two rectangles." sizes="170px" /></div>}
-      {post.metadata.image && <figure className="article-plate"><Image src={post.metadata.image} width={700} height={460} alt={post.metadata.title} /></figure>}
+      <header className="article-header">
+        <h1>{post.metadata.title}</h1>
+        {post.metadata.image ? (
+          <figure className="article-plate"><Image src={post.metadata.image} width={700} height={460} alt={post.metadata.title} /></figure>
+        ) : illustration ? (
+          <div className="article-sketch"><Image src={illustration} width={1254} height={1254} className="ink-sketch" alt="A simple ink sketch of a drafting compass and two rectangles." sizes="170px" /></div>
+        ) : null}
+        <div className="post-meta">
+          <span>{sample ? "Design sample" : post.metadata.author || "Sriraam Raja"}</span><span>·</span>
+          {!sample && <><time dateTime={post.metadata.publishedAt}>{formatDate(post.metadata.publishedAt, false, true)}</time><span>·</span></>}
+          <span>{readingTime(post.content)} min read</span>
+        </div>
+        {sample && <p className="sample-notice">Sample text for the design preview; not a published essay by Sriraam.</p>}
+      </header>
       <div className="article-layout">{headings.length > 0 && <nav className="article-toc" aria-label="On this page"><details><summary>In these notes</summary>{headings.map((heading) => <a href={`#${heading.slug}`} key={heading.slug}>{heading.title}</a>)}</details></nav>}<div className="article-body"><CustomMDX source={post.content} /></div></div>
-      <div className="article-end"><Link className="text-link" href="/blog">← More from the notebook</Link></div>
     </article>
   </main>;
 }
