@@ -4,7 +4,7 @@ Branch: `experiment/research-folio`, draft PR #13. The original elaborate direct
 
 ## Direction
 
-A quiet, single-column personal blog. Use EB Garamond for all headings (h1–h6) and the understated header; Geist for body text and metadata. Colors match `main`: cool gray paper (`#f2f2f2`) with cool blue links in light mode, and neutral charcoal with cooler blue links in dark mode — not parchment or oxblood.
+A quiet, single-column personal blog. Use EB Garamond for all headings (h1–h6) and the understated header; Geist for body text and metadata. Colors match `main`: cool gray paper (`#f2f2f2`) with cool blue links in light mode, and neutral charcoal with cooler blue links in dark mode — not parchment or oxblood. Links have no underlines by default; hover/current state uses color change, and `:focus-visible` keeps a clear outline.
 
 The header contains a small, regular-weight serif “Sriraam”, Writing, and the theme toggle. There is no separate About link. Top padding is 6px on desktop and 4px on mobile, with a 48px navigation row.
 
