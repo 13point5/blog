@@ -1,19 +1,5 @@
 import { BlogPosts } from "@/app/components/posts";
-
-export const metadata = {
-  title: "Blog",
-  description: "Thoughts on AI, engineering, and development by 13point5.",
-};
-
+export const metadata = { title: "Writing", description: "Notes on reinforcement learning, human learning, and the space between them." };
 export default function BlogPage() {
-  return (
-    <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-14 pb-16">
-      <section className="animate-fade-blur">
-        <h1 className="text-2xl font-semibold mb-4 mt-6 text-foreground">
-          blog
-        </h1>
-        <BlogPosts />
-      </section>
-    </main>
-  );
+  return <main className="folio-width archive-page"><h1>Writing</h1><p className="archive-intro">Notes on reinforcement learning, human learning,<br className="desktop-break" /> and the space between them.</p><BlogPosts /></main>;
 }

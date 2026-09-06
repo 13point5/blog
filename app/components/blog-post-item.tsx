@@ -1,38 +1,11 @@
 import Link from "next/link";
-import Image from "next/image";
-import { formatDate, Metadata } from "@/app/blog/utils";
+import { formatDate, type Metadata } from "@/app/blog/utils";
 
-type BlogPostItemProps = {
-  slug: string;
-  metadata: Metadata;
-};
-
-export function BlogPostItem({ slug, metadata }: BlogPostItemProps) {
+export function BlogPostItem({ slug, metadata }: { slug: string; metadata: Metadata }) {
   return (
-    <Link href={`/blog/${slug}`} className="block group">
-      <article className="flex items-start justify-between gap-4 py-2">
-        <div className="flex items-start gap-3 min-w-0">
-          {metadata.image && (
-            <Image
-              src={metadata.image}
-              alt=""
-              width={32}
-              height={32}
-              className="w-8 h-8 rounded object-cover flex-shrink-0"
-            />
-          )}
-          <h3 className="font-medium group-hover:text-foreground-muted transition-colors">
-            {metadata.title}
-          </h3>
-        </div>
-        <time
-          dateTime={metadata.publishedAt}
-          className="hidden sm:block text-sm text-foreground-muted whitespace-nowrap"
-        >
-          {formatDate(metadata.publishedAt, false, true)}
-        </time>
-      </article>
-    </Link>
+    <article className="essay-row">
+      <div className="essay-details"><h3><Link href={`/blog/${slug}`}>{metadata.title}</Link></h3><p>{metadata.summary}</p></div>
+      <div className="essay-date">{metadata.sample === "true" ? <span>Sample essay</span> : <time dateTime={metadata.publishedAt}>{formatDate(metadata.publishedAt, false, true)}</time>}</div>
+    </article>
   );
 }
-
