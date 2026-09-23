@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RewardLab } from "./reward-lab";
 import Image from "next/image";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import React from "react";
@@ -260,6 +261,7 @@ function Pre({
 }
 
 const components = {
+  RewardLab,
   Tweet: ({ id }: { id: string }) => (
     <div className="flex w-fit justify-center [&>div]:max-w-[400px]">
       <Tweet id={id} />

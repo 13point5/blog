@@ -1,19 +1,10 @@
-import { Socials } from "./socials";
+import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="border-t border-border/30 bg-background/80 backdrop-blur-xs">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 flex flex-col items-center justify-center gap-4">
-        <figure className="flex flex-col items-center">
-          <blockquote className="text-foreground-muted text-sm text-center">
-            What I cannot create, I do not understand.
-          </blockquote>
-          <figcaption className="text-foreground-muted text-sm mt-1 self-end">
-            - Richard Feynman
-          </figcaption>
-        </figure>
-        <Socials />
-      </div>
+    <footer className="studio-footer studio-width">
+      <div className="footer-top"><span className="footer-flower" aria-hidden="true">✳</span><p>“What I cannot create,<br /><em>I do not understand.</em>”<small>RICHARD FEYNMAN</small></p><div className="footer-links"><a href="https://x.com/27upon2">Twitter ↗</a><a href="https://github.com/13point5">GitHub ↗</a><a href="https://www.linkedin.com/in/13point5">LinkedIn ↗</a></div></div>
+      <div className="footer-bottom"><Link href="/">Sriraam’s corner of the internet.</Link><span>Stay curious. Make things.</span><a href="#top">Back to top ↑</a></div>
     </footer>
   );
 }

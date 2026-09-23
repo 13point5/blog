@@ -1,0 +1,66 @@
+---
+title: 'What a tiny learning loop can teach us'
+publishedAt: '2026-09-20'
+summary: 'A small thought experiment about feedback, rewards, and what we actually ask a model to learn.'
+category: 'Learning'
+artwork: 'tape'
+sample: 'true'
+---
+There is something satisfying about a small loop: try something, notice what happened, try again. It is a useful place to start thinking about both learning and the systems we build to support it.
+
+This notebook entry uses a deliberately tiny example. Imagine two answers to the same question. One is short and incomplete; the other is thorough and a little wordy. Which one should our system prefer?
+
+## First, decide what matters
+
+The answer depends on what we choose to reward. A reward is a compressed statement of our preferences, and compression leaves things out.
+
+> A number can tell us which answer won. It cannot, by itself, tell us whether we asked the right question.
+
+Our toy scores look like this:
+
+| Answer | Brevity | Completeness |
+| --- | --- | --- |
+| Short answer | 0.95 | 0.40 |
+| Detailed answer | 0.50 | 0.90 |
+
+These numbers are invented for the demonstration. They are not measurements of any model.
+
+## Turn the dial
+
+Try changing how much weight we give completeness. Neither answer changes, but our preference does.
+
+<RewardLab />
+
+## Make the choice explicit
+
+The calculation is intentionally simple:
+
+```python title="reward.py" showLineNumbers
+
+def reward(brevity, completeness, weight=0.5):
+    return (1 - weight) * brevity + weight * completeness
+
+short_answer = reward(0.95, 0.40)
+detailed_answer = reward(0.50, 0.90)
+```
+
+Writing this down makes a hidden decision visible. We can discuss it, change it, and check where it behaves badly.
+
+<details>
+<summary>What does this example leave out?</summary>
+
+Real evaluation has more dimensions: correctness, the user's needs, the difficulty of the task, and whether a response is useful at all. Combining two made-up scores is only a way to explore one tradeoff. It is not a recipe for a production reward function.
+
+</details>
+
+## Back to the learner
+
+The interesting question is not just whether feedback exists. It is what the feedback makes worth doing.
+
+Before making the loop faster, I would ask three questions:
+
+1. What behavior do we actually want?
+2. What proxy are we measuring instead?
+3. Where could those two come apart?
+
+Small loops make those questions easier to see.

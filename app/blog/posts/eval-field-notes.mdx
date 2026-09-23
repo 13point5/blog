@@ -1,0 +1,60 @@
+---
+title: 'A good score is only the beginning'
+publishedAt: '2026-09-12'
+summary: 'A fictional lab notebook on looking past the headline number and into the trace.'
+category: 'Experiments'
+artwork: 'disk-green'
+sample: 'true'
+---
+Imagine that an agent completes seven tasks out of ten. The score is easy to remember. The stories behind those ten tasks are harder to compress.
+
+This is a fictional lab notebook about what we might inspect next.
+
+## Open the trace
+
+In our invented example, two runs receive the same final score but arrive there differently.
+
+| Run | Outcome | What the trace reveals |
+| --- | --- | --- |
+| A | Success | Checks an assumption, changes course, verifies the result |
+| B | Success | Repeats a lucky guess without checking it |
+| C | Failure | Finds the issue, but runs out of time before applying the fix |
+
+If we only look at success or failure, we lose the difference between a useful strategy and a fortunate accident.
+
+<div className="callout-note"><strong>Working hypothesis</strong>Reading a few trajectories carefully can help us decide which aggregate metrics are worth collecting next.</div>
+
+## Keep the experiment reproducible
+
+A minimal run record might start here:
+
+```json title="run-record.json" showLineNumbers
+{
+  "task_version": "toy-task-v1",
+  "model": "example-model",
+  "seed": 42,
+  "max_steps": 20,
+  "result": "success",
+  "trace": "runs/example-001.jsonl"
+}
+```
+
+The record is a starting point, not a guarantee. Environments, tool versions, model serving, and external services can all introduce differences.
+
+<details>
+<summary>A small review checklist</summary>
+
+- Can another person identify the exact task and environment?
+- Is the final result supported by evidence in the trace?
+- Does the verifier check what the task actually asks for?
+- Are failures grouped by cause rather than only by score?
+
+</details>
+
+## The number and the story
+
+The number helps us compare. The trace helps us understand what we are comparing. A good evaluation practice leaves room for both.
+
+---
+
+*All runs and results in this post are illustrative. No actual experiment is being reported.*

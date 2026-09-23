@@ -1,19 +1,9 @@
-import { BlogPosts } from "@/app/components/posts";
+import { getBlogPosts } from "./utils";
+import { WritingShelf } from "../components/writing-shelf";
 
-export const metadata = {
-  title: "Blog",
-  description: "Thoughts on AI, engineering, and development by 13point5.",
-};
+export const metadata = { title: "Writing", description: "Experiments, field notes, and thoughts on machine and human learning." };
 
 export default function BlogPage() {
-  return (
-    <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-14 pb-16">
-      <section className="animate-fade-blur">
-        <h1 className="text-2xl font-semibold mb-4 mt-6 text-foreground">
-          blog
-        </h1>
-        <BlogPosts />
-      </section>
-    </main>
-  );
+  const posts = getBlogPosts().sort((a, b) => (Number(a.metadata.sample === "true") - Number(b.metadata.sample === "true")) || b.metadata.publishedAt.localeCompare(a.metadata.publishedAt));
+  return <div className="studio-width archive-page"><div className="eyebrow">THE NOTEBOOK</div><h1>Ideas in <em>motion.</em></h1><p className="archive-intro">Some carefully tested. Some still taking shape.<br />Notes on learning, building, and paying attention.</p><WritingShelf posts={posts.map(({ slug, metadata }) => ({ slug, metadata }))} /></div>;
 }
