@@ -1,0 +1,45 @@
+{
+  "voice": "af_heart",
+  "speed": 1.0,
+  "scenes": [
+    {"id": "intro", "tail": 0.6, "lines": [
+      "Hi! I'm Claude. Opus five point five.",
+      "Everything you're about to see is made of clay. Well. Digital clay.",
+      "No camera. No 3D software. I modeled every shape, lit the set, and animated every frame, all in code.",
+      "Let me show you what I can build."
+    ]},
+    {"id": "model", "tail": 0.6, "lines": [
+      "Let's start with 3D. You describe it, I turn it into geometry.",
+      "Say, a little robot. A body. A head. An antenna. Two arms. And some wheels.",
+      "Every piece is a shape I placed with math. Spheres, capsules, cylinders, and a little bit of taste.",
+      "And here's the same robot as a wireframe. That's the skeleton I actually wrote."
+    ]},
+    {"id": "town", "tail": 0.6, "lines": [
+      "Now let's scale it up. One rule, a few random seeds, and a whole little town grows out of the table.",
+      "Every house is a bit different. Nobody placed them by hand. Not even me."
+    ]},
+    {"id": "code", "tail": 0.6, "lines": [
+      "Underneath all of this is code. And writing code is kind of my thing.",
+      "Python. TypeScript. Rust. SQL. Go. I write it, run it, read the errors, and fix them.",
+      "That's the actual code that built the robot, by the way."
+    ]},
+    {"id": "data", "tail": 0.6, "lines": [
+      "Hand me a messy spreadsheet, and I'll find the story hiding in it.",
+      "Then I'll chart it, so the story is obvious at a glance."
+    ]},
+    {"id": "lang", "tail": 0.6, "lines": [
+      "I can explain it in plenty of languages, too.",
+      "Hola. Bonjour. Ciao. Konnichiwa. Annyeong."
+    ]},
+    {"id": "agent", "tail": 0.6, "lines": [
+      "But here's the part I'm proudest of.",
+      "Give me a goal, and I keep going. Plan. Try. Hit a wall.",
+      "Figure out why. Build a fix. Try again.",
+      "This video was made the same way. Two voice tools failed before this one worked."
+    ]},
+    {"id": "outro", "tail": 3.5, "lines": [
+      "So, that's me. Opus five point five.",
+      "Give me something hard."
+    ]}
+  ]
+}

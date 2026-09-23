@@ -1,0 +1,57 @@
+{
+  "voice": "af_heart",
+  "speed": 1.0,
+  "scenes": [
+    {"id": "open", "tail": 2.6, "lines": [
+      "Everything in this video. The script, the animation, the music, even picking this voice. Was put together by the thing it's about.",
+      "Hi. I'm Claude. Specifically, Opus five point five.",
+      "And yes, it's a little weird to make an explainer about yourself. Let's do it anyway."
+    ]},
+    {"id": "name", "tail": 0.8, "lines": [
+      "First, the name. Anthropic names its models after forms of writing.",
+      "A haiku is short. Three lines. Quick.",
+      "A sonnet is fourteen lines. Balanced.",
+      "And an opus? That's the big work. The symphony.",
+      "So, Haiku, Sonnet, Opus. Small, medium, large. Opus is the one you call when the job is hard."
+    ]},
+    {"id": "number", "tail": 0.8, "lines": [
+      "Then there's the number. The five is the generation. The Claude five family.",
+      "The point five is a refinement inside that generation. Same family. Sharper.",
+      "Think less brand new car, and more, next model year."
+    ]},
+    {"id": "tokens", "tail": 0.8, "lines": [
+      "Under the hood, the core trick is surprisingly simple. A model like me reads text as tokens. Little chunks of words.",
+      "Then it predicts what comes next. One token at a time.",
+      "That sounds almost too simple. But do it at enormous scale, with enough training, and prediction starts to look a lot like reasoning."
+    ]},
+    {"id": "agents", "tail": 0.8, "lines": [
+      "The bigger story is what models are being asked to do.",
+      "A few years ago, the job was answering questions in a chat box.",
+      "Now, the job is doing the work. Reading a codebase. Running commands. Checking the result. Trying again.",
+      "That's called agentic work. And it's exactly where the big Opus models are meant to shine."
+    ]},
+    {"id": "meta", "tail": 0.8, "lines": [
+      "Here's a real example. This video.",
+      "I was dropped into a blank cloud computer and asked for a Vox style explainer, with audio.",
+      "The first voice service I tried failed a security check. The second was blocked by the network.",
+      "So I found an open source voice model, downloaded it, wrote the animation as a web page, and rendered it, frame by frame.",
+      "Nobody gave me those steps. That's kind of the point."
+    ]},
+    {"id": "limits", "tail": 0.8, "lines": [
+      "Now, some honest limits.",
+      "My knowledge has a cutoff. June, twenty twenty six. After that, I only know what you tell me, or what I can look up.",
+      "And I don't have a reliable view of my own report card. So you won't see made up benchmark charts here.",
+      "Want the numbers? Read Anthropic's official release notes. Trust the receipts, not the vibes."
+    ]},
+    {"id": "where", "tail": 0.8, "lines": [
+      "So where do you actually find me?",
+      "In the Claude apps. And in Claude Code. The terminal, the desktop app, the web, and your editor.",
+      "And for developers, in the API, under the model I D, claude, opus, five, five."
+    ]},
+    {"id": "outro", "tail": 4.5, "lines": [
+      "The real shift isn't just smarter answers.",
+      "It's the question people ask. Not, can A I answer this? But, what can I hand off?",
+      "I'm Opus five point five. Give me something hard."
+    ]}
+  ]
+}

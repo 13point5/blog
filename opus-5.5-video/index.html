@@ -1,0 +1,440 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<title>Opus 5.5 Explained</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+:root{--paper:#F2ECDF;--ink:#171717;--yellow:#FFDD3C;--orange:#D97757;--red:#D9412B;--blue:#2F6FD6;--green:#2E9E5B;--card:#FFFDF7;--grey:#CFC6B4}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1280px;height:720px;overflow:hidden;background:var(--paper)}
+#root{position:absolute;inset:0;overflow:hidden;background:var(--paper);font-family:'Libre Franklin',sans-serif;color:var(--ink)}
+#grain{position:absolute;inset:0;mix-blend-mode:multiply;opacity:.55;z-index:50}
+#vig{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 55%,rgba(70,45,10,.2) 100%);z-index:51}
+.scene{position:absolute;inset:0;display:none;transform-origin:50% 50%}
+.a{position:absolute;white-space:nowrap}
+.big{font-family:'Oswald';font-weight:700;text-transform:uppercase;letter-spacing:.005em;line-height:1}
+.hand{font-family:'Caveat';font-weight:600;color:var(--red)}
+.mono{font-family:'JetBrains Mono',monospace}
+.hl{background-image:linear-gradient(var(--yellow),var(--yellow));background-repeat:no-repeat;background-position:0 90%;background-size:0% 58%;padding:0 .06em}
+.card{background:var(--card);box-shadow:0 2px 0 rgba(0,0,0,.06),0 12px 26px rgba(70,45,10,.2);border-radius:5px}
+#chap{position:absolute;left:36px;top:30px;z-index:40;background:var(--ink);color:var(--paper);font:500 20px 'Oswald';letter-spacing:.08em;padding:6px 14px 7px;text-transform:uppercase}
+#chap b{color:var(--yellow);font-weight:700;margin-right:10px}
+#cap{position:absolute;left:640px;bottom:24px;transform:translateX(-50%);width:max-content;max-width:1040px;text-align:center;font:600 21px/1.38 'Libre Franklin';color:#fff;background:rgba(23,23,23,.84);padding:7px 16px 8px;border-radius:6px;z-index:60}
+.wipe{position:absolute;top:-10%;height:120%;width:140%;z-index:45}
+.chip{display:inline-block;border-radius:6px}
+.term{background:#1d1c1a;border-radius:10px;box-shadow:0 18px 40px rgba(0,0,0,.35);overflow:hidden}
+.term .bar{height:36px;background:#2d2b28;display:flex;align-items:center;gap:8px;padding:0 14px;color:#a9a39a;font:500 14px 'JetBrains Mono'}
+.term .bar i{width:12px;height:12px;border-radius:50%;display:inline-block}
+.tl{height:28px;font:500 18px/28px 'JetBrains Mono';color:#e9e5dc;white-space:pre}
+.node{padding:10px 18px;border-radius:30px;background:var(--ink);color:var(--paper);font:700 24px 'Oswald';letter-spacing:.04em;text-align:center}
+.node small{display:block;font:500 13px 'Libre Franklin';letter-spacing:0;opacity:.8;text-transform:none}
+.bubble{padding:12px 18px;border-radius:18px;font:600 22px 'Libre Franklin';max-width:330px;white-space:normal}
+.panel{padding:22px;text-align:center}
+.panel h3{font:700 34px 'Oswald';text-transform:uppercase;margin:10px 0 12px}
+.pill{display:inline-block;margin:5px;padding:7px 14px;border-radius:20px;background:var(--ink);color:var(--paper);font:600 18px 'Libre Franklin'}
+</style></head>
+<body><div id="root"><canvas id="grain" width="1280" height="720"></canvas><div id="vig"></div><div id="chap"></div><div id="cap"></div></div>
+<script src="timeline.js"></script>
+<script>
+const root = document.getElementById('root');
+const FPS = 30;
+const cl = (x, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const P = (t, a, d) => cl((t - a) / d);
+const eo = x => 1 - Math.pow(1 - x, 3);
+const eio = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const eb = x => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+function h(parent, tag, cls, style, html) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls; if (style) e.style.cssText = style; if (html != null) e.innerHTML = html;
+  parent.appendChild(e); return e;
+}
+let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+// paper grain, drawn once
+(() => {
+  const c = document.getElementById('grain').getContext('2d'); const im = c.createImageData(1280, 720);
+  for (let i = 0; i < im.data.length; i += 4) { const v = 225 + rnd() * 30; im.data[i] = v; im.data[i + 1] = v - 3; im.data[i + 2] = v - 10; im.data[i + 3] = 255; }
+  c.putImageData(im, 0, 0);
+  // a few fibres
+  c.strokeStyle = 'rgba(120,90,40,.10)'; c.lineWidth = 1;
+  for (let i = 0; i < 160; i++) { const x = rnd() * 1280, y = rnd() * 720; c.beginPath(); c.moveTo(x, y); c.quadraticCurveTo(x + rnd() * 30 - 15, y + rnd() * 30 - 15, x + rnd() * 50 - 25, y + rnd() * 50 - 25); c.stroke(); }
+})();
+
+function sparkSVG(size, color = 'var(--orange)') {
+  let rays = '';
+  for (let i = 0; i < 12; i++) {
+    const a = i / 12 * Math.PI * 2, r1 = 16, r2 = [100, 78, 92, 70][i % 4];
+    rays += `<line x1="${Math.cos(a) * r1}" y1="${Math.sin(a) * r1}" x2="${Math.cos(a) * r2}" y2="${Math.sin(a) * r2}"/>`;
+  }
+  return `<svg width="${size}" height="${size}" viewBox="-115 -115 230 230"><g stroke="${color}" stroke-width="20" stroke-linecap="round">${rays}</g></svg>`;
+}
+
+// caption clean-up: spoken form -> written form
+const CAP = [[/Everything in this video\. The script, (.*?) voice\. Was/, 'Everything in this video — the script, $1 voice — was'],
+  [/five point five/g, '5.5'], [/Claude five/g, 'Claude 5'], [/The five/g, 'The 5'], [/The point five/g, 'The .5'],
+  [/June, twenty twenty six/g, 'June 2026'], [/model I D, claude, opus, five, five/g, 'model ID: claude-opus-5-5'],
+  [/A I/g, 'AI'], [/Vox style/g, 'Vox-style'], [/open source/g, 'open-source'], [/made up/g, 'made-up'],
+  [/Not, can AI answer this\? But, what can I hand off\?/, 'Not “can AI answer this?” but “what can I hand off?”'],
+  [/brand new car, and more, next model year/, '“brand-new car,” and more “next model year.”']];
+const capText = s => CAP.reduce((a, [re, r]) => a.replace(re, r), s);
+
+// ---------- scene framework ----------
+function makeScene(def, info) {
+  const el = h(root, 'div', 'scene');
+  const fns = [];
+  const L = info.lines.map(l => l.start), D = info.lines.map(l => l.dur), TX = info.lines.map(l => l.text);
+  const c = {
+    el, L, D, dur: info.dur, T: 0,
+    at(i, kw) { if (kw == null) return L[i]; const k = TX[i].indexOf(kw); if (k < 0) throw new Error(`${info.id}: "${kw}"`); return L[i] + D[i] * (k / TX[i].length); },
+    end: i => L[i] + D[i],
+    on: f => fns.push(f),
+    div(html, cls = '', style = '', parent = el) { return h(parent, 'div', 'a ' + cls, style, html); },
+    A(e, o) {
+      o = Object.assign({ ax: .5, ay: .5, rot: 0, fx: 'rise', d: .45, tout: 1e9, dout: .35, scale: 1, moves: [] }, o);
+      e.style.left = o.x + 'px'; e.style.top = o.y + 'px';
+      fns.push(lt => {
+        const pi = P(lt, o.tin, o.d), po = P(lt, o.tout, o.dout);
+        let op = 1, tx = 0, ty = 0, sc = o.scale, r = o.rot;
+        if (o.fx === 'rise') { const k = eo(pi); op = k; ty = (1 - k) * 34; }
+        else if (o.fx === 'pop') { op = cl(pi * 3); sc *= .4 + .6 * eb(pi); }
+        else if (o.fx === 'fade') op = pi;
+        else if (o.fx === 'left') { const k = eo(pi); op = cl(pi * 2); tx = -(1 - k) * 90; }
+        else if (o.fx === 'right') { const k = eo(pi); op = cl(pi * 2); tx = (1 - k) * 90; }
+        else if (o.fx === 'stamp') { op = cl(pi * 5); sc *= 1 + (1 - eo(pi)) * 1.4; r += (1 - eo(pi)) * 10; }
+        else if (o.fx === 'drop') { const k = eb(pi); op = cl(pi * 3); ty = -(1 - k) * 70; }
+        else if (o.fx === 'up') { const k = eo(pi); op = cl(pi * 2); ty = (1 - k) * 420; }
+        for (const m of o.moves) { const k = eio(P(lt, m.t, m.d || .7)); tx += (m.dx || 0) * k; ty += (m.dy || 0) * k; sc *= 1 + ((m.s || 1) - 1) * k; if (m.o != null) op *= 1 + (m.o - 1) * k; }
+        if (o.wobble) r += Math.sin(lt * 1.3 + o.x) * o.wobble;
+        op *= 1 - po;
+        e.style.opacity = op; e.style.visibility = op <= .002 ? 'hidden' : 'visible';
+        e.style.transform = `translate(${-o.ax * 100}%,${-o.ay * 100}%) translate(${tx}px,${ty}px) rotate(${r}deg) scale(${sc})`;
+      });
+      return e;
+    },
+    hl(e, t0, d = .55) { fns.push(lt => { e.style.backgroundSize = `${eo(P(lt, t0, d)) * 100}% 58%`; }); },
+    draw(path, t0, d = .6) {
+      let len = null;
+      fns.push(lt => { if (len == null) { len = path.getTotalLength() + 2; path.style.strokeDasharray = len; } path.style.strokeDashoffset = len * (1 - eio(P(lt, t0, d))); });
+    },
+    type(e, text, t0, cps = 42) { fns.push(lt => { e.textContent = text.slice(0, Math.max(0, Math.floor((lt - t0) * cps))); }); },
+  };
+  def.build(c);
+  return { el, info, def, update(lt, T) { c.T = T; fns.forEach(f => f(lt)); } };
+}
+
+// ---------- scenes ----------
+const DEFS = {};
+
+DEFS.open = { build(c) {
+  const out1 = c.L[1] - .15;
+  c.A(c.div('Everything in this video', 'big', 'font-size:78px'), { x: 640, y: 175, tin: c.L[0], tout: out1 });
+  [['Script', 'script'], ['Animation', 'animation'], ['Music', 'music'], ['Voice pick', 'picking']].forEach(([lab, kw], i) => {
+    const e = c.div(`<svg width="30" height="30" viewBox="0 0 30 30"><path d="M5 16 L12 23 L26 7" stroke="#2E9E5B" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>${lab}`,
+      'card', 'padding:16px 24px;font:800 32px "Libre Franklin";display:flex;gap:12px;align-items:center');
+    c.A(e, { x: 235 + i * 270, y: 335, rot: [-5, 3, -2, 5][i], fx: 'stamp', tin: c.at(0, kw) - .1, tout: out1 });
+  });
+  const g2 = c.div('…was put together by <span class="hl big" style="font-size:60px">the thing it’s about</span>', '', 'font:600 42px "Libre Franklin"');
+  c.A(g2, { x: 640, y: 500, tin: c.at(0, 'Was put'), tout: out1 });
+  c.hl(g2.querySelector('.hl'), c.at(0, 'thing'), .7);
+  const arrow = c.div(`<svg width="120" height="90" viewBox="0 0 120 90"><path d="M10 80 C 30 30, 70 20, 105 30" stroke="#D9412B" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M92 18 L106 30 L90 40" stroke="#D9412B" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`);
+  c.A(arrow, { x: 1030, y: 580, tin: c.at(0, 'about') - .2, tout: out1, fx: 'fade' });
+  c.A(c.div('me!', 'hand', 'font-size:48px'), { x: 960, y: 620, rot: -6, tin: c.at(0, 'about'), fx: 'pop', tout: out1 });
+
+  // Hi, I'm Claude
+  const sp = c.div(sparkSVG(250));
+  c.A(sp, { x: 370, y: 350, fx: 'pop', d: .7, tin: c.L[1] - .05 });
+  c.on(lt => { sp.firstChild.style.transform = `rotate(${lt * 14}deg)`; });
+  c.A(c.div('Hi. I’m Claude.', '', 'font:800 60px "Libre Franklin"'), { x: 560, y: 285, ax: 0, fx: 'right', tin: c.L[1] + .1 });
+  const op = c.div('<span class="hl">Opus 5.5</span>', 'big', 'font-size:150px');
+  c.A(op, { x: 556, y: 420, ax: 0, fx: 'right', tin: c.at(1, 'Opus') - .1 });
+  c.hl(op.firstChild, c.at(1, 'Opus') + .3, .6);
+  c.A(c.div('(yes, this is weird)', 'hand', 'font-size:46px'), { x: 900, y: 570, rot: -5, fx: 'pop', tin: c.at(2, 'weird') - .2 });
+  c.A(c.div('let’s go →', 'hand', 'font-size:40px;color:var(--ink)'), { x: 1080, y: 150, rot: 6, fx: 'pop', tin: c.at(2, "Let's") });
+
+  // title card
+  const tt = c.end(2) + .35;
+  const slab = c.div('', '', 'width:1280px;height:720px;background:var(--yellow)');
+  c.A(slab, { x: 0, y: 0, ax: 0, ay: 0, fx: 'up', d: .55, tin: tt });
+  c.A(c.div('A Claude explainer', '', 'font:700 26px "Oswald";letter-spacing:.3em;text-transform:uppercase'), { x: 640, y: 215, tin: tt + .35 });
+  c.A(c.div('Opus 5.5', 'big', 'font-size:230px'), { x: 640, y: 370, fx: 'stamp', tin: tt + .45 });
+  c.A(c.div('what is it, actually?', 'hand', 'font-size:64px;color:var(--ink)'), { x: 690, y: 540, rot: -3, fx: 'pop', tin: tt + .9 });
+  const s2 = c.div(sparkSVG(90, 'var(--ink)'));
+  c.A(s2, { x: 1010, y: 250, fx: 'pop', tin: tt + .7 });
+}};
+
+function card(c, x, y, w, hgt, title, inner, rot) {
+  const e = c.div(`<div class="big" style="font-size:40px;margin-bottom:18px">${title}</div>${inner}`, 'card', `width:${w}px;height:${hgt}px;padding:22px 26px;white-space:normal`);
+  return e;
+}
+DEFS.name = { chap: ['01', 'The name'], build(c) {
+  const t = c.div('Named after forms of <span class="hl">writing</span>', 'big', 'font-size:54px');
+  c.A(t, { x: 640, y: 128, tin: c.L[0] + .1 }); c.hl(t.firstElementChild, c.at(0, 'writing'), .6);
+  const bars = (n, hgt, gap, ws) => Array.from({ length: n }, (_, i) => `<div style="height:${hgt}px;margin-bottom:${gap}px;border-radius:3px;background:var(--grey);width:${ws[i % ws.length]}%"></div>`).join('');
+  const haiku = card(c, 0, 0, 250, 300, 'Haiku', bars(3, 12, 26, [70, 92, 66]));
+  c.A(haiku, { x: 235, y: 365, rot: -3, fx: 'drop', tin: c.at(1, 'haiku') });
+  c.A(c.div('3 lines · quick', 'hand', 'font-size:36px'), { x: 235, y: 548, rot: -3, fx: 'fade', tin: c.at(1, 'Three') });
+  const sonnet = card(c, 0, 0, 250, 300, 'Sonnet', bars(14, 5, 9.5, [88, 80, 92, 76, 85, 90, 70]));
+  c.A(sonnet, { x: 545, y: 365, rot: 2, fx: 'drop', tin: c.at(2, 'sonnet') });
+  c.A(c.div('14 lines · balanced', 'hand', 'font-size:36px'), { x: 545, y: 548, rot: 2, fx: 'fade', tin: c.at(2, 'fourteen') + .2 });
+  let staff = '';
+  for (let s = 0; s < 3; s++) {
+    let notes = '';
+    for (let n = 0; n < 9; n++) notes += `<ellipse cx="${18 + n * 27}" cy="${6 + Math.floor(rnd() * 7) * 4}" rx="5.5" ry="4.2" fill="#171717" transform="rotate(-20 ${18 + n * 27} 0)"/>`;
+    staff += `<svg width="270" height="46" style="display:block;margin-bottom:12px">${[0, 1, 2, 3, 4].map(k => `<line x1="0" x2="270" y1="${6 + k * 8}" y2="${6 + k * 8}" stroke="#9c9383" stroke-width="1.4"/>`).join('')}${notes}</svg>`;
+  }
+  const opus = card(c, 0, 0, 330, 330, 'Opus', staff);
+  c.A(opus, { x: 925, y: 360, rot: -1.5, fx: 'drop', tin: c.at(3, 'opus') });
+  c.A(c.div('the big work', 'hand', 'font-size:36px'), { x: 925, y: 555, rot: -2, fx: 'fade', tin: c.at(3, 'big work') });
+  [['S', 235, 'Small'], ['M', 545, 'medium'], ['L', 925, 'large']].forEach(([s, x, kw], i) => {
+    c.A(c.div(s, '', 'width:58px;height:58px;border-radius:50%;background:var(--orange);color:#fff;font:700 32px/58px Oswald;text-align:center'),
+      { x: x + (i == 2 ? 150 : 110), y: i == 2 ? 205 : 225, fx: 'pop', tin: c.at(4, kw) });
+  });
+  const circ = c.div(`<svg width="470" height="470" viewBox="0 0 470 470"><path d="M235 18 C 380 14, 455 110, 452 235 C 450 370, 360 455, 230 452 C 100 450, 16 360, 18 232 C 20 105, 110 22, 250 26" stroke="#D9412B" stroke-width="5" fill="none" stroke-linecap="round"/></svg>`);
+  c.A(circ, { x: 925, y: 365, fx: 'fade', d: .1, tin: c.at(4, 'Opus is') });
+  c.draw(circ.querySelector('path'), c.at(4, 'Opus is'), .8);
+  c.A(c.div('for the hard jobs', '', 'font:800 30px "Libre Franklin";color:#fff;background:var(--red);padding:6px 14px'), { x: 560, y: 615, rot: -3, fx: 'stamp', tin: c.at(4, 'hard') - .2 });
+}};
+
+DEFS.number = { chap: ['02', 'The number'], build(c) {
+  const g = c.div(`<span id="n5" style="position:relative;display:inline-block;padding:0 12px">5<div class="lab5" style="position:absolute;left:50%;top:104%;text-align:center"></div></span><span id="n05" style="position:relative;display:inline-block;padding:0 6px">.5<div class="lab05" style="position:absolute;left:50%;top:104%;text-align:center"></div></span>`,
+    'big', 'font-size:300px');
+  c.A(g, { x: 640, y: 290, fx: 'pop', d: .6, tin: c.L[0] + .05, moves: [{ t: c.L[2] - .1, dy: -120, s: .5 }] });
+  const n5 = g.querySelector('#n5'), n05 = g.querySelector('#n05');
+  n5.style.backgroundImage = 'linear-gradient(var(--yellow),var(--yellow))'; n5.style.backgroundRepeat = 'no-repeat'; n5.style.backgroundPosition = '0 60%';
+  n05.style.backgroundImage = 'linear-gradient(var(--orange),var(--orange))'; n05.style.backgroundRepeat = 'no-repeat'; n05.style.backgroundPosition = '0 86%';
+  const lab5 = g.querySelector('.lab5'), lab05 = g.querySelector('.lab05');
+  lab5.innerHTML = '<div style="font:700 34px Oswald;letter-spacing:.06em">GENERATION</div><div class="hand" style="font-size:36px;text-transform:none">the Claude 5 family</div>';
+  lab05.innerHTML = '<div style="font:700 34px Oswald;letter-spacing:.06em;color:var(--orange)">REFINEMENT</div><div class="hand" style="font-size:36px;text-transform:none">same family, sharper</div>';
+  c.on(lt => {
+    n5.style.backgroundSize = `${eo(P(lt, c.at(0, 'The five'), .5)) * 100}% 62%`;
+    n05.style.backgroundSize = `${eo(P(lt, c.at(1, 'point five'), .5)) * 100}% 10%`;
+    const a = P(lt, c.at(0, 'generation'), .4) * (1 - P(lt, c.L[2] - .3, .3)), b = P(lt, c.at(1, 'refinement'), .4) * (1 - P(lt, c.L[2] - .3, .3));
+    lab5.style.opacity = a; lab05.style.opacity = b;
+    lab5.style.transform = `translateX(calc(-50% - 85px)) translateY(${(1 - eo(a)) * 20}px)`; lab05.style.transform = `translateX(calc(-50% + 85px)) translateY(${(1 - eo(b)) * 20}px)`;
+  });
+  const car = col => `<svg width="120" height="60" viewBox="0 0 120 60"><path d="M8 42 L14 26 Q18 18 28 18 L78 18 Q88 18 94 26 L104 34 Q114 36 114 44 L114 46 L8 46 Z" fill="${col}"/><circle cx="32" cy="46" r="9" fill="#171717"/><circle cx="90" cy="46" r="9" fill="#171717"/><path d="M34 22 L50 22 L50 32 L28 32 Z M56 22 L76 22 L86 32 L56 32 Z" fill="#fff" opacity=".7"/></svg>`;
+  const r1 = c.div(`${car('#9c9383')}<span style="font:800 44px 'Libre Franklin';position:relative">brand-new car<svg style="position:absolute;left:-6px;top:50%;overflow:visible" width="10" height="10"><path class="strike" d="M0 0 L 330 -4" stroke="#D9412B" stroke-width="7" stroke-linecap="round"/></svg></span>`, '', 'display:flex;align-items:center;gap:22px');
+  c.A(r1, { x: 380, y: 400, ax: 0, fx: 'left', tin: c.at(2, 'brand') - .15 });
+  c.draw(r1.querySelector('.strike'), c.at(2, 'and more'), .4);
+  const r2 = c.div(`${car('#D97757')}<span class="hl" style="font:800 44px 'Libre Franklin'">next model year</span><span style="font:800 44px 'Libre Franklin';color:var(--green)">✓</span>`, '', 'display:flex;align-items:center;gap:22px');
+  c.A(r2, { x: 380, y: 500, ax: 0, fx: 'left', tin: c.at(2, 'next') - .1 });
+  c.hl(r2.querySelector('.hl'), c.at(2, 'model year'), .5);
+}};
+
+DEFS.tokens = { chap: ['03', 'Under the hood'], build(c) {
+  const toks = ['Pred', 'iction', ' starts', ' to', ' look', ' like', ' reason', 'ing', '.'];
+  const cols = ['#FFE58A', '#F6C3AE', '#BFD8F5', '#C9E8C8', '#E6D1F2'];
+  const ids = [3714, 2649, 7258, 311, 1427, 1093, 17045, 287, 13];
+  const sent = c.div(toks.map((t, i) => `<span class="chip" style="position:relative">${t.replace(' ', '&nbsp;')}<span class="mono tid" style="position:absolute;left:50%;top:108%;transform:translateX(-50%);font-size:15px;color:#6f675a">${ids[i]}</span></span>`).join(''), '', 'font:800 50px "Libre Franklin"');
+  const split = c.at(0, 'reads') ;
+  c.A(sent, { x: 640, y: 250, fx: 'rise', tin: c.L[0] + .1, moves: [{ t: c.L[1] - .2, dy: -110, s: .62 }, { t: c.L[2] - .2, o: 0, d: .4 }] });
+  const chips = [...sent.querySelectorAll('.chip')];
+  c.on(lt => {
+    const k = eo(P(lt, split, .7));
+    chips.forEach((ch, i) => {
+      ch.style.margin = `0 ${k * 5}px`; ch.style.padding = `${k * 4}px ${k * 7}px`;
+      ch.style.background = cols[i % cols.length]; ch.style.backgroundColor = `color-mix(in srgb, ${cols[i % cols.length]} ${k * 100}%, transparent)`;
+      ch.style.transform = `translateY(${Math.sin(i * 1.7) * 8 * k}px) rotate(${Math.sin(i * 2.3) * 3 * k}deg)`;
+      ch.querySelector('.tid').style.opacity = P(lt, split + .5 + i * .06, .3);
+    });
+  });
+  c.A(c.div('tokens = little chunks of words', 'hand', 'font-size:44px'), { x: 640, y: 400, rot: -2, fx: 'pop', tin: c.at(0, 'Little'), tout: c.L[1] - .2 });
+
+  // next-token prediction
+  const q = c.div('The cat sat on the <span class="blank" style="display:inline-block;width:150px;border-bottom:6px solid var(--ink);position:relative;height:60px;vertical-align:bottom"></span>', '', 'font:800 56px "Libre Franklin"');
+  c.A(q, { x: 640, y: 290, fx: 'rise', tin: c.L[1] + .1, tout: c.L[2] - .2 });
+  const fill = c.div('mat', '', 'font:800 56px "Libre Franklin";background:var(--yellow);padding:0 10px;border-radius:6px');
+  c.A(fill, { x: 925, y: 286, fx: 'drop', tin: c.at(1, 'One token'), tout: c.L[2] - .2 });
+  const opts = [['mat', .62], ['floor', .17], ['sofa', .09], ['moon', .01]];
+  opts.forEach(([w, p], i) => {
+    const row = c.div(`<span class="mono" style="display:inline-block;width:90px;font-size:22px">${w}</span><span class="bar" style="display:inline-block;height:24px;width:0;background:${i ? 'var(--grey)' : 'var(--orange)'};border-radius:3px;vertical-align:middle"></span><span class="mono" style="font-size:20px;margin-left:10px">${Math.round(p * 100)}%</span>`);
+    c.A(row, { x: 440, y: 390 + i * 42, ax: 0, fx: 'fade', tin: c.at(1, 'predicts') + i * .15, tout: c.L[2] - .2 });
+    const bar = row.querySelector('.bar');
+    c.on(lt => { bar.style.width = eo(P(lt, c.at(1, 'predicts') + i * .15, .7)) * p * 480 + 'px'; });
+  });
+  c.A(c.div('(illustrative numbers)', 'hand', 'font-size:30px;color:#6f675a'), { x: 930, y: 560, fx: 'fade', tin: c.at(1, 'next') + .3, tout: c.L[2] - .2 });
+
+  // scale
+  const grid = c.div('', '', 'width:1280px;height:720px');
+  c.A(grid, { x: 0, y: 0, ax: 0, ay: 0, fx: 'fade', d: .1, tin: c.L[2] - .1 });
+  const cells = [];
+  for (let r = 0; r < 18; r++) for (let q2 = 0; q2 < 32; q2++) {
+    const e = h(grid, 'div', '', `position:absolute;left:${q2 * 40 + 6}px;top:${r * 40 + 10}px;width:${18 + rnd() * 12}px;height:20px;border-radius:4px;background:${cols[(r * 7 + q2) % 5]}`);
+    cells.push([e, Math.hypot(q2 - 15.5, (r - 8.5) * 1.2)]);
+  }
+  c.on(lt => { const w = (lt - c.L[2]) * 9; cells.forEach(([e, d]) => { const k = cl((w - d) / 3); e.style.opacity = k * (1 - .55 * P(lt, c.at(2, 'prediction') - .3, .5)); e.style.transform = `scale(${.3 + .7 * eo(k)})`; }); });
+  c.A(c.div('× enormous scale', 'big', 'font-size:96px;background:var(--ink);color:var(--paper);padding:10px 26px'), { x: 640, y: 330, rot: -2, fx: 'stamp', tin: c.at(2, 'enormous'), tout: c.at(2, 'prediction') - .3 });
+  const eq = c.div('prediction <span style="color:var(--orange)">≈</span> <span class="hl">reasoning</span>', 'big', 'font-size:84px;background:var(--card);padding:20px 34px;box-shadow:0 12px 30px rgba(0,0,0,.2)');
+  c.A(eq, { x: 640, y: 330, fx: 'pop', tin: c.at(2, 'prediction') - .1 });
+  c.hl(eq.querySelector('.hl'), c.at(2, 'reasoning') - .2, .6);
+}};
+
+DEFS.agents = { chap: ['04', 'The shift'], build(c) {
+  c.A(c.div('What are models asked to <span style="color:var(--orange)">do</span>?', 'big', 'font-size:54px'), { x: 640, y: 125, tin: c.L[0] + .1 });
+  const then = c.div(`<div style="font:700 22px Oswald;letter-spacing:.14em;color:#6f675a;margin-bottom:18px">THEN · A FEW YEARS AGO</div>
+    <div class="bubble" style="background:#e4ddcf;margin-left:auto;width:max-content;margin-bottom:14px">What rhymes with orange?</div>
+    <div class="bubble b2" style="background:var(--orange);color:#fff;width:max-content">Honestly? Nothing. Sorry!</div>`, 'card', 'width:460px;padding:26px;white-space:normal');
+  c.A(then, { x: 330, y: 360, fx: 'left', tin: c.L[1] + .05, moves: [{ t: c.L[2], o: .4, s: .92 }] });
+  const b2 = then.querySelector('.b2'); c.on(lt => { b2.style.opacity = P(lt, c.at(1, 'chat box') - .2, .3); });
+  c.A(c.div('NOW', 'big', 'font-size:44px;color:var(--orange)'), { x: 1100, y: 245, tin: c.L[2] });
+  const loop = c.div(`<svg width="340" height="340" viewBox="-170 -170 340 340"><circle class="ring" r="130" fill="none" stroke="#171717" stroke-width="4" stroke-dasharray="10 10"/><circle class="dot" r="11" fill="var(--orange)"/></svg>`);
+  c.A(loop, { x: 905, y: 400, fx: 'fade', tin: c.L[2] });
+  const dot = loop.querySelector('.dot');
+  c.on(lt => { const a = (lt - c.L[2]) * 1.6 - Math.PI / 2; dot.setAttribute('cx', Math.cos(a) * 130); dot.setAttribute('cy', Math.sin(a) * 130); loop.querySelector('.ring').style.strokeDashoffset = -lt * 20; });
+  [['READ', 'the codebase', 0, -130, 'Reading'], ['RUN', 'commands', 150, 0, 'Running'], ['CHECK', 'the result', 0, 130, 'Checking'], ['RETRY', 'until it works', -150, 0, 'Trying']].forEach(([t, s, dx, dy, kw]) => {
+    const n = c.div(`${t}<small>${s}</small>`, 'node');
+    c.A(n, { x: 905 + dx, y: 400 + dy, fx: 'pop', tin: c.at(2, kw) - .1 });
+    c.on(lt => { const on = P(lt, c.at(2, kw), .2); n.style.background = on ? `color-mix(in srgb, var(--yellow) ${on * 100}%, var(--ink))` : ''; n.style.color = on > .5 ? 'var(--ink)' : ''; });
+  });
+  c.A(c.div('AGENTIC', 'big', 'font-size:130px;color:var(--red);border:9px solid var(--red);padding:6px 30px 12px;background:rgba(242,236,223,.85)'), { x: 640, y: 390, rot: -9, fx: 'stamp', tin: c.at(3, 'agentic') - .15 });
+  c.A(c.div('← where big Opus models shine', 'hand', 'font-size:42px;color:var(--ink);background:var(--yellow);padding:0 12px'), { x: 760, y: 540, rot: -3, fx: 'pop', tin: c.at(3, 'exactly') });
+}};
+
+DEFS.meta = { chap: ['05', 'Exhibit A'], build(c) {
+  const tv = c.div('<span class="hl">This video</span>', 'big', 'font-size:150px');
+  c.A(tv, { x: 640, y: 330, fx: 'stamp', tin: c.at(0, 'This'), tout: c.L[1] - .1 });
+  c.hl(tv.firstChild, c.at(0, 'This') + .2, .5);
+  c.A(c.div('exhibit A:', 'hand', 'font-size:54px'), { x: 330, y: 200, rot: -8, fx: 'pop', tin: c.at(0, 'real'), tout: c.L[1] - .1 });
+  const term = c.div(`<div class="bar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i><span style="margin-left:10px">claude@cloud-container: ~/video</span></div><div class="body" style="height:404px;overflow:hidden;padding:12px 18px"><div class="lines"></div></div>`, 'term', 'width:920px;height:440px');
+  c.A(term, { x: 640, y: 345, fx: 'rise', tin: c.L[1] - .05, moves: [{ t: c.L[4] - .15, dx: -300, s: .64 }] });
+  const lines = term.querySelector('.lines');
+  const total = Math.round(TL.total * FPS);
+  const L = [
+    [c.at(1, 'I was'), '$ whoami', 0], [c.at(1, 'blank'), 'claude · fresh cloud container · blank slate', '#a9a39a'],
+    [c.at(1, 'asked'), '$ cat task.txt', 0], [c.at(1, 'Vox') + .1, '"vox-style explainer about you. with audio."', '#a9a39a'],
+    [c.at(2, 'The first'), '$ edge-tts --voice en-US … -o voice.mp3', 0], [c.at(2, 'failed'), '✗ SSL: CERTIFICATE_VERIFY_FAILED', '#ff6b5b'],
+    [c.at(2, 'The second'), '$ curl huggingface.co/…/piper-voice.onnx', 0], [c.at(2, 'blocked'), '✗ 403 · blocked by network policy', '#ff6b5b'],
+    [c.at(3, 'found'), '$ curl github.com/…/kokoro-v1.0.onnx', 0], [c.at(3, 'downloaded'), '✓ 325 MB · open-source voice model', '#5fd38d'],
+    [c.at(3, 'wrote'), '$ vim index.html   # every scene is a web page', 0], [c.at(3, 'rendered'), '$ node render.js', 0],
+    [c.at(3, 'rendered') + .8, 'FRAMES', '#ffd54a'],
+  ];
+  const els = L.map(([t, s, col]) => { const e = h(lines, 'div', 'tl'); e.style.color = col || '#e9e5dc'; return e; });
+  c.on(lt => {
+    let shown = 0;
+    L.forEach(([t, s, col], i) => {
+      const e = els[i], vis = lt >= t; e.style.display = vis ? '' : 'none'; if (vis) shown++;
+      if (!vis) return;
+      if (s === 'FRAMES') { const f = Math.min(total, Math.round(c.T * FPS)); const k = Math.round(f / total * 20); e.textContent = `  rendering frame ${String(f).padStart(4, '0')} / ${total}  ${'█'.repeat(k)}${'░'.repeat(20 - k)}`; }
+      else if (!col) e.textContent = s.slice(0, Math.floor((lt - t) * 45)) + ((lt - t) * 2 % 1 < .5 && s.length > (lt - t) * 45 ? '▌' : '');
+      else e.textContent = s;
+    });
+    lines.style.transform = `translateY(${-Math.max(0, shown - 13) * 28}px)`;
+  });
+  const nb = c.div('Nobody gave me<br><span class="hl">those steps.</span>', 'big', 'font-size:60px;line-height:1.1;white-space:nowrap');
+  c.A(nb, { x: 730, y: 300, ax: 0, fx: 'right', tin: c.L[4] + .05 });
+  c.hl(nb.querySelector('.hl'), c.at(4, 'those'), .5);
+  c.A(c.div('(that’s the point)', 'hand', 'font-size:44px'), { x: 880, y: 440, rot: -4, fx: 'pop', tin: c.at(4, "That's") });
+}};
+
+DEFS.limits = { chap: ['06', 'Honest limits'], build(c) {
+  const hd = c.div(`<svg width="110" height="100" viewBox="0 0 110 100" style="vertical-align:middle;margin-right:20px"><path d="M55 8 L104 92 L6 92 Z" fill="var(--yellow)" stroke="#171717" stroke-width="6" stroke-linejoin="round"/><rect x="50" y="36" width="10" height="30" rx="4"/><circle cx="55" cy="78" r="6"/></svg>Honest limits`, 'big', 'font-size:110px');
+  c.A(hd, { x: 640, y: 340, fx: 'pop', tin: c.L[0] + .05, tout: c.L[1] - .05, dout: .3 });
+  // calendar
+  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN'];
+  const cal = c.div(`<div style="height:62px;background:var(--red);border-radius:5px 5px 0 0;position:relative">${[0, 1, 2, 3].map(i => `<div style="position:absolute;top:-14px;left:${46 + i * 58}px;width:12px;height:34px;border-radius:6px;background:#555"></div>`).join('')}</div>
+    <div class="m big" style="font-size:118px;text-align:center;margin-top:24px">JAN</div><div class="big" style="font-size:44px;text-align:center;color:#6f675a;margin-top:10px">2026</div>`, 'card', 'width:290px;height:320px');
+  c.A(cal, { x: 380, y: 375, rot: -3, fx: 'drop', tin: c.at(1, 'My'), tout: c.L[2] - .1 });
+  const m = cal.querySelector('.m');
+  c.on(lt => { m.textContent = months[Math.min(5, Math.floor(P(lt, c.at(1, 'cutoff'), c.at(1, 'June') - c.at(1, 'cutoff') + .01) * 6))]; });
+  c.A(c.div('Knowledge cutoff', 'big', 'font-size:44px;color:var(--red);border:6px solid var(--red);padding:4px 16px 8px;background:rgba(255,253,247,.9)'), { x: 400, y: 440, rot: -14, fx: 'stamp', tin: c.at(1, 'June') + .6, tout: c.L[2] - .1 });
+  c.A(c.div('after that, I know:', 'hand', 'font-size:44px'), { x: 650, y: 260, ax: 0, rot: -2, fx: 'fade', tin: c.at(1, 'After'), tout: c.L[2] - .1 });
+  c.A(c.div('① what you tell me', '', 'font:800 40px "Libre Franklin"'), { x: 660, y: 350, ax: 0, fx: 'right', tin: c.at(1, 'tell') - .2, tout: c.L[2] - .1 });
+  c.A(c.div('② what I can look up', '', 'font:800 40px "Libre Franklin"'), { x: 660, y: 425, ax: 0, fx: 'right', tin: c.at(1, 'look') - .2, tout: c.L[2] - .1 });
+  // report card
+  const hs = [210, 150, 240, 180];
+  const chart = c.div(`<div style="font:700 26px Oswald;letter-spacing:.12em;margin-bottom:14px">MY REPORT CARD</div><div style="display:flex;align-items:flex-end;gap:36px;height:250px;border-bottom:3px solid #171717;padding:0 26px">${hs.map((v, i) => `<div style="width:70px;text-align:center"><div class="mono" style="font-size:22px;margin-bottom:6px">???</div><div class="b" style="height:${v}px;background:${['var(--orange)', 'var(--blue)', 'var(--green)', 'var(--yellow)'][i]};transform-origin:bottom"></div></div>`).join('')}</div>`, 'card', 'padding:24px 30px');
+  c.A(chart, { x: 640, y: 360, fx: 'rise', tin: c.L[2] + .05, tout: c.L[3] - .1 });
+  const bs = [...chart.querySelectorAll('.b')];
+  c.on(lt => bs.forEach((b, i) => { b.style.transform = `scaleY(${eo(P(lt, c.L[2] + .3 + i * .15, .6))})`; }));
+  const x = c.div(`<svg width="520" height="420" viewBox="0 0 520 420"><path class="x1" d="M30 30 L490 390" stroke="#D9412B" stroke-width="16" stroke-linecap="round"/><path class="x2" d="M490 30 L30 390" stroke="#D9412B" stroke-width="16" stroke-linecap="round"/></svg>`);
+  c.A(x, { x: 640, y: 360, fx: 'fade', d: .05, tin: c.at(2, 'So you'), tout: c.L[3] - .1 });
+  c.draw(x.querySelector('.x1'), c.at(2, 'So you'), .3); c.draw(x.querySelector('.x2'), c.at(2, 'So you') + .3, .3);
+  c.A(c.div('no made-up benchmarks', '', 'font:800 34px "Libre Franklin";color:#fff;background:var(--ink);padding:8px 18px'), { x: 640, y: 600, fx: 'stamp', tin: c.at(2, 'made up'), tout: c.L[3] - .1 });
+  // receipts
+  const rc = c.div(`<div style="text-align:center;font-weight:700">OFFICIAL RELEASE NOTES</div><div style="text-align:center;margin-bottom:10px">— — — — — — — — —</div>
+    model ........ opus 5.5<br>benchmarks ... see notes<br>pricing ...... see notes<br>limits ....... see notes<br>source ....... anthropic<br><div style="text-align:center;margin-top:14px">— — — — — — — — —</div><div style="text-align:center;font-weight:700">READ THE FINE PRINT</div>`,
+    'mono', 'font-size:17px;line-height:1.7;background:#fffefa;padding:26px 24px 44px;white-space:normal;width:330px;box-shadow:0 12px 26px rgba(70,45,10,.2);clip-path:polygon(0 0,100% 0,100% 94%,95% 100%,90% 94%,85% 100%,80% 94%,75% 100%,70% 94%,65% 100%,60% 94%,55% 100%,50% 94%,45% 100%,40% 94%,35% 100%,30% 94%,25% 100%,20% 94%,15% 100%,10% 94%,5% 100%,0 94%)');
+  c.A(rc, { x: 380, y: 360, rot: 3, fx: 'drop', tin: c.L[3] + .05 });
+  const tr = c.div('Trust the<br><span class="hl">receipts</span>,<br><span style="color:#8a8170">not the vibes.</span>', 'big', 'font-size:74px;line-height:1.08');
+  c.A(tr, { x: 640, y: 350, ax: 0, fx: 'right', tin: c.at(3, 'Trust') - .1 });
+  c.hl(tr.querySelector('.hl'), c.at(3, 'receipts'), .5);
+}};
+
+DEFS.where = { chap: ['07', 'Where to find me'], build(c) {
+  c.A(c.div('<svg width="70" height="90" viewBox="0 0 70 90" style="vertical-align:middle;margin-right:18px"><path d="M35 86 C 10 55, 4 42, 4 32 A 31 31 0 0 1 66 32 C 66 42, 60 55, 35 86 Z" fill="var(--orange)"/><circle cx="35" cy="32" r="12" fill="#F2ECDF"/></svg>So where do you find me?', 'big', 'font-size:64px'),
+    { x: 640, y: 330, fx: 'pop', tin: c.L[0] + .05, moves: [{ t: c.L[1] - .2, dy: -210, s: .72 }] });
+  const P1 = c.div(`<svg width="150" height="110" viewBox="0 0 150 110"><rect x="10" y="12" width="96" height="66" rx="6" fill="none" stroke="#171717" stroke-width="6"/><path d="M0 90 L116 90" stroke="#171717" stroke-width="8" stroke-linecap="round"/><rect x="100" y="30" width="44" height="76" rx="8" fill="#F2ECDF" stroke="#171717" stroke-width="6"/><g transform="translate(58 45) scale(.22)" stroke="#D97757" stroke-width="20" stroke-linecap="round"><line x1="0" y1="-80" x2="0" y2="80"/><line x1="-80" y1="0" x2="80" y2="0"/><line x1="-56" y1="-56" x2="56" y2="56"/><line x1="56" y1="-56" x2="-56" y2="56"/></g></svg><h3>Claude apps</h3><div style="font:600 20px 'Libre Franklin';color:#6f675a">web · desktop · mobile</div>`, 'card panel', 'width:340px;height:330px;white-space:normal');
+  c.A(P1, { x: 225, y: 405, rot: -2, fx: 'drop', tin: c.at(1, 'Claude apps') - .1 });
+  const P2 = c.div(`<div class="mono" style="font-size:64px;font-weight:500;background:#1d1c1a;color:#5fd38d;display:inline-block;padding:4px 20px;border-radius:10px">&gt;_</div><h3>Claude Code</h3><div class="ps"><span class="pill">Terminal</span><span class="pill">Desktop</span><span class="pill">Web</span><span class="pill">Editor</span></div>`, 'card panel', 'width:340px;height:330px;white-space:normal');
+  c.A(P2, { x: 640, y: 405, rot: 1.5, fx: 'drop', tin: c.at(1, 'Claude Code') - .1 });
+  const pills = [...P2.querySelectorAll('.pill')];
+  const pkw = ['terminal', 'desktop', 'web', 'editor'];
+  c.on(lt => pills.forEach((p, i) => { const k = P(lt, c.at(1, pkw[i]) - .1, .3); p.style.opacity = k; p.style.transform = `scale(${.5 + .5 * eb(k)})`; }));
+  const P3 = c.div(`<div class="big" style="font-size:64px;color:var(--orange)">{ }</div><h3>The API</h3><div class="mono" style="text-align:left;font-size:17px;line-height:1.6;background:#1d1c1a;color:#e9e5dc;padding:12px 14px;border-radius:8px">client.messages.create(<br>&nbsp;&nbsp;model=<span class="mid" style="color:#ffd54a">"claude-opus-5-5"</span>,<br>&nbsp;&nbsp;...)</div>`, 'card panel', 'width:340px;height:330px;white-space:normal');
+  c.A(P3, { x: 1055, y: 405, rot: -1, fx: 'drop', tin: c.L[2] + .1 });
+  const mid = P3.querySelector('.mid');
+  c.on(lt => { const k = P(lt, c.at(2, 'claude,'), .3); mid.style.background = k ? `rgba(255,213,74,${k * .25})` : ''; mid.style.outline = k ? `2px solid rgba(255,213,74,${k})` : ''; });
+  c.A(c.div('copy this ↑', 'hand', 'font-size:40px'), { x: 1080, y: 612, rot: -4, fx: 'pop', tin: c.at(2, 'claude,') + .4 });
+}};
+
+DEFS.outro = { chap: ['08', 'Why it matters'], build(c) {
+  c.A(c.div('The real shift isn’t just', '', 'font:600 44px "Libre Franklin"'), { x: 640, y: 250, tin: c.L[0] + .05, tout: c.L[1] - .1 });
+  c.A(c.div('smarter answers', 'big', 'font-size:130px'), { x: 640, y: 370, fx: 'pop', tin: c.at(0, 'smarter') - .1, tout: c.L[1] - .1 });
+  const q1 = c.div('“Can AI answer this?”<svg style="position:absolute;left:-10px;top:52%;overflow:visible" width="10" height="10"><path class="strike" d="M0 0 L 700 -6" stroke="#D9412B" stroke-width="9" stroke-linecap="round"/></svg>', 'big', 'font-size:80px;color:#8a8170');
+  c.A(q1, { x: 640, y: 250, fx: 'rise', tin: c.at(1, 'Not') - .1, tout: c.L[2] - .1 });
+  c.draw(q1.querySelector('.strike'), c.at(1, 'But') - .1, .4);
+  const q2 = c.div('“What can I <span class="hl">hand off</span>?”', 'big', 'font-size:100px');
+  c.A(q2, { x: 640, y: 410, fx: 'pop', tin: c.at(1, 'But'), tout: c.L[2] - .1 });
+  c.hl(q2.querySelector('.hl'), c.at(1, 'hand') + .1, .6);
+  const sp = c.div(sparkSVG(200));
+  c.A(sp, { x: 640, y: 225, fx: 'pop', d: .7, tin: c.L[2] });
+  c.on(lt => { sp.firstChild.style.transform = `rotate(${lt * 14}deg)`; });
+  c.A(c.div('I’m Opus 5.5.', 'big', 'font-size:96px'), { x: 640, y: 420, fx: 'rise', tin: c.L[2] + .1 });
+  const g = c.div('<span class="hl">Give me something hard.</span>', '', 'font:800 50px "Libre Franklin"');
+  c.A(g, { x: 640, y: 510, fx: 'rise', tin: c.at(2, 'Give') - .1 });
+  c.hl(g.firstChild, c.at(2, 'something'), .6);
+  c.A(c.div('Script, animation & music: Claude Opus 5.5 · Voice: Kokoro (open-source TTS) · Rendered frame by frame in headless Chromium + ffmpeg', '', 'font:600 17px "Libre Franklin";color:#4a443a'),
+    { x: 640, y: 640, fx: 'fade', tin: c.end(2) + .8 });
+  const fadeOut = c.div('', '', 'width:1280px;height:720px;background:var(--paper)');
+  c.A(fadeOut, { x: 0, y: 0, ax: 0, ay: 0, fx: 'fade', d: 1, tin: c.dur - 1.1 });
+}};
+
+// ---------- assemble ----------
+const scenes = TL.scenes.map(s => makeScene(DEFS[s.id], s));
+const chap = document.getElementById('chap'), cap = document.getElementById('cap');
+const WIPE_C = ['#171717', '#D97757', '#FFDD3C'];
+const wipes = scenes.map((s, i) => { const a = h(root, 'div', 'wipe'), b = h(root, 'div', 'wipe'); a.style.background = WIPE_C[i % 3]; b.style.background = WIPE_C[(i + 1) % 3]; return [a, b]; });
+
+window.render = function (T) {
+  let cur = scenes.length - 1;
+  for (let i = 0; i < scenes.length; i++) if (T < scenes[i].info.start + scenes[i].info.dur) { cur = i; break; }
+  scenes.forEach((s, i) => {
+    const on = i === cur;
+    s.el.style.display = on ? 'block' : 'none';
+    if (!on) return;
+    const lt = T - s.info.start;
+    s.update(lt, T);
+    s.el.style.transform = `scale(${1 + .035 * lt / s.info.dur})`;   // slow push-in
+    // chapter tag
+    if (s.def.chap) { chap.innerHTML = `<b>${s.def.chap[0]}</b>${s.def.chap[1]}`; const k = eo(P(lt, .25, .5)); chap.style.opacity = k; chap.style.transform = `translateX(${(1 - k) * -40}px)`; }
+    else chap.style.opacity = 0;
+    // caption
+    const ln = s.info.lines.find(l => lt >= l.start - .05 && lt <= l.start + l.dur + .25);
+    cap.style.visibility = ln ? 'visible' : 'hidden';
+    if (ln) cap.textContent = capText(ln.text);
+  });
+  // wipes around each scene boundary
+  wipes.forEach(([a, b], i) => {
+    const tb = scenes[i].info.start; const u = i === 0 ? -1 : (T - (tb - .4)) / .8;
+    const vis = u > 0 && u < 1;
+    [a, b].forEach((w, j) => {
+      w.style.visibility = vis ? 'visible' : 'hidden'; if (!vis) return;
+      const k = eio(cl(u * 1.1 - j * .1));
+      w.style.left = `${(1 - k) * 110 - k * 150 + 5}%`;
+      w.style.transform = 'skewX(-14deg)'; w.style.zIndex = 45 + j;
+      w.style.width = j ? '10%' : '140%';
+    });
+  });
+};
+window.TOTAL = TL.total;
+render(0);
+</script></body></html>
