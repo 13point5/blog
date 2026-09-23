@@ -1,5 +1,5 @@
 import { getBlogPosts } from "./blog/utils";
-import { KineticArchive } from "./components/kinetic-archive";
+import { WritingShelf } from "./components/writing-shelf";
 
 export default function Home() {
   const posts = getBlogPosts().sort(
@@ -10,7 +10,8 @@ export default function Home() {
 
   return (
     <section className="collection" aria-label="Writing collection">
-      <KineticArchive posts={posts.map(({ slug, metadata }) => ({ slug, metadata }))} />
+      <h1 className="collection-intro">A few things I’ve been thinking about.</h1>
+      <WritingShelf posts={posts.map(({ slug, metadata }) => ({ slug, metadata }))} />
     </section>
   );
 }

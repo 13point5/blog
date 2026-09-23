@@ -47,14 +47,17 @@ button { cursor: pointer; }
 .theme-switch { display: grid; place-items: center; width: 36px; height: 44px; color: var(--foreground-muted); }
 .sun-icon { display: none; }.dark .sun-icon { display: block; }.dark .moon-icon { display: none; }
 .skip-link { position: fixed; top: -90px; left: 16px; z-index: 100; background: var(--background); padding: 12px 20px; }.skip-link:focus { top: 12px; }
-.collection { padding-top: 49px; padding-bottom: 30px; }
-.collection-intro { font-size: 12px; font-weight: 400; color: var(--foreground-muted); margin: 0; }
+.collection { padding-top: 67px; padding-bottom: 64px; }
+.collection-intro { font-size: 12px; font-weight: 400; color: var(--foreground-muted); margin: 0 0 44px; }
+.object-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); column-gap: 48px; row-gap: 58px; list-style: none; padding: 0; margin: 0; }
+.object-grid li { min-width: 0; }
 .collection-object { display: block; border-radius: 8px; }
+.object-space { height: 240px; display: flex; align-items: center; justify-content: center; position: relative; }
 .object-caption { text-align: center; max-width: 235px; margin: 14px auto 0; font-size: 11px; line-height: 1.6; color: var(--foreground-muted); transition: color .2s; }
 .object-caption>span { display: block; }
 .object-caption small { display: block; font-size: 9px; opacity: .7; margin-top: 2px; letter-spacing: .3px; }
 .collection-object:hover .object-caption, .collection-object:focus-visible .object-caption { color: var(--foreground); }
-.media-object { --rotation: -5deg; flex-shrink: 0; position: relative; color: #222731; transform: scale(var(--object-scale)) rotate(var(--rest-angle, var(--rotation))); transition: transform .65s cubic-bezier(.22,.75,.2,1), filter .3s; }
+.media-object { --rotation: -5deg; flex-shrink: 0; position: relative; color: #222731; transform: scale(var(--object-scale)) rotate(var(--rotation)); transition: transform .3s cubic-bezier(.2,.7,.25,1), filter .3s; }
 .collection-object:hover .media-object, .collection-object:focus-visible .media-object { transform: translateY(-8px) scale(var(--object-scale)) rotate(0deg); }
 .collection-footer { display: flex; justify-content: space-between; padding-bottom: 30px; color: var(--foreground-muted); font-size: 10px; }
 
@@ -97,34 +100,35 @@ button { cursor: pointer; }
 .callout-note { background: var(--accent); border-left: 2px solid var(--link); padding: 20px; margin: 28px 0; }.callout-note strong { display: block; margin-bottom: 8px; }
 .reward-lab { padding: 23px; margin-block: 28px; background: var(--background-alt); border: 1px solid var(--border); }.reward-lab label { display: flex; justify-content: space-between; gap: 20px; font-size: 12px; }.reward-lab input { width: 100%; accent-color: var(--link); margin: 20px 0; }.reward-track { height: 18px; background: var(--background); margin-bottom: 12px; }.reward-track>div { height: 100%; background: var(--link); transition: width .2s; }.reward-lab output { font-size: 12px; }.reward-lab small { display: block; margin-top: 12px; color: var(--foreground-muted); font-size: 11px; }
 
-/* Small mechanical responses make each object feel different. */
-.disk-shutter { transition: transform .45s cubic-bezier(.2,.7,.25,1); }
-.vinyl { transition: transform .65s cubic-bezier(.2,.7,.25,1); }
-.book-cover { transform-origin: 2px center; transition: transform .55s ease; }
-.book-ribbon { transform-origin: top center; transition: transform .55s ease; }
-.collection-object:is(:hover,:focus-visible) .disk-shutter { transform: translateX(13px); }
-.collection-object:is(:hover,:focus-visible) .reel { animation: reel-turn 2.4s linear infinite; }
-.collection-object:is(:hover,:focus-visible) .vinyl { transform: translateX(19px) rotate(32deg); }
-.collection-object:is(:hover,:focus-visible) .vinyl-label { animation: reel-turn 5s linear infinite; }
-.collection-object:is(:hover,:focus-visible) .book-cover { transform: rotateY(-22deg); }
-.collection-object:is(:hover,:focus-visible) .book-ribbon { transform: rotate(-13deg); }
-.collection-object:is(:hover,:focus-visible) .pixel-art i { animation: pixel-wake 1.2s steps(2,end) infinite; }
-.pixel-art i:nth-child(2n) { animation-delay: .15s !important; }.pixel-art i:nth-child(3n) { animation-delay: .3s !important; }
-.collection-object:active .media-object { transform: translateY(-3px) scale(calc(var(--object-scale) * .97)) rotate(0deg); }
-@keyframes reel-turn { to { transform: rotate(360deg); } }
-@keyframes pixel-wake { 50% { opacity: .35; transform: scale(.7); } }
+@keyframes reveal { from { opacity: 0; } to { opacity: 1; } }
 
+@media (max-width: 800px) {
+  .object-grid { column-gap: 20px; }
+  :root { --object-scale: .85; }
+  .object-space { height: 205px; }
+  .collection { padding-top: 55px; }
+}
 @media (max-width: 600px) {
   .collection-header,.collection,.collection-footer { width: calc(100% - 40px); }
   .collection-header { padding-top: 26px; }
   .identity { font-size: 13px; }.identity-note { font-size: 10px; }
   .collection-header nav { gap: 8px; }
-  .collection { padding-top: 30px; padding-bottom: 48px; }
-  .collection-intro { font-size: 11px; line-height: 1.6; }
+  .collection { padding-top: 42px; padding-bottom: 48px; }
+  .collection-intro { font-size: 11px; margin-bottom: 25px; }
+  .object-grid { grid-template-columns: repeat(2,minmax(0,1fr)); column-gap: 12px; row-gap: 30px; }
+  :root { --object-scale: .72; }
+  .object-space { height: 182px; }
+  .object-caption { font-size: 10px; margin-top: 4px; padding-inline: 3px; }
+  .object-caption small { font-size: 8px; }
   .collection-footer { font-size: 9px; padding-bottom: 24px; }
   .article-page { margin-top: 40px; width: calc(100% - 40px); }
   .article-header h1 { font-size: 32px; }
   .article-body { font-size: 14px; }.article-body h2 { font-size: 26px; }
+}
+@media (max-width: 370px) {
+  :root { --object-scale: .61; }
+  .object-space { height: 157px; }
+  .object-caption { font-size: 9px; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -153,15 +157,3 @@ button { cursor: pointer; }
 @media(max-width:600px) { .about-page-header { gap: 20px; }.about-page-header img { width: 78px; height: 78px; }.about-page-header h1 { font-size: 26px; }.about-page-header p { font-size: 11px; }.article-illustration { margin-bottom: 28px; } }
 
 .record-sleeve .sleeve-art { height: 72px; margin-bottom: 9px; }.record-sleeve strong { font-size: 24px; }.record-sleeve small { margin-top: 8px; }
-
-/* Touch keeps normal tap-to-read behavior. */
-@media (hover: none) {
-  .collection-object:hover .media-object { transform: scale(var(--object-scale)) rotate(var(--rest-angle)); }
-  .collection-object:hover .disk-shutter,.collection-object:hover .vinyl,.collection-object:hover .book-cover,.collection-object:hover .book-ribbon { transform: none; }
-  .collection-object:hover .reel,.collection-object:hover .vinyl-label,.collection-object:hover .pixel-art i { animation: none; }
-  .collection-object:active .media-object { transform: scale(calc(var(--object-scale) * .96)) rotate(0deg); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .collection-object:is(:hover,:focus-visible) .media-object { transform: scale(var(--object-scale)) rotate(var(--rest-angle)); }
-  .collection-object:is(:hover,:focus-visible) .disk-shutter,.collection-object:is(:hover,:focus-visible) .vinyl,.collection-object:is(:hover,:focus-visible) .book-cover,.collection-object:is(:hover,:focus-visible) .book-ribbon { transform: none; }
-}
