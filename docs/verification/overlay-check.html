@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Motif overlay check</title>
+  <style>
+    :root { color-scheme: light; }
+    body { margin: 0; font: 14px/1.5 ui-sans-serif, system-ui; background: #f2f2f2; color: #1a1a1a; }
+    main { max-width: 880px; margin: 32px auto; padding: 0 20px 48px; }
+    h1 { font-weight: 600; font-size: 1.35rem; }
+    .grid { display: grid; gap: 20px; margin-top: 20px; }
+    figure { margin: 0; padding: 16px; background: #fff; border: 1px solid #ddd; }
+    figcaption { margin-top: 10px; color: #555; font-size: 12px; }
+    img, object { max-width: 100%; height: auto; display: block; }
+    .note { padding: 12px 14px; background: #f3efe6; border-left: 3px solid #2f9e8f; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Retro-tech motif verification</h1>
+    <p class="note">
+      Overlay SVGs encode proportion guides (shutter band, reel centers, chip grid).
+      Drop original style refs into <code>docs/verification/refs/</code> and screenshot 50% overlays into <code>screenshots/</code>.
+    </p>
+    <div class="grid">
+      <figure>
+        <object data="motif-sheet.svg" type="image/svg+xml" width="720" height="280">motif sheet</object>
+        <figcaption>Full motif sheet — chips, barcode, clip, cassette, transport, floppy</figcaption>
+      </figure>
+      <figure>
+        <object data="overlay-floppy.svg" type="image/svg+xml" width="240" height="260">floppy overlay</object>
+        <figcaption>Floppy silhouette with shutter/label guides</figcaption>
+      </figure>
+      <figure>
+        <object data="overlay-cassette.svg" type="image/svg+xml" width="280" height="200">cassette overlay</object>
+        <figcaption>Cassette with reel-center guides</figcaption>
+      </figure>
+    </div>
+  </main>
+</body>
+</html>

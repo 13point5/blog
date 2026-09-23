@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="260" viewBox="0 0 240 260">
+  <rect width="240" height="260" fill="#111"/>
+  <text x="16" y="24" fill="#f3efe6" font-size="12" font-family="ui-sans-serif, system-ui">Floppy overlay guide</text>
+  <!-- Motif at 50% opacity for overlay comparison -->
+  <g transform="translate(100 70)" opacity="0.55">
+    <rect x="1" y="1" width="38" height="40" rx="2.5" fill="#1a1a1a"/>
+    <rect x="8" y="1" width="24" height="11" rx="1" fill="#2c2c2c"/>
+    <rect x="5" y="15" width="30" height="22" rx="1.2" fill="#f3efe6"/>
+    <rect x="7" y="17" width="16" height="8" rx="0.5" fill="#2f9e8f"/>
+  </g>
+  <!-- Guides -->
+  <g stroke="#e45a36" stroke-width="0.8" fill="none">
+    <rect x="101" y="71" width="38" height="40" rx="2.5"/>
+    <line x1="101" y1="82" x2="139" y2="82"/>
+    <line x1="105" y1="85" x2="105" y2="111"/>
+    <line x1="135" y1="85" x2="135" y2="111"/>
+  </g>
+  <text x="16" y="200" fill="#aaa" font-size="10">Red = shutter/label guides</text>
+  <text x="16" y="216" fill="#aaa" font-size="10">No character art on label</text>
+  <text x="16" y="240" fill="#666" font-size="9">Place over cream/black floppy refs at 50% opacity</text>
+</svg>
