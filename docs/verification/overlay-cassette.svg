@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="200" viewBox="0 0 280 200">
+  <rect width="280" height="200" fill="#f3efe6"/>
+  <text x="16" y="24" fill="#1a1a1a" font-size="12" font-family="ui-sans-serif, system-ui">Cassette overlay guide</text>
+  <g transform="translate(112 60)" opacity="0.55">
+    <rect x="1" y="1" width="54" height="34" rx="3" fill="#1e2f55"/>
+    <rect x="8" y="7" width="12" height="12" rx="6" fill="#f3efe6"/>
+    <rect x="36" y="7" width="12" height="12" rx="6" fill="#f3efe6"/>
+    <circle cx="14" cy="13" r="2.2" fill="#1e2f55"/>
+    <circle cx="42" cy="13" r="2.2" fill="#1e2f55"/>
+    <rect x="10" y="24" width="36" height="7" rx="1.2" fill="#f3efe6"/>
+  </g>
+  <g stroke="#e45a36" stroke-width="0.8" fill="none">
+    <rect x="113" y="61" width="54" height="34" rx="3"/>
+    <circle cx="126" cy="73" r="6"/>
+    <circle cx="154" cy="73" r="6"/>
+    <line x1="126" y1="73" x2="154" y2="73" stroke-dasharray="2 2"/>
+  </g>
+  <text x="16" y="160" fill="#555" font-size="10">Reel centers at ~1/4 and ~3/4 of shell width</text>
+  <text x="16" y="176" fill="#555" font-size="10">Label strip along bottom third</text>
+</svg>
