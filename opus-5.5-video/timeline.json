@@ -1,0 +1,233 @@
+{
+ "total": 174.108,
+ "scenes": [
+  {
+   "id": "open",
+   "start": 0.0,
+   "dur": 19.548,
+   "lines": [
+    {
+     "text": "Everything in this video. The script, the animation, the music, even picking this voice. Was put together by the thing it's about.",
+     "start": 0.6,
+     "dur": 7.446
+    },
+    {
+     "text": "Hi. I'm Claude. Specifically, Opus five point five.",
+     "start": 8.396,
+     "dur": 3.376
+    },
+    {
+     "text": "And yes, it's a little weird to make an explainer about yourself. Let's do it anyway.",
+     "start": 12.122,
+     "dur": 4.477
+    }
+   ]
+  },
+  {
+   "id": "name",
+   "start": 19.548,
+   "dur": 20.931,
+   "lines": [
+    {
+     "text": "First, the name. Anthropic names its models after forms of writing.",
+     "start": 0.6,
+     "dur": 4.166
+    },
+    {
+     "text": "A haiku is short. Three lines. Quick.",
+     "start": 5.116,
+     "dur": 2.358
+    },
+    {
+     "text": "A sonnet is fourteen lines. Balanced.",
+     "start": 7.824,
+     "dur": 2.346
+    },
+    {
+     "text": "And an opus? That's the big work. The symphony.",
+     "start": 10.521,
+     "dur": 2.455
+    },
+    {
+     "text": "So, Haiku, Sonnet, Opus. Small, medium, large. Opus is the one you call when the job is hard.",
+     "start": 13.325,
+     "dur": 6.456
+    }
+   ]
+  },
+  {
+   "id": "number",
+   "start": 40.479,
+   "dur": 14.56,
+   "lines": [
+    {
+     "text": "Then there's the number. The five is the generation. The Claude five family.",
+     "start": 0.6,
+     "dur": 4.372
+    },
+    {
+     "text": "The point five is a refinement inside that generation. Same family. Sharper.",
+     "start": 5.322,
+     "dur": 4.82
+    },
+    {
+     "text": "Think less brand new car, and more, next model year.",
+     "start": 10.492,
+     "dur": 2.918
+    }
+   ]
+  },
+  {
+   "id": "tokens",
+   "start": 55.039,
+   "dur": 19.754,
+   "lines": [
+    {
+     "text": "Under the hood, the core trick is surprisingly simple. A model like me reads text as tokens. Little chunks of words.",
+     "start": 0.6,
+     "dur": 6.947
+    },
+    {
+     "text": "Then it predicts what comes next. One token at a time.",
+     "start": 7.897,
+     "dur": 3.033
+    },
+    {
+     "text": "That sounds almost too simple. But do it at enormous scale, with enough training, and prediction starts to look a lot like reasoning.",
+     "start": 11.28,
+     "dur": 7.324
+    }
+   ]
+  },
+  {
+   "id": "agents",
+   "start": 74.793,
+   "dur": 20.794,
+   "lines": [
+    {
+     "text": "The bigger story is what models are being asked to do.",
+     "start": 0.6,
+     "dur": 2.736
+    },
+    {
+     "text": "A few years ago, the job was answering questions in a chat box.",
+     "start": 3.686,
+     "dur": 3.772
+    },
+    {
+     "text": "Now, the job is doing the work. Reading a codebase. Running commands. Checking the result. Trying again.",
+     "start": 7.808,
+     "dur": 6.4
+    },
+    {
+     "text": "That's called agentic work. And it's exactly where the big Opus models are meant to shine.",
+     "start": 14.558,
+     "dur": 5.086
+    }
+   ]
+  },
+  {
+   "id": "meta",
+   "start": 95.587,
+   "dur": 26.316,
+   "lines": [
+    {
+     "text": "Here's a real example. This video.",
+     "start": 0.6,
+     "dur": 2.101
+    },
+    {
+     "text": "I was dropped into a blank cloud computer and asked for a Vox style explainer, with audio.",
+     "start": 3.051,
+     "dur": 5.217
+    },
+    {
+     "text": "The first voice service I tried failed a security check. The second was blocked by the network.",
+     "start": 8.618,
+     "dur": 5.503
+    },
+    {
+     "text": "So I found an open source voice model, downloaded it, wrote the animation as a web page, and rendered it, frame by frame.",
+     "start": 14.472,
+     "dur": 7.43
+    },
+    {
+     "text": "Nobody gave me those steps. That's kind of the point.",
+     "start": 22.252,
+     "dur": 2.914
+    }
+   ]
+  },
+  {
+   "id": "limits",
+   "start": 121.903,
+   "dur": 22.087,
+   "lines": [
+    {
+     "text": "Now, some honest limits.",
+     "start": 0.6,
+     "dur": 1.429
+    },
+    {
+     "text": "My knowledge has a cutoff. June, twenty twenty six. After that, I only know what you tell me, or what I can look up.",
+     "start": 2.379,
+     "dur": 6.996
+    },
+    {
+     "text": "And I don't have a reliable view of my own report card. So you won't see made up benchmark charts here.",
+     "start": 9.726,
+     "dur": 5.656
+    },
+    {
+     "text": "Want the numbers? Read Anthropic's official release notes. Trust the receipts, not the vibes.",
+     "start": 15.732,
+     "dur": 5.205
+    }
+   ]
+  },
+  {
+   "id": "where",
+   "start": 143.99,
+   "dur": 14.178,
+   "lines": [
+    {
+     "text": "So where do you actually find me?",
+     "start": 0.6,
+     "dur": 1.535
+    },
+    {
+     "text": "In the Claude apps. And in Claude Code. The terminal, the desktop app, the web, and your editor.",
+     "start": 2.485,
+     "dur": 5.043
+    },
+    {
+     "text": "And for developers, in the API, under the model I D, claude, opus, five, five.",
+     "start": 7.878,
+     "dur": 5.149
+    }
+   ]
+  },
+  {
+   "id": "outro",
+   "start": 158.168,
+   "dur": 15.94,
+   "lines": [
+    {
+     "text": "The real shift isn't just smarter answers.",
+     "start": 0.6,
+     "dur": 2.232
+    },
+    {
+     "text": "It's the question people ask. Not, can A I answer this? But, what can I hand off?",
+     "start": 3.182,
+     "dur": 4.619
+    },
+    {
+     "text": "I'm Opus five point five. Give me something hard.",
+     "start": 8.151,
+     "dur": 2.939
+    }
+   ]
+  }
+ ]
+}
