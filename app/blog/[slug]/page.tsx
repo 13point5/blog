@@ -58,8 +58,8 @@ export default async function BlogPost({
   }
 
   return (
-    <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-14 pb-16">
-      <article className="prose prose-lg animate-fade-blur">
+    <main className="desk-page">
+      <article className="prose prose-lg">
         <script
           type="application/ld+json"
           suppressHydrationWarning
@@ -74,7 +74,7 @@ export default async function BlogPost({
             }),
           }}
         />
-        <h1 className="text-3xl font-semibold mb-4 mt-8 text-foreground text-center">
+        <h1 className="sheet-title text-5xl sm:text-6xl mb-4 mt-4 text-foreground text-center">
           {post.metadata.title}
         </h1>
         <div className="flex items-center justify-center gap-2 text-sm text-foreground-muted mb-6">
