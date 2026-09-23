@@ -49,22 +49,12 @@ button { cursor: pointer; }
 .skip-link { position: fixed; top: -90px; left: 16px; z-index: 100; background: var(--background); padding: 12px 20px; }.skip-link:focus { top: 12px; }
 .collection { padding-top: 49px; padding-bottom: 30px; }
 .collection-intro { font-size: 12px; font-weight: 400; color: var(--foreground-muted); margin: 0; }
-/* The desk has stable, collision-free places; mixing animates objects between them. */
-.desk-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 24px; }
-.mix-button { display: inline-flex; flex-shrink: 0; align-items: center; gap: 7px; min-height: 44px; padding: 0 6px; font-size: 11px; color: var(--link); border-radius: 4px; }
-.mix-button:hover { color: var(--link-hover); }
-.mix-button:active { transform: scale(.96); }
-.mix-icon-active { animation: mix-turn .5s cubic-bezier(.2,.7,.25,1); }
-.object-desk { --item-width: 248px; --item-height: 290px; --band-height: 820px; position: relative; height: calc(var(--band-height) * var(--desk-bands)); list-style: none; margin: 0; padding: 0; }
-.object-desk>li { position: absolute; width: var(--item-width); height: var(--item-height); left: calc((100% - var(--item-width)) * var(--desk-x)); top: calc(var(--desk-band) * var(--band-height) + (var(--band-height) - var(--item-height)) * var(--desk-y)); transition: left .85s cubic-bezier(.22,.75,.2,1), top .85s cubic-bezier(.22,.75,.2,1); }
-.object-desk>li:has(.collection-object:hover),.object-desk>li:has(.collection-object:focus-visible) { z-index: 2; }
 .collection-object { display: block; border-radius: 8px; }
-.object-space { height: 240px; display: flex; align-items: center; justify-content: center; position: relative; animation: desk-arrive .75s cubic-bezier(.2,.7,.25,1) backwards; animation-delay: var(--arrival-delay); }
 .object-caption { text-align: center; max-width: 235px; margin: 14px auto 0; font-size: 11px; line-height: 1.6; color: var(--foreground-muted); transition: color .2s; }
 .object-caption>span { display: block; }
 .object-caption small { display: block; font-size: 9px; opacity: .7; margin-top: 2px; letter-spacing: .3px; }
 .collection-object:hover .object-caption, .collection-object:focus-visible .object-caption { color: var(--foreground); }
-.media-object { --rotation: -5deg; flex-shrink: 0; position: relative; color: #222731; transform: scale(var(--object-scale)) rotate(var(--desk-angle, var(--rotation))); transition: transform .65s cubic-bezier(.22,.75,.2,1), filter .3s; }
+.media-object { --rotation: -5deg; flex-shrink: 0; position: relative; color: #222731; transform: scale(var(--object-scale)) rotate(var(--rest-angle, var(--rotation))); transition: transform .65s cubic-bezier(.22,.75,.2,1), filter .3s; }
 .collection-object:hover .media-object, .collection-object:focus-visible .media-object { transform: translateY(-8px) scale(var(--object-scale)) rotate(0deg); }
 .collection-footer { display: flex; justify-content: space-between; padding-bottom: 30px; color: var(--foreground-muted); font-size: 10px; }
 
@@ -121,45 +111,20 @@ button { cursor: pointer; }
 .collection-object:is(:hover,:focus-visible) .pixel-art i { animation: pixel-wake 1.2s steps(2,end) infinite; }
 .pixel-art i:nth-child(2n) { animation-delay: .15s !important; }.pixel-art i:nth-child(3n) { animation-delay: .3s !important; }
 .collection-object:active .media-object { transform: translateY(-3px) scale(calc(var(--object-scale) * .97)) rotate(0deg); }
-@keyframes desk-arrive { from { opacity: 0; transform: translateY(22px) rotate(-5deg); } to { opacity: 1; transform: translateY(0) rotate(0deg); } }
 @keyframes reel-turn { to { transform: rotate(360deg); } }
 @keyframes pixel-wake { 50% { opacity: .35; transform: scale(.7); } }
-@keyframes mix-turn { from { transform: rotate(-180deg); } to { transform: rotate(0); } }
 
-@media (max-width: 1000px) {
-  .object-desk { --item-width: 218px; --item-height: 260px; --band-height: 740px; }
-  :root { --object-scale: .85; }
-  .object-space { height: 205px; }
-  .collection { padding-top: 38px; }
-}
-@media (max-width: 900px) {
+@media (max-width: 600px) {
   .collection-header,.collection,.collection-footer { width: calc(100% - 40px); }
   .collection-header { padding-top: 26px; }
   .identity { font-size: 13px; }.identity-note { font-size: 10px; }
   .collection-header nav { gap: 8px; }
-  .collection { padding-top: 42px; padding-bottom: 48px; }
-  .collection-intro { font-size: 11px; max-width: 190px; line-height: 1.6; }
-  .desk-toolbar { margin-bottom: 14px; gap: 12px; }
-  .mix-button { font-size: 10px; gap: 5px; }
-  .object-desk { --item-width: calc((100% - 16px) / 2); --item-height: 235px; --band-height: 900px; }
-  .object-desk>li { left: calc((100% - var(--item-width)) * var(--mobile-x)); top: calc(var(--desk-band) * var(--band-height) + (var(--band-height) - var(--item-height)) * var(--mobile-y)); }
-  :root { --object-scale: .72; }
-  .object-space { height: 182px; }
-  .object-caption { font-size: 10px; margin-top: 4px; padding-inline: 3px; }
-  .object-caption small { font-size: 8px; }
+  .collection { padding-top: 30px; padding-bottom: 48px; }
+  .collection-intro { font-size: 11px; line-height: 1.6; }
   .collection-footer { font-size: 9px; padding-bottom: 24px; }
   .article-page { margin-top: 40px; width: calc(100% - 40px); }
   .article-header h1 { font-size: 32px; }
   .article-body { font-size: 14px; }.article-body h2 { font-size: 26px; }
-}
-@media (max-width: 420px) {
-  :root { --object-scale: .62; }
-}
-@media (max-width: 370px) {
-  :root { --object-scale: .50; }
-  .object-space { height: 157px; }
-  .object-desk { --item-height: 218px; --band-height: 830px; }
-  .object-caption { font-size: 9px; }
 }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -189,15 +154,14 @@ button { cursor: pointer; }
 
 .record-sleeve .sleeve-art { height: 72px; margin-bottom: 9px; }.record-sleeve strong { font-size: 24px; }.record-sleeve small { margin-top: 8px; }
 
-/* Touch devices keep their normal tap-to-read behavior; mixing is a separate control. */
+/* Touch keeps normal tap-to-read behavior. */
 @media (hover: none) {
-  .collection-object:hover .media-object { transform: scale(var(--object-scale)) rotate(var(--desk-angle)); }
+  .collection-object:hover .media-object { transform: scale(var(--object-scale)) rotate(var(--rest-angle)); }
   .collection-object:hover .disk-shutter,.collection-object:hover .vinyl,.collection-object:hover .book-cover,.collection-object:hover .book-ribbon { transform: none; }
   .collection-object:hover .reel,.collection-object:hover .vinyl-label,.collection-object:hover .pixel-art i { animation: none; }
   .collection-object:active .media-object { transform: scale(calc(var(--object-scale) * .96)) rotate(0deg); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .object-space { animation: none; }
-  .collection-object:is(:hover,:focus-visible) .media-object { transform: scale(var(--object-scale)) rotate(var(--desk-angle)); }
+  .collection-object:is(:hover,:focus-visible) .media-object { transform: scale(var(--object-scale)) rotate(var(--rest-angle)); }
   .collection-object:is(:hover,:focus-visible) .disk-shutter,.collection-object:is(:hover,:focus-visible) .vinyl,.collection-object:is(:hover,:focus-visible) .book-cover,.collection-object:is(:hover,:focus-visible) .book-ribbon { transform: none; }
 }
