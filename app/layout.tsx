@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Archivo, Caveat, Doto, JetBrains_Mono, Newsreader } from "next/font/google";
 // OpenDyslexic font for dyslexia-friendly reading - all weights and styles
 import "@fontsource/opendyslexic/400.css"; // Regular
 import "@fontsource/opendyslexic/400-italic.css"; // Regular Italic
@@ -10,10 +10,48 @@ import { ThemeProvider } from "./providers/theme-provider";
 import { Header } from "./components/header";
 import { Footer } from "./components/footer";
 
-const geist = Geist({
+// Archivo: UI + printed-object labels (its width axis gives the chunky
+// expanded look of pencil / floppy branding)
+const archivo = Archivo({
   subsets: ["latin"],
-  variable: "--font-geist",
+  axes: ["wdth"],
+  variable: "--font-archivo",
 });
+
+// Newsreader: long-form reading, vintage book feel
+const newsreader = Newsreader({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  axes: ["opsz"],
+  variable: "--font-newsreader",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains",
+});
+
+// Doto: dot-matrix section titles (tape deck display)
+const doto = Doto({
+  subsets: ["latin"],
+  axes: ["ROND"],
+  variable: "--font-doto",
+  preload: false,
+});
+
+// Caveat: handwritten scribbles on labels and signatures
+const caveat = Caveat({
+  subsets: ["latin"],
+  variable: "--font-caveat",
+  preload: false,
+});
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#e8e5df" },
+    { media: "(prefers-color-scheme: dark)", color: "#121211" },
+  ],
+};
 
 export const metadata: Metadata = {
   title: {
@@ -23,11 +61,6 @@ export const metadata: Metadata = {
   description:
     "Applied Researcher on the post-training team at Chakra Labs. Building RL environments for foundation labs.",
   metadataBase: new URL("https://www.sriraam.me"),
-  icons: {
-    icon: "/zoro.png",
-    shortcut: "/zoro.png",
-    apple: "/zoro.png",
-  },
   openGraph: {
     title: "sriraam",
     description:
@@ -57,7 +90,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geist.variable} font-sans`}
+      className={`${archivo.variable} ${newsreader.variable} ${jetbrainsMono.variable} ${doto.variable} ${caveat.variable} font-sans`}
       suppressHydrationWarning
     >
       <head>
@@ -69,13 +102,13 @@ export default function RootLayout({
                   const theme = localStorage.getItem('theme') || 'light';
                   const fontFamily = localStorage.getItem('fontFamily') || 'sans';
                   const root = document.documentElement;
-                  
+
                   // Apply theme
                   root.classList.remove('dark', 'warm');
                   if (theme === 'dark') {
                     root.classList.add('dark');
                   }
-                  
+
                   // Apply font (remove all font classes first)
                   root.classList.remove('font-sans', 'font-dyslexia');
                   if (fontFamily === 'dyslexia') {
@@ -102,9 +135,14 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <ThemeProvider>
-          <div className="min-h-screen flex flex-col bg-background">
+          <a href="#main" className="skip-link">
+            skip to content
+          </a>
+          <div className="min-h-screen flex flex-col">
             <Header />
-            <main className="flex-1">{children}</main>
+            <main id="main" className="flex-1">
+              {children}
+            </main>
             <Footer />
           </div>
         </ThemeProvider>

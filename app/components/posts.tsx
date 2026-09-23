@@ -1,23 +1,16 @@
-import { getBlogPosts } from "@/app/blog/utils";
-import { BlogPostItem } from "./blog-post-item";
+import { getSortedPosts } from "@/app/blog/utils";
+import { Floppy } from "./floppy";
 
 export function BlogPosts() {
-  const allBlogs = getBlogPosts();
+  const posts = getSortedPosts();
 
   return (
-    <div className="space-y-1 not-prose">
-      {allBlogs
-        .sort((a, b) => {
-          if (
-            new Date(a.metadata.publishedAt) > new Date(b.metadata.publishedAt)
-          ) {
-            return -1;
-          }
-          return 1;
-        })
-        .map((post) => (
-          <BlogPostItem key={post.slug} slug={post.slug} metadata={post.metadata} />
-        ))}
-    </div>
+    <ul className="grid gap-x-8 gap-y-12 grid-cols-[repeat(auto-fill,minmax(min(16rem,100%),1fr))] not-prose">
+      {posts.map((post) => (
+        <li key={post.slug} className="max-w-[22rem]">
+          <Floppy post={post} />
+        </li>
+      ))}
+    </ul>
   );
 }

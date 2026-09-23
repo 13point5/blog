@@ -14,6 +14,7 @@ import { CopyButton } from "@/components/ui/copy-button";
 import { ImageGallery } from "@/components/ui/image-gallery";
 import { ImageWithFullscreen } from "@/components/ui/image-with-fullscreen";
 import { getIconForLanguageExtension } from "@/components/language-icons";
+import { slugify } from "@/app/blog/utils";
 
 function CustomLink({
   href = "",
@@ -116,21 +117,11 @@ function RoundedImage({
   );
 }
 
-function slugify(str: string) {
-  return str
-    .toString()
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/&/g, "-and-")
-    .replace(/[^\w\-]+/g, "")
-    .replace(/\-\-+/g, "-");
-}
-
+// Typography lives in `.post-body` (globals.css); keep only colour here
 const headingStyles: Record<number, string> = {
-  1: "text-3xl font-semibold mb-6 mt-8 text-foreground",
-  2: "text-2xl font-semibold mb-4 mt-6 text-foreground",
-  3: "text-xl font-semibold mb-3 mt-5 text-foreground",
+  1: "text-foreground",
+  2: "text-foreground",
+  3: "text-foreground",
   4: "text-lg font-semibold mb-2 mt-4 text-foreground",
   5: "text-base font-semibold mb-2 mt-3 text-foreground",
   6: "text-sm font-semibold mb-2 mt-3 text-foreground",
@@ -183,7 +174,7 @@ function Code({
   // Inline code - no rehype-pretty-code attributes
   if (!isCodeBlock) {
     return (
-      <code className="bg-accent px-1.5 py-0.5 rounded text-sm font-mono text-foreground border border-border">
+      <code className="bg-background-card px-1.5 py-0.5 rounded-md font-mono text-foreground border border-border">
         {children}
       </code>
     );
@@ -303,7 +294,7 @@ const components = {
   figure: Figure,
   figcaption: Figcaption,
   blockquote: ({ children }: { children: React.ReactNode }) => (
-    <blockquote className="border-l-4 border-accent-light bg-accent/50 pl-4 py-0.5 text-foreground mb-4 rounded-r [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+    <blockquote className="text-foreground [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
       {children}
     </blockquote>
   ),
@@ -318,17 +309,17 @@ const components = {
     </ol>
   ),
   li: ({ children }: { children: React.ReactNode }) => (
-    <li className="leading-relaxed">{children}</li>
+    <li className="pl-1">{children}</li>
   ),
   p: ({ children }: { children: React.ReactNode }) => (
-    <p className="text-foreground leading-relaxed mb-4">{children}</p>
+    <p className="text-foreground mb-5">{children}</p>
   ),
   strong: ({ children }: { children: React.ReactNode }) => (
     <strong className="text-foreground font-semibold">{children}</strong>
   ),
-  hr: () => <hr className="section-divider my-8" />,
+  hr: () => <hr className="dinkus" />,
   table: ({ children }: { children: React.ReactNode }) => (
-    <div className="overflow-x-auto mb-6 rounded-lg border border-border overflow-hidden">
+    <div className="overflow-x-auto mb-6 rounded-xl border border-border bg-background-card">
       <table className="min-w-full">{children}</table>
     </div>
   ),
