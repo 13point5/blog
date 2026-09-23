@@ -1,0 +1,39 @@
+---
+title: 'Small worlds, strange rules'
+publishedAt: '2026-09-08'
+summary: 'An imaginary environment for an agent that has to change its mind.'
+category: 'Experiments'
+artwork: 'disk-white'
+objectLabel: 'Small worlds'
+sample: 'true'
+---
+Imagine a world with two doors. The instruction says that the blue door leads outside. Halfway through the task, the agent finds a fresh note: the blue door is now locked.
+
+The interesting part begins when the old plan stops working.
+
+## Change one thing
+
+This fictional experiment changes a single fact in an otherwise fixed environment. We want to watch what the agent does with the new evidence.
+
+| Step | Observation | Question |
+| --- | --- | --- |
+| 1 | Blue door is the exit | Does the agent make a plan? |
+| 2 | A new note says it is locked | Does the agent notice the contradiction? |
+| 3 | Another route is available | Does the agent revise its plan? |
+
+## A trace worth keeping
+
+```json title="observation.json"
+{
+  "step": 2,
+  "door": "blue",
+  "status": "locked",
+  "source": "new observation"
+}
+```
+
+<div className="callout-note"><strong>The useful distinction</strong>Repeating a plan more confidently is different from checking whether the plan still fits the world.</div>
+
+## Leave the result open
+
+No model was evaluated for this entry. It is a sketch of a question: how do we make changing your mind a behavior worth learning?

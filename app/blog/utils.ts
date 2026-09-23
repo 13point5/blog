@@ -9,6 +9,7 @@ export type Metadata = {
   author?: string;
   category?: string;
   artwork?: string;
+  objectLabel?: string;
   sample?: string;
 };
 

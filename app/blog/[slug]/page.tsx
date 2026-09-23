@@ -1,9 +1,7 @@
 import { notFound } from "next/navigation";
 import { CustomMDX } from "@/app/components/mdx";
 import { formatDate, getBlogPosts } from "@/app/blog/utils";
-import Image from "next/image";
 import Link from "next/link";
-import { StudioArt } from "@/app/components/studio-art";
 
 export async function generateStaticParams() {
   const posts = getBlogPosts();
@@ -62,7 +60,7 @@ export default async function BlogPost({
 
   const minutes = Math.max(1, Math.ceil(post.content.split(/\s+/).length / 220));
   return (
-    <div className="studio-width article-page">
+    <div className="article-page">
       <article>
         {post.metadata.sample !== "true" && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
           "@context": "https://schema.org", "@type": "BlogPosting", headline: post.metadata.title,
@@ -70,16 +68,13 @@ export default async function BlogPost({
           description: post.metadata.summary, author: { "@type": "Person", name: post.metadata.author || "Sriraam" },
         }).replace(/</g, "\\u003c") }} /> }
         <header className="article-header">
-          <div className="eyebrow">{post.metadata.category || "Experiments"} / THE NOTEBOOK</div>
+          <div className="article-type">{post.metadata.category || "Experiments"}</div>
           <h1>{post.metadata.title}</h1>
           <div className="article-meta"><time dateTime={post.metadata.publishedAt}>{formatDate(post.metadata.publishedAt)}</time><span>By {post.metadata.author || "Sriraam"}</span><span>{minutes} min read</span></div>
         </header>
-        <div className="article-cover">
-          {post.metadata.artwork || !post.metadata.image ? <StudioArt kind={post.metadata.artwork || "disk"} label={post.metadata.artwork === "tape" ? "THE LEARNING LOOP" : post.metadata.artwork === "paper" ? "ROOM TO THINK." : post.metadata.artwork === "disk-green" ? "TRUST, BUT VERIFY." : "VIBE / RL"} /> : <Image src={post.metadata.image} alt={post.metadata.title} width={780} height={420} className="h-auto" />}
-        </div>
-        {post.metadata.sample === "true" && <aside className="sample-notice">Design sample · This fictional post demonstrates the notebook’s layout and components. It does not report actual research results.</aside>}
+        {post.metadata.sample === "true" && <aside className="sample-notice">Sample post · An illustrative piece for this collection, not a report of research results.</aside>}
         <div className="article-body"><CustomMDX source={post.content} /></div>
-        <div className="article-end"><Link href="/blog">← All writing</Link><span>Thanks for spending a little time here. ✳</span></div>
+        <div className="article-end"><Link href="/">← Collection</Link></div>
       </article>
     </div>
   );

@@ -22,9 +22,9 @@ export default async function Image() {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          backgroundColor: "#f8f6ee",
+          backgroundColor: "#f3f4f6",
           padding: "80px 100px",
-          borderBottom: "16px solid #3049bb",
+          borderBottom: "16px solid #4259a8",
         }}
       >
         {/* Left side - Text */}
@@ -39,7 +39,7 @@ export default async function Image() {
             style={{
               fontSize: 80,
               fontWeight: 700,
-              color: "#c7462b",
+              color: "#252830",
               letterSpacing: "-0.03em",
             }}
           >

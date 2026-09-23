@@ -52,8 +52,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
+  reader,
 }: Readonly<{
   children: React.ReactNode;
+  reader: React.ReactNode;
 }>) {
   return (
     <html
@@ -107,6 +109,7 @@ export default function RootLayout({
             <Header />
             <main id="main-content" className="flex-1" tabIndex={-1}>{children}</main>
             <Footer />
+            {reader}
           </div>
         </ThemeProvider>
       </body>

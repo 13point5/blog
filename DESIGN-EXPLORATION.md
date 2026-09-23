@@ -1,16 +1,25 @@
-# Color studio exploration
+# Object collection — second direction
 
-Branch: `explore/color-studio`, based on `main` at `6baab35`.
+Branch: `explore/color-studio`; draft PR #18. Original base: `main` at `6baab35`.
 
 ## Direction
 
-Warm ivory paper, cobalt, vermilion, citron, and leaf green. Serif display type with sans-serif reading text. A tilted portrait uses the supplied avatar unchanged. Original CSS objects (floppy disks, a cassette, a taped note, and pencils) echo the reference board without embedding the reference images.
+A collection of six freestanding objects on a cool gray surface. No hero, featured card, topic strip, filters, large title, colorful panel backgrounds, or promotional footer. A small avatar/name header contains an About dialog and theme toggle. Each object's caption is its article title; samples carry a small label.
 
-The homepage pairs an expressive introduction with a spacious notebook shelf. Writing can be filtered by topic or viewed as a compact list. Article pages use a narrower reading column and restrained accents. Light and dark themes persist across visits; reduced-motion preferences are respected.
+The objects are two floppy disks, a cassette, a game cartridge, a record with its sleeve, and a clothbound book. They are original CSS artwork with cool blue, indigo, slate, gray, and charcoal materials. Red and brown are not interface accents.
 
-## Demonstration content
+Opening an object uses a route-backed reading dialog, leaving the collection behind it. Escape, the close button, and browser Back return to the collection; direct URLs and reloads render standalone articles. Radix provides modal focus management and scroll locking. Opening an article in a new tab still works.
 
-The existing Vibe RL article remains intact and appears first. Three fictional sample articles demonstrate tables, highlighted code with copying, checklists, quotes, callouts, expandable notes, color studies, and an interactive reward-weight calculation. Samples are labeled on cards and article pages, carry noindex metadata, and are excluded from the sitemap.
+## Review decisions
+
+- The first version used physical objects inside conventional editorial cards. This revision makes the objects the navigation.
+- Removed large artwork and duplicated summaries from article headers; the reading sheet starts with its title and metadata.
+- Equal grid cells make the collection scannable; varied silhouettes provide variation without more interface chrome.
+- Reduced decorative lettering and kept readable captions outside the objects.
+- Cool neutral background and text let blue/indigo objects provide the color.
+- Three columns on desktop, two on phones. Artwork scales down at 800, 600, and 370px. Reduced-motion support disables transitions.
+
+The real Vibe RL article is preserved and appears first. Five explicitly fictional sample entries demonstrate code, tables, quotes, callouts, checklists, details, and an interactive reward-weight calculation. Samples have noindex metadata and are excluded from the sitemap.
 
 ## Development
 
@@ -23,4 +32,4 @@ npm run lint
 npm run build
 ```
 
-No dependencies were added. No production branch merge is included in this exploration.
+No dependencies added. Production main remains unchanged. Browser visual verification requires access to the Vercel-protected preview.
