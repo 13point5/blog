@@ -21,20 +21,18 @@ Light-mode paper is the avatar’s own background (`--background: #e7e4df`). Blu
 
 | Name | Component | Where used |
 | --- | --- | --- |
-| Pencil chips | `PencilChips` | Homepage intro, under the name |
-| Barcode stripe | `Barcode` | Homepage intro, beside chips |
-| Binder clip | `BinderClip` | Homepage motif rail |
-| Cassette | `Cassette` | Homepage motif rail |
-| Play transport | `PlayTransport` | Homepage motif rail |
-| Floppy disk | `FloppyDisk` | Homepage motif rail + footer |
-| Paper grain | `.folio-grain` CSS | Soft homepage atmosphere |
+| Binder clip | `BinderClip` | Homepage pin control. Toggles the short personal note. |
+| Floppy disk | `FloppyDisk` | One 22px mark in the homepage margin |
+| Paper grain | `.folio-grain` CSS | Very light homepage atmosphere |
+
+Pencil chips, barcode, cassette, and transport buttons are still in `app/components/motifs/` but are not placed on the page. The writing list has no cassette or “tracks” heading.
 
 Avatar: `public/images/avatar.jpg` — the original JPEG, committed byte-for-byte (not redrawn). The illustration’s paper is `#e7e4df` (sampled from the empty region). Light-mode `--background` uses that same color so the circular crop doesn’t show a cooler gray halo against the page. Dark mode still shows the photo’s baked-in paper inside the circle.
 
 ## Rules of thumb
 
 - Prefer SVG/CSS over photos; never paste copyrighted character art from refs.
-- One quiet accent group on the homepage is enough — do not stack every motif into the first viewport as competing chrome.
+- The homepage name is plain roman. The floppy is a margin accent. The only interactive motif is the pin.
 - Writing list and essay prose stay unadorned.
 - Cartridge red is reserved; do not use it as a global theme color.
 

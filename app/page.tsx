@@ -1,27 +1,18 @@
 import Image from "next/image";
 import WorkSection from "./components/work-section";
-import {
-  Barcode,
-  BinderClip,
-  Cassette,
-  FloppyDisk,
-  PencilChips,
-  PlayTransport,
-} from "./components/motifs";
+import { FloppyDisk } from "./components/motifs";
+import { PinnedNote } from "./components/pinned-note";
 
 export default function Home() {
   return (
     <main className="folio-home folio-width">
       <div className="folio-grain" aria-hidden="true" />
+      <div className="margin-floppy" aria-hidden="true">
+        <FloppyDisk />
+      </div>
       <section className="intro-section" aria-labelledby="intro-title">
         <div className="intro-heading">
-          <div className="intro-heading-text">
-            <h1 id="intro-title">Hey, I’m Sriraam</h1>
-            <div className="intro-motif-row" aria-hidden="true">
-              <PencilChips className="motif-pencil-chips" />
-              <Barcode className="motif-barcode" />
-            </div>
-          </div>
+          <h1 id="intro-title">Hey, I’m Sriraam</h1>
           <Image
             src="/images/avatar.jpg"
             width={1254}
@@ -29,7 +20,7 @@ export default function Home() {
             alt="Portrait illustration of Sriraam"
             className="home-avatar"
             priority
-            sizes="112px"
+            sizes="88px"
           />
         </div>
         <p>
@@ -49,18 +40,9 @@ export default function Home() {
           every problem as a learning problem. I draw inspiration from human
           learning for my work in reinforcement learning.
         </p>
-        <p className="intro-aside">
-          I also like Hogwarts, anime, and K-dramas. If any of this resonates,{" "}
-          <a href="https://x.com/27upon2">I’d love to talk.</a>
-        </p>
+        <PinnedNote />
       </section>
       <WorkSection />
-      <aside className="motif-rail" aria-hidden="true">
-        <BinderClip className="motif-clip" />
-        <Cassette className="motif-cassette" />
-        <PlayTransport className="motif-transport" />
-        <FloppyDisk className="motif-floppy" />
-      </aside>
     </main>
   );
 }
