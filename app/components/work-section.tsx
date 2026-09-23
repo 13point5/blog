@@ -1,42 +1,38 @@
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { getBlogPosts } from "@/app/blog/utils";
-import { BlogPostItem } from "./blog-post-item";
+import { ArrowRight } from "lucide-react";
+import { getSortedPosts } from "@/app/blog/utils";
+import { Cassette } from "./cassette";
 
 export default function WorkSection() {
-  const posts = getBlogPosts()
-    .sort((a, b) => {
-      if (new Date(a.metadata.publishedAt) > new Date(b.metadata.publishedAt)) {
-        return -1;
-      }
-      return 1;
-    })
-    .slice(0, 5);
+  const posts = getSortedPosts().slice(0, 5);
 
   return (
-    <section id="blog" className="animate-fade-blur animation-delay-100">
-      <div className="flex items-center justify-between mb-4 mt-6">
-        <h2 className="text-2xl font-semibold text-foreground">blog</h2>
-
-        <Link href="/blog">
-          <Button variant="ghost" className="gap-2 group">
-            view all
-            <ArrowRight
-              size={16}
-              className="transition-transform group-hover:translate-x-1"
-            />
-          </Button>
+    <section
+      id="blog"
+      aria-labelledby="blog-heading"
+      className="animate-fade-blur animation-delay-200 mt-24"
+    >
+      <div className="flex items-end justify-between gap-4 mb-8">
+        <div>
+          <h2
+            id="blog-heading"
+            className="font-dot font-black text-5xl sm:text-6xl leading-none tracking-tight"
+          >
+            BLOG
+          </h2>
+          <p className="font-serif italic text-foreground-muted mt-1">
+            recent tapes, side A first
+          </p>
+        </div>
+        <Link href="/blog" className="key key-play shrink-0">
+          view all
+          <ArrowRight aria-hidden="true" />
         </Link>
       </div>
 
-      <div className="space-y-1">
+      <div className="tape-rail">
         {posts.map((post) => (
-          <BlogPostItem
-            key={post.slug}
-            slug={post.slug}
-            metadata={post.metadata}
-          />
+          <Cassette key={post.slug} post={post} />
         ))}
       </div>
     </section>

@@ -1,5 +1,6 @@
 import type { MDXComponents } from "mdx/types";
 import { Socials } from "./app/components/socials";
+import { PencilCase } from "./app/components/pencil-case";
 import { Link } from "./components/ui/link";
 import { ImageGallery } from "./components/ui/image-gallery";
 import { ImageWithFullscreen } from "./components/ui/image-with-fullscreen";
@@ -10,6 +11,7 @@ import { getIconForLanguageExtension } from "./components/language-icons";
 // Custom components for MDX content
 const components: MDXComponents = {
   Socials,
+  PencilCase,
   Image: ImageWithFullscreen,
   ImageGallery,
   CodeCollapsibleWrapper,
@@ -98,7 +100,7 @@ const components: MDXComponents = {
     const isInline = typeof children === "string" && !className;
     if (isInline) {
       return (
-        <code className="bg-accent border-border px-1.5 py-0.5 rounded text-sm font-mono text-foreground border">
+        <code className="bg-background-card border-border px-1.5 py-0.5 rounded-md text-[0.8em] font-mono text-foreground border">
           {children}
         </code>
       );
@@ -148,13 +150,13 @@ const components: MDXComponents = {
 
   // Blockquote
   blockquote: ({ children }) => (
-    <blockquote className="border-l-4 border-accent-light bg-accent/50 pl-4 py-0.5 text-foreground mb-4 rounded-r [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+    <blockquote className="text-foreground [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
       {children}
     </blockquote>
   ),
 
   // Horizontal rule
-  hr: () => <hr className="section-divider my-8" />,
+  hr: () => <hr className="dinkus" />,
 
   // Tables
   table: ({ children }) => (
@@ -197,7 +199,7 @@ const components: MDXComponents = {
 
   // Details/Summary (for collapsible sections)
   details: ({ children }) => (
-    <details className="mb-4 border border-border rounded-lg p-4 bg-accent/30">
+    <details className="mb-4 border border-border rounded-xl p-4 bg-background-card">
       {children}
     </details>
   ),

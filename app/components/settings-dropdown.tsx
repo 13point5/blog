@@ -2,7 +2,6 @@
 
 import { Sun, Moon, Type } from "lucide-react";
 import { useTheme } from "../providers/theme-provider";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,8 +12,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 
+/** Settings as a little tape-deck panel of tactile keys. */
 export function SettingsDropdown() {
   const { theme, setTheme, fontFamily, setFontFamily } = useTheme();
 
@@ -23,91 +22,74 @@ export function SettingsDropdown() {
     { value: "dark", label: "Dark", icon: Moon },
   ] as const;
 
+  const fonts = [
+    { value: "sans", label: "Default type", glyph: <Type /> },
+    {
+      value: "dyslexia",
+      label: "Open Dyslexic",
+      glyph: <span className="font-dyslexia-glyph text-[11px] font-bold">OD</span>,
+    },
+  ] as const;
+
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className="text-base sm:text-lg font-normal tracking-tight hover:text-foreground-muted transition-colors outline-none focus-visible:text-foreground-muted cursor-pointer"
-          aria-label="Menu"
-        >
+        <button type="button" className="key" aria-label="Menu">
           menu
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="flex items-center gap-1 sm:gap-1.5 p-1.5 sm:p-2 min-w-0 w-auto bg-background text-foreground"
+        className="min-w-0 w-auto p-3 rounded-xl border border-border bg-background-card text-foreground shadow-[0_18px_40px_-18px_var(--shadow-ink)]"
         align="end"
-        sideOffset={8}
+        sideOffset={10}
       >
-        {themes.map(({ value, label, icon: Icon }) => (
-          <Tooltip key={value}>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                aria-label={label}
-                aria-pressed={theme === value}
-                onClick={() => setTheme(value)}
-                className={cn(
-                  "rounded-md sm:size-9",
-                  theme === value &&
-                    "bg-foreground text-background hover:bg-foreground hover:text-background"
-                )}
-              >
-                <Icon className="size-4 sm:size-[18px]" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">{label}</TooltipContent>
-          </Tooltip>
-        ))}
+        <div className="flex items-end gap-4">
+          <div className="flex flex-col gap-2">
+            <span className="kicker text-[10px]!">theme</span>
+            <div className="flex gap-2 pb-1">
+              {themes.map(({ value, label, icon: Icon }) => (
+                <Tooltip key={value}>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      className="key px-0!"
+                      aria-label={label}
+                      aria-pressed={theme === value}
+                      onClick={() => setTheme(value)}
+                    >
+                      <Icon />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">{label}</TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
+          </div>
 
-        <div
-          className="mx-0.5 h-5 sm:h-6 w-px bg-border/60"
-          aria-hidden="true"
-        />
+          <div className="h-12 w-px bg-border" aria-hidden="true" />
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Sans"
-              aria-pressed={fontFamily === "sans"}
-              onClick={() => setFontFamily("sans")}
-              className={cn(
-                "rounded-md sm:size-9",
-                fontFamily === "sans" &&
-                  "bg-foreground text-background hover:bg-foreground hover:text-background"
-              )}
-            >
-              <Type className="size-4 sm:size-[18px]" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">Sans</TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Open Dyslexia"
-              aria-pressed={fontFamily === "dyslexia"}
-              onClick={() => setFontFamily("dyslexia")}
-              className={cn(
-                "rounded-md font-dyslexia text-xs sm:text-sm font-bold tracking-tight sm:size-9",
-                fontFamily === "dyslexia" &&
-                  "bg-foreground text-background hover:bg-foreground hover:text-background"
-              )}
-            >
-              OD
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">Open Dyslexia</TooltipContent>
-        </Tooltip>
+          <div className="flex flex-col gap-2">
+            <span className="kicker text-[10px]!">type</span>
+            <div className="flex gap-2 pb-1">
+              {fonts.map(({ value, label, glyph }) => (
+                <Tooltip key={value}>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      className="key px-0!"
+                      aria-label={label}
+                      aria-pressed={fontFamily === value}
+                      onClick={() => setFontFamily(value)}
+                    >
+                      {glyph}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">{label}</TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
+          </div>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );
