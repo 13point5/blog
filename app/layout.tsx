@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Barlow_Condensed, Caveat, Geist, IBM_Plex_Mono } from "next/font/google";
 // OpenDyslexic font for dyslexia-friendly reading - all weights and styles
 import "@fontsource/opendyslexic/400.css"; // Regular
 import "@fontsource/opendyslexic/400-italic.css"; // Regular Italic
@@ -13,6 +13,25 @@ import { Footer } from "./components/footer";
 const geist = Geist({
   subsets: ["latin"],
   variable: "--font-geist",
+});
+
+const display = Barlow_Condensed({
+  subsets: ["latin"],
+  weight: ["600", "800"],
+  style: ["normal", "italic"],
+  variable: "--font-display",
+});
+
+const mono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-mono",
+});
+
+const hand = Caveat({
+  subsets: ["latin"],
+  weight: ["500", "700"],
+  variable: "--font-hand",
 });
 
 export const metadata: Metadata = {
@@ -57,7 +76,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geist.variable} font-sans`}
+      className={`${geist.variable} ${display.variable} ${mono.variable} ${hand.variable} font-sans`}
       suppressHydrationWarning
     >
       <head>
@@ -100,11 +119,11 @@ export default function RootLayout({
           href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css"
         />
       </head>
-      <body className="antialiased">
+      <body className="desk-body antialiased">
         <ThemeProvider>
-          <div className="min-h-screen flex flex-col bg-background">
+          <div className="desk-frame min-h-screen flex flex-col bg-background">
             <Header />
-            <main className="flex-1">{children}</main>
+            <div className="flex-1">{children}</div>
             <Footer />
           </div>
         </ThemeProvider>

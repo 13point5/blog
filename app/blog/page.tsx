@@ -7,11 +7,12 @@ export const metadata = {
 
 export default function BlogPage() {
   return (
-    <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-14 pb-16">
-      <section className="animate-fade-blur">
-        <h1 className="text-2xl font-semibold mb-4 mt-6 text-foreground">
-          blog
-        </h1>
+    <main className="desk-page">
+      <section className="tracks">
+        <div className="tracks-head">
+          <h1>TRACKS</h1>
+          <p className="tracks-note">writing</p>
+        </div>
         <BlogPosts />
       </section>
     </main>
