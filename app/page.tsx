@@ -10,7 +10,6 @@ export default function Home() {
 
   return (
     <section className="collection" aria-label="Writing collection">
-      <h1 className="collection-intro">A few things I’ve been thinking about.</h1>
       <WritingShelf posts={posts.map(({ slug, metadata }) => ({ slug, metadata }))} />
     </section>
   );

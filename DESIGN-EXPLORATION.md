@@ -1,10 +1,10 @@
-# Object collection — third iteration
+# Object desk — fourth iteration
 
 Branch: `explore/color-studio`; draft PR #18. Original base: `main` at `6baab35`.
 
 ## Current direction
 
-Six freestanding physical media objects on a quiet gray surface. The interface uses indigo links and neutral text. The objects have their own colors: yellow floppy, blue cassette, green cartridge, peach record sleeve, lavender book, and ivory/teal floppy. A compact header contains the supplied avatar, name, About link, and theme toggle.
+Six freestanding physical media objects scattered across a quiet gray surface. An asymmetric desk replaces the regular grid; the “mix it up” control shuffles objects between defined positions with gentle transitions. The interface uses indigo links and neutral text. The objects have their own colors: yellow floppy, blue cassette, green cartridge, peach record sleeve, lavender book, and ivory/teal floppy. A compact header contains the supplied avatar, name, About link, and theme toggle.
 
 Articles and About are conventional full pages. The intercepted route slot and reader dialog have been removed. Each page has a collection link near the top and bottom; the name/avatar also returns home. Browser navigation uses normal history.
 
@@ -21,7 +21,10 @@ Each draft has an original SVG technical illustration, with alt text. The diagra
 - Removed all article/About overlays per feedback.
 - Gave articles a 700px maximum reading width and relevant figures.
 - Reviewed rendered diagrams for clipping, label spacing, and the relationships they depict.
-- Kept three columns on desktop and two on phones, with scaling at 800, 600, and 370px.
+- Replaced the grid with an asymmetric desktop arrangement and a staggered path on phones/tablets. Mixing uses shared positions so every object can occupy every place.
+- Added a short arrival animation and distinct hover/focus responses: disk shutters slide, cassette reels turn, vinyl slips out, cartridge pixels flicker, and the book cover opens slightly.
+- Kept normal link navigation, keyboard focus, a shuffle status announcement, and reduced-motion support. Touch users can mix the collection without changing tap-to-read behavior.
+- Browser review covered desktop/mobile screenshots, light/dark themes, shuffle, article navigation/history, keyboard activation, reduced motion, and narrow-screen spacing.
 
 ## Development
 
