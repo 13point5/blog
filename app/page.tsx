@@ -4,7 +4,7 @@ import { WritingShelf } from "./components/writing-shelf";
 export default function Home() {
   const posts = getBlogPosts().sort(
     (a, b) =>
-      Number(a.metadata.sample === "true") - Number(b.metadata.sample === "true") ||
+      Number(a.metadata.draft === "true") - Number(b.metadata.draft === "true") ||
       b.metadata.publishedAt.localeCompare(a.metadata.publishedAt),
   );
 

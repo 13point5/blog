@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { CustomMDX } from "@/app/components/mdx";
 import { formatDate, getBlogPosts } from "@/app/blog/utils";
 import Link from "next/link";
+import Image from "next/image";
 
 export async function generateStaticParams() {
   const posts = getBlogPosts();
@@ -37,7 +38,7 @@ export async function generateMetadata({
       type: "article",
       publishedTime,
     },
-    ...(post.metadata.sample === "true" ? { robots: { index: false, follow: true } } : {}),
+    ...(post.metadata.draft === "true" ? { robots: { index: false, follow: true } } : {}),
     twitter: {
       card: "summary_large_image",
       title,
@@ -61,8 +62,9 @@ export default async function BlogPost({
   const minutes = Math.max(1, Math.ceil(post.content.split(/\s+/).length / 220));
   return (
     <div className="article-page">
+      <Link href="/" className="back-link">← Collection</Link>
       <article>
-        {post.metadata.sample !== "true" && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        {post.metadata.draft !== "true" && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
           "@context": "https://schema.org", "@type": "BlogPosting", headline: post.metadata.title,
           datePublished: post.metadata.publishedAt, dateModified: post.metadata.publishedAt,
           description: post.metadata.summary, author: { "@type": "Person", name: post.metadata.author || "Sriraam" },
@@ -70,9 +72,9 @@ export default async function BlogPost({
         <header className="article-header">
           <div className="article-type">{post.metadata.category || "Experiments"}</div>
           <h1>{post.metadata.title}</h1>
-          <div className="article-meta"><time dateTime={post.metadata.publishedAt}>{formatDate(post.metadata.publishedAt)}</time><span>By {post.metadata.author || "Sriraam"}</span><span>{minutes} min read</span></div>
+          <div className="article-meta"><time dateTime={post.metadata.publishedAt}>{formatDate(post.metadata.publishedAt)}</time>{post.metadata.author && <span>By {post.metadata.author}</span>}{post.metadata.draft === "true" && <span className="draft-label">Draft note</span>}<span>{minutes} min read</span></div>
         </header>
-        {post.metadata.sample === "true" && <aside className="sample-notice">Sample post · An illustrative piece for this collection, not a report of research results.</aside>}
+        {post.metadata.image && <figure className="article-illustration"><Image src={post.metadata.image} alt={post.metadata.imageAlt || post.metadata.title} width={960} height={520} sizes="(max-width: 720px) 100vw, 720px" priority /></figure>}
         <div className="article-body"><CustomMDX source={post.content} /></div>
         <div className="article-end"><Link href="/">← Collection</Link></div>
       </article>

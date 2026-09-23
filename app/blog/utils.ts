@@ -10,7 +10,8 @@ export type Metadata = {
   category?: string;
   artwork?: string;
   objectLabel?: string;
-  sample?: string;
+  draft?: string;
+  imageAlt?: string;
 };
 
 function parseFrontmatter(fileContent: string) {

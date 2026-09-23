@@ -1,39 +1,48 @@
 ---
-title: 'Small worlds, strange rules'
-publishedAt: '2026-09-08'
-summary: 'An imaginary environment for an agent that has to change its mind.'
-category: 'Experiments'
+title: 'Learning inside a world model'
+publishedAt: '2026-09-23'
+summary: 'How learned dynamics turn past experience into imagined practice—and why the real environment still matters.'
+category: 'World models'
 artwork: 'disk-white'
-objectLabel: 'Small worlds'
-sample: 'true'
+objectLabel: 'Worlds within'
+draft: 'true'
+image: '/images/notes/world-model.svg'
+imageAlt: 'Real experience trains a world model; imagined rollouts train a policy and value function; the policy gathers more experience.'
 ---
-Imagine a world with two doors. The instruction says that the blue door leads outside. Halfway through the task, the agent finds a fresh note: the blue door is now locked.
+A game agent can learn by playing the actual game. It can also learn a model of what the game tends to do, and use that model to practice possible futures.
 
-The interesting part begins when the old plan stops working.
+The second idea is the starting point for a world-model approach to reinforcement learning.
 
-## Change one thing
+## Learn dynamics, then learn behavior
 
-This fictional experiment changes a single fact in an otherwise fixed environment. We want to watch what the agent does with the new evidence.
+[DreamerV3](https://arxiv.org/abs/2301.04104) learns a representation of environment dynamics from experience and trains behavior using imagined trajectories. These trajectories unfold in learned latent states rather than requiring every policy-training step to query the real environment.
 
-| Step | Observation | Question |
-| --- | --- | --- |
-| 1 | Blue door is the exit | Does the agent make a plan? |
-| 2 | A new note says it is locked | Does the agent notice the contradiction? |
-| 3 | Another route is available | Does the agent revise its plan? |
+The world model, policy, and value function have distinct roles. The world model predicts how the represented environment evolves; the policy chooses actions; the value function estimates expected return. The diagram shows their conceptual relationship, not the implementation details of DreamerV3.
 
-## A trace worth keeping
+This can make collected experience more useful by supporting additional learning in imagination. It does not make interaction data unnecessary: predictions still need grounding in observations from the environment.
 
-```json title="observation.json"
-{
-  "step": 2,
-  "door": "blue",
-  "status": "locked",
-  "source": "new observation"
-}
-```
+## The model can be wrong in useful-looking ways
 
-<div className="callout-note"><strong>The useful distinction</strong>Repeating a plan more confidently is different from checking whether the plan still fits the world.</div>
+Consider an illustrative maze with a locked door. A learned model that incorrectly predicts the door opening might assign a high return to repeatedly approaching it. A policy trained only against that prediction could look successful in imagination and fail in the actual maze.
 
-## Leave the result open
+This is not a reported Dreamer result; it is a counterexample that exposes what must be checked. A useful test would compare predicted and observed outcomes specifically near the door, then inspect whether the policy changes when the model receives corrective data.
 
-No model was evaluated for this entry. It is a sketch of a question: how do we make changing your mind a behavior worth learning?
+## What should a world-model evaluation ask?
+
+For a proposed application, three questions help separate concerns:
+
+| Question | Why it matters |
+| --- | --- |
+| Does it predict action consequences? | A plausible-looking future can still react incorrectly to an action. |
+| Does error grow over longer rollouts? | Small local mistakes can change a long-horizon decision. |
+| Does the learned behavior work outside the model? | Imagined success is not the final objective. |
+
+These are suggested evaluation questions, not a complete benchmark.
+
+## The LLM connection is a question, not an equivalence
+
+An LLM can predict a tool response or simulate a user. To use those predictions as an RL environment, we still have to define state, actions, rewards, and the relationship to the real task. Generating a plausible continuation is not sufficient evidence that a simulator supports reliable policy improvement.
+
+## Reference
+
+- [Hafner et al., Mastering Diverse Domains through World Models](https://arxiv.org/abs/2301.04104). This note discusses DreamerV3’s central idea, not a claim about the latest world-model system.

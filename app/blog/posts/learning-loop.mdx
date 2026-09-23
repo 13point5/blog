@@ -1,67 +1,48 @@
 ---
-title: 'What a tiny learning loop can teach us'
-publishedAt: '2026-09-20'
-summary: 'A small thought experiment about feedback, rewards, and what we actually ask a model to learn.'
-category: 'Learning'
+title: 'Reward is not the objective you had in mind'
+publishedAt: '2026-09-23'
+summary: 'Policies, rewards, and the gap between a measurable signal and the behavior we actually want.'
+category: 'Reinforcement learning'
 artwork: 'tape'
-objectLabel: 'The learning loop'
-sample: 'true'
+objectLabel: 'The reward loop'
+draft: 'true'
+image: '/images/notes/rl-loop.svg'
+imageAlt: 'A policy acts in an environment, receives observations and reward, and is updated from collected experience.'
 ---
-There is something satisfying about a small loop: try something, notice what happened, try again. It is a useful place to start thinking about both learning and the systems we build to support it.
+Suppose an assistant is rewarded for answering quickly. It can improve that score by becoming more efficient. It can also improve it by skipping the hard part. The signal is measurable; the intention behind it is not automatically included.
 
-This notebook entry uses a deliberately tiny example. Imagine two answers to the same question. One is short and incomplete; the other is thorough and a little wordy. Which one should our system prefer?
+## Start with the loop
 
-## First, decide what matters
+In reinforcement learning, a **policy** specifies how an agent chooses actions from its observations. The environment responds, and a reward assigns a numerical signal to what happened. Training adjusts the policy to improve expected return: accumulated reward over an interaction, sometimes discounted over time. [OpenAI’s RL introduction](https://spinningup.openai.com/en/latest/spinningup/rl_intro.html) defines these pieces carefully.
 
-The answer depends on what we choose to reward. A reward is a compressed statement of our preferences, and compression leaves things out.
+For a language model, the policy can be a distribution over the next token. In an agent setting, a generated sequence may also express a tool call. The environment then includes the tool, its response, and any external state it changes.
 
-> A number can tell us which answer won. It cannot, by itself, tell us whether we asked the right question.
+The reward is neither the policy nor a prediction of future return. A **value function** estimates expected future return under a policy. A **reward model**, when used, estimates the reward signal itself. A deterministic checker can supply a reward without a learned reward model.
 
-Our toy scores look like this:
+## What preference training adds
 
-| Answer | Brevity | Completeness |
-| --- | --- | --- |
-| Short answer | 0.95 | 0.40 |
-| Detailed answer | 0.50 | 0.90 |
+[InstructGPT](https://arxiv.org/abs/2203.02155) describes a pipeline with supervised demonstrations, a reward model trained from human comparisons, and policy optimization using that reward model. This makes the source of the learning signal explicit: the model is optimizing a learned approximation to the preferences represented in the comparison data.
 
-These numbers are invented for the demonstration. They are not measurements of any model.
+That is useful, but it leaves several distinct questions. Did the comparisons cover the situations we care about? Does the reward model generalize? Does a higher predicted reward still correspond to a better answer after optimization?
 
-## Turn the dial
+## A dial you can inspect
 
-Try changing how much weight we give completeness. Neither answer changes, but our preference does.
+The toy below combines invented scores for brevity and completeness. It is not an RL training run; it isolates one decision in reward design.
 
 <RewardLab />
 
-## Make the choice explicit
+At equal weights, the short answer scores 0.675 and the detailed answer scores 0.700. Increasing the weight on brevity reverses their ranking. The answers have not changed. The definition of success has.
 
-The calculation is intentionally simple:
+## Optimization cannot fix an omitted requirement
 
-```python title="reward.py" showLineNumbers
+[PPO](https://spinningup.openai.com/en/latest/algorithms/ppo.html) constrains policy updates through its optimization objective; the clipped variant discourages excessively large probability-ratio changes. It does not certify that the reward captures the intended task.
 
-def reward(brevity, completeness, weight=0.5):
-    return (1 - weight) * brevity + weight * completeness
+<div className="callout-note"><strong>A useful separation</strong>Reward design asks what should count as success. Policy optimization asks how to improve the measured objective. Evaluation checks whether the resulting behavior is actually useful.</div>
 
-short_answer = reward(0.95, 0.40)
-detailed_answer = reward(0.50, 0.90)
-```
+Before tuning an optimizer, write down one behavior that earns a high score but should be unacceptable. That counterexample is often more informative than another decimal place on a training curve.
 
-Writing this down makes a hidden decision visible. We can discuss it, change it, and check where it behaves badly.
+## References
 
-<details>
-<summary>What does this example leave out?</summary>
-
-Real evaluation has more dimensions: correctness, the user's needs, the difficulty of the task, and whether a response is useful at all. Combining two made-up scores is only a way to explore one tradeoff. It is not a recipe for a production reward function.
-
-</details>
-
-## Back to the learner
-
-The interesting question is not just whether feedback exists. It is what the feedback makes worth doing.
-
-Before making the loop faster, I would ask three questions:
-
-1. What behavior do we actually want?
-2. What proxy are we measuring instead?
-3. Where could those two come apart?
-
-Small loops make those questions easier to see.
+- [OpenAI, Key Concepts in RL](https://spinningup.openai.com/en/latest/spinningup/rl_intro.html)
+- [Ouyang et al., Training language models to follow instructions with human feedback](https://arxiv.org/abs/2203.02155)
+- [Schulman et al., Proximal Policy Optimization Algorithms](https://arxiv.org/abs/1707.06347)
