@@ -11,3 +11,11 @@ The original Vibe RL article and five sourced draft technical notes remain, incl
 Validation: lint, production build, and a desktop/mobile browser smoke check before pushing. The owner reviews the protected Vercel preview without browser sign-in here.
 
 Production main remains unchanged.
+
+## Article opening transitions
+
+The grid now has a brief, skippable loading scene on ordinary article clicks. A floppy tilts into a retro computer, a cassette loads into a deck, a cartridge slots into a console, vinyl leaves its sleeve and settles on a turntable, and the book opens on a stand. All hardware shares a restrained gray/blue palette. The screen and indicator light respond after insertion.
+
+A layout-level provider keeps the scene visible while the real article route loads underneath. The 1.15-second motion finishes before a short fade reveals the full page; slow navigation can keep the scene visible, and Skip animation always removes it. History navigation cancels the scene. Modified clicks remain normal browser links. Reduced motion bypasses the scene entirely. The artwork is CSS with perspective, and adds no animation dependencies.
+
+Validation includes all six objects, mobile rendering, Skip animation, keyboard activation, browser Back, modified clicks, and reduced motion. Lint and production build pass.
