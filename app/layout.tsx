@@ -6,6 +6,9 @@ import "@fontsource/opendyslexic/400-italic.css"; // Regular Italic
 import "@fontsource/opendyslexic/700.css"; // Bold
 import "@fontsource/opendyslexic/700-italic.css"; // Bold Italic
 import "./globals.css";
+import "./studio.css";
+import "./article-transition.css";
+import { ArticleTransitionProvider } from "./components/article-transition";
 import { ThemeProvider } from "./providers/theme-provider";
 import { Header } from "./components/header";
 import { Footer } from "./components/footer";
@@ -24,9 +27,9 @@ export const metadata: Metadata = {
     "Applied Researcher on the post-training team at Chakra Labs. Building RL environments for foundation labs.",
   metadataBase: new URL("https://www.sriraam.me"),
   icons: {
-    icon: "/zoro.png",
-    shortcut: "/zoro.png",
-    apple: "/zoro.png",
+    icon: "/avatar.jpeg",
+    shortcut: "/avatar.jpeg",
+    apple: "/avatar.jpeg",
   },
   openGraph: {
     title: "sriraam",
@@ -100,13 +103,15 @@ export default function RootLayout({
           href="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/devicon.min.css"
         />
       </head>
-      <body className="antialiased">
+      <body id="top" className="antialiased">
         <ThemeProvider>
-          <div className="min-h-screen flex flex-col bg-background">
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
+          <ArticleTransitionProvider>
+            <div className="min-h-screen flex flex-col bg-background">
+              <Header />
+              <main id="main-content" className="flex-1" tabIndex={-1}>{children}</main>
+              <Footer />
+            </div>
+          </ArticleTransitionProvider>
         </ThemeProvider>
       </body>
     </html>

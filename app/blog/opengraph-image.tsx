@@ -10,8 +10,8 @@ export const size = {
 export const contentType = "image/png";
 
 export default async function Image() {
-  const zoroData = await readFile(join(process.cwd(), "public/zoro.png"));
-  const zoroSrc = Uint8Array.from(zoroData).buffer;
+  const avatarData = await readFile(join(process.cwd(), "public/avatar.jpeg"));
+  const avatarSrc = Uint8Array.from(avatarData).buffer;
 
   return new ImageResponse(
     (
@@ -22,8 +22,9 @@ export default async function Image() {
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          backgroundColor: "#ffffff",
+          backgroundColor: "#f3f4f6",
           padding: "80px 100px",
+          borderBottom: "16px solid #4259a8",
         }}
       >
         {/* Left side - Text */}
@@ -38,7 +39,7 @@ export default async function Image() {
             style={{
               fontSize: 80,
               fontWeight: 700,
-              color: "#1a1a1a",
+              color: "#252830",
               letterSpacing: "-0.03em",
             }}
           >
@@ -64,14 +65,14 @@ export default async function Image() {
           </div>
         </div>
 
-        {/* Right side - Zoro image */}
+        {/* Right side - Sriraam avatar */}
         <img
-          src={zoroSrc as unknown as string}
-          alt="Zoro"
+          src={avatarSrc as unknown as string}
+          alt="Sriraam"
           width={280}
           height={280}
           style={{
-            borderRadius: "50%",
+            borderRadius: "8px",
           }}
         />
       </div>

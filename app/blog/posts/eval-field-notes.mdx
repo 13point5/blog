@@ -1,0 +1,69 @@
+---
+title: 'An evaluation is more than a score'
+publishedAt: '2026-09-23'
+summary: 'The task distribution, the harness, and the verifier are all part of what an evaluation measures.'
+category: 'Evaluation'
+artwork: 'cartridge'
+objectLabel: 'Eval notes'
+draft: 'true'
+image: '/images/notes/eval-matrix.svg'
+imageAlt: 'A conceptual matrix compares task success, cost, robustness, and execution traces across code editing, tool use, and long tasks.'
+---
+“Model A gets 72%” sounds like a property of the model. In practice, it describes the model interacting with a particular set of tasks, instructions, tools, budgets, and scoring rules.
+
+Change one of those pieces and you may be measuring something different.
+
+## Name the object you are evaluating
+
+For an agent, a useful unit is the entire configured system: model, prompt, tool interface, context management, stopping rules, and environment. A benchmark result without those details is hard to reproduce or interpret.
+
+This emphasis on more than a single metric is central to [HELM](https://arxiv.org/abs/2211.09110). Its original evaluation considered accuracy alongside calibration, robustness, fairness, bias, toxicity, and efficiency, exposing tradeoffs that an accuracy-only comparison can hide.
+
+## Separate three kinds of failure
+
+The following is a practical review scheme, rather than a taxonomy prescribed by HELM:
+
+| Layer | Example | What to investigate |
+| --- | --- | --- |
+| Agent | Edits the wrong function | Reasoning, search, and tool use |
+| Environment | Dependency installation fails | Reproducibility and infrastructure |
+| Verifier | Accepts an empty output | Whether success is checked correctly |
+
+Collapsing all three into “the model failed” makes the next experiment less targeted. Silently excluding environment failures is also risky: report the exclusion rule and the number of affected tasks.
+
+## Keep a run record
+
+At minimum, record the inputs needed to understand the result. This is an illustrative schema, not an actual run:
+
+```json title="run-record.json" showLineNumbers
+{
+  "task_revision": "tasks-v3",
+  "model_revision": "pinned-model-id",
+  "prompt_revision": "agent-v2",
+  "environment_digest": "sha256:...",
+  "verifier_revision": "checks-v5",
+  "max_steps": 40,
+  "result": "success",
+  "trace_path": "runs/001.jsonl"
+}
+```
+
+A seed is useful metadata, but it is not a complete reproducibility guarantee. The artifact versions and the serving environment matter too.
+
+## Report uncertainty, not just rank
+
+If the result is a success proportion, the number of independent tasks matters. As an illustrative calculation, 72 successes in 100 independent Bernoulli trials gives a plug-in standard error of approximately 4.5 percentage points. That approximation does not account for correlated tasks, dataset selection, or changes to the agent.
+
+Repeated runs on the same task answer a different question from adding new tasks. Keep those two sources of variation separate.
+
+<details>
+<summary>What would make a result easier to trust?</summary>
+
+A documented task set, pinned configuration, available traces, a reviewed verifier, explicit failure accounting, and uncertainty reported at a unit appropriate to the experiment. These are suggested review criteria, not claims that any single benchmark guarantees all six.
+
+</details>
+
+## References
+
+- [Liang et al., Holistic Evaluation of Language Models](https://arxiv.org/abs/2211.09110)
+- [Stanford CRFM, HELM framework and reproducibility tooling](https://github.com/stanford-crfm/helm)

@@ -1,14 +1,14 @@
 import { getBlogPosts } from "@/app/blog/utils";
 
-export const baseUrl = "https://your-blog.vercel.app";
+export const baseUrl = "https://www.sriraam.me";
 
 export default async function sitemap() {
-  const blogs = getBlogPosts().map((post) => ({
+  const blogs = getBlogPosts().filter((post) => post.metadata.draft !== "true").map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
     lastModified: post.metadata.publishedAt,
   }));
 
-  const routes = ["", "/blog"].map((route) => ({
+  const routes = ["", "/blog", "/about"].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date().toISOString().split("T")[0],
   }));

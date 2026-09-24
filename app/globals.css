@@ -116,7 +116,7 @@ body {
 /* Font family classes - applied to html element */
 html.font-sans,
 html.font-sans body,
-html.font-sans *:not(code):not(pre):not(pre *):not(.katex):not(.katex *) {
+html.font-sans .font-sans {
   font-family: var(--font-geist), system-ui, sans-serif;
 }
 
