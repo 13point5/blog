@@ -14,8 +14,10 @@ Production main remains unchanged.
 
 ## Article opening transitions
 
-The grid now has a brief, skippable loading scene on ordinary article clicks. A floppy tilts into a retro computer, a cassette loads into a deck, a cartridge slots into a console, vinyl leaves its sleeve and settles on a turntable, and the book opens on a stand. All hardware shares a restrained gray/blue palette. The screen and indicator light respond after insertion.
+Every object now enters the same retro media terminal. Its five bays (disk, tape, cartridge, vinyl, and paper) are always visible in fixed positions. Only the selected bay lights up. The vinyl sleeve slips off before insertion; the other objects align and slide into their matching slots with a slower eased motion.
 
-A layout-level provider keeps the scene visible while the real article route loads underneath. The 1.15-second motion finishes before a short fade reveals the full page; slow navigation can keep the scene visible, and Skip animation always removes it. History navigation cancels the scene. Modified clicks remain normal browser links. Reduced motion bypasses the scene entirely. The artwork is CSS with perspective, and adds no animation dependencies.
+The real article DOM loads during insertion. Once the route is ready, it appears inside the device screen, then the camera and live page expand together to fill the browser. There is no screenshot, duplicate article, or hard cut to a separate rendering. Timing is 1.45 seconds for insertion, a 0.3-second screen reveal, and a 1.05-second zoom. Slow navigation waits at the terminal; Skip animation remains available throughout.
 
-Validation includes all six objects, mobile rendering, Skip animation, keyboard activation, browser Back, modified clicks, and reduced motion. Lint and production build pass.
+The simple grid is unchanged. Normal article URLs, modified clicks, keyboard navigation, history cancellation, reduced-motion bypass, and full About pages are retained. No new dependencies.
+
+Validation: lint and production build, all six media objects, desktop/mobile screen framing and landing, browser Back, Skip, keyboard navigation, reduced motion, and delayed navigation.
