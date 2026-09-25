@@ -2,3 +2,4 @@ build/
 models
 *.onnx
 *.bin
+__pycache__/
