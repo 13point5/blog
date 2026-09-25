@@ -1,0 +1,85 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>IP, TCP and UDP</title>
+<style>
+  @font-face { font-family: Inter; src: url(fonts/Inter.woff2) format("woff2"); font-weight: 100 900; }
+  @font-face { font-family: "JetBrains Mono"; src: url(fonts/JetBrainsMono.woff2) format("woff2"); font-weight: 100 800; }
+  html, body { margin: 0; background: #0b0f17; }
+  canvas { display: block; width: 100vw; max-width: 1920px; }
+  #ui { position: fixed; bottom: 8px; left: 8px; right: 8px; display: flex; gap: 8px; }
+  #ui input { flex: 1; }
+  body.render #ui { display: none; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<div id="ui"><button id="play">play</button><input id="seek" type="range" min="0" max="1000" value="0"></div>
+<script src="build/timeline.js"></script>
+<script src="lib.js"></script>
+<script>const SCENES_FN = {};</script>
+<script src="scenes_basics.js"></script>
+<script src="scenes_connection.js"></script>
+<script src="scenes_usecases.js"></script>
+<script>
+  // renderFrame(T) draws the frame at absolute time T (seconds).
+  function renderFrame(T) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = 1;
+    background(T);
+    const scenes = TIMELINE.scenes;
+    let s = scenes[0];
+    for (const x of scenes) if (T >= x.start) s = x;
+    const lt = T - s.start, dur = s.end - s.start;
+    const S = {
+      dur, cues: s.cues,
+      c: i => s.cues[Math.min(i, s.cues.length - 1)].start,
+      e: i => s.cues[Math.min(i, s.cues.length - 1)].end,
+      // eased progress starting `d` seconds after cue i begins
+      p: (i, d = 0, len = 0.7) => prog(lt, s.cues[Math.min(i, s.cues.length - 1)].start + d, len),
+      // fraction through cue i (0..1), linear
+      f: i => clamp((lt - s.cues[i].start) / (s.cues[i].end - s.cues[i].start)),
+      // approximate moment a phrase is spoken inside cue i (speech is ~uniform per character)
+      w: (i, needle) => {
+        const c = s.cues[i], src = c.say.indexOf(needle) >= 0 ? c.say : c.text, k = src.indexOf(needle);
+        if (k < 0) console.warn("cue phrase not found", s.id, i, needle);
+        return c.start + (c.end - c.start) * Math.max(0, k) / src.length;
+      },
+    };
+    S.pw = (i, needle, d = 0, len = 0.6) => prog(lt, S.w(i, needle) + d, len);
+    const fade = Math.min(prog(lt, 0, 0.45), 1 - prog(lt, dur - 0.45, 0.45));
+    ctx.save();
+    ctx.globalAlpha = fade;
+    const fn = SCENES_FN[s.id];
+    if (fn) fn(lt, S);
+    ctx.restore();
+    let cue = null;
+    for (const c of s.cues) if (lt >= c.start - 0.05 && lt <= c.end + 0.5) cue = c;
+    captions(cue, lt);
+    progressBar(T);
+  }
+  window.renderFrame = renderFrame;
+  window.frameJPEG = (T, q) => { renderFrame(T); return canvas.toDataURL("image/jpeg", q); };
+
+  if (new URLSearchParams(location.search).has("render")) document.body.classList.add("render");
+  else {
+    // simple preview player: open with ?t=123 to jump; audio from build/narration.wav
+    const audio = new Audio("build/narration.wav");
+    const seek = document.getElementById("seek");
+    const t0 = parseFloat(new URLSearchParams(location.search).get("t") || "0");
+    audio.currentTime = t0;
+    document.getElementById("play").onclick = () => (audio.paused ? audio.play() : audio.pause());
+    seek.oninput = () => (audio.currentTime = seek.value / 1000 * TIMELINE.duration);
+    document.fonts.ready.then(() => {
+      const loop = () => {
+        renderFrame(audio.currentTime);
+        seek.value = audio.currentTime / TIMELINE.duration * 1000;
+        requestAnimationFrame(loop);
+      };
+      loop();
+    });
+  }
+</script>
+</body>
+</html>

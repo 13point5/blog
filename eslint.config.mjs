@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Standalone video render pipelines (plain browser scripts, not app code).
+    "videos/**",
   ]),
 ]);
 
