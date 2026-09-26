@@ -3,6 +3,7 @@ import { Socials } from "./app/components/socials";
 import { Link } from "./components/ui/link";
 import { ImageGallery } from "./components/ui/image-gallery";
 import { ImageWithFullscreen } from "./components/ui/image-with-fullscreen";
+import { Video } from "./components/ui/video";
 import { CopyButton } from "./components/ui/copy-button";
 import { CodeCollapsibleWrapper } from "./components/code-collapsible-wrapper";
 import { getIconForLanguageExtension } from "./components/language-icons";
@@ -11,6 +12,7 @@ import { getIconForLanguageExtension } from "./components/language-icons";
 const components: MDXComponents = {
   Socials,
   Image: ImageWithFullscreen,
+  Video,
   ImageGallery,
   CodeCollapsibleWrapper,
 
