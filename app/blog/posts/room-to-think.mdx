@@ -1,0 +1,48 @@
+---
+title: 'What moves through a Transformer block?'
+publishedAt: '2026-09-23'
+summary: 'A compact view of token representations, attention, and position-wise computation.'
+category: 'Deep learning · Architectures'
+artwork: 'record'
+objectLabel: 'Attention, again'
+draft: 'true'
+image: '/images/notes/attention.svg'
+imageAlt: 'A causal visibility mask and a schematic block separate self-attention across positions from a feed-forward transformation at each position.'
+---
+Take the sentence “The key beside the books is missing.” Predicting what comes next requires a representation of the current position that can use information from earlier words.
+
+It helps to distinguish two jobs in a Transformer block: moving information between positions, and transforming the representation at each position.
+
+## Attention mixes information
+
+In [Attention Is All You Need](https://arxiv.org/abs/1706.03762), learned projections produce queries, keys, and values. Scaled dot products between queries and keys become weights through a softmax; those weights combine the values.
+
+$$
+\operatorname{Attention}(Q,K,V)=\operatorname{softmax}\left(\frac{QK^\top}{\sqrt{d_k}}\right)V
+$$
+
+Multiple heads compute different projected mixtures. Their outputs are concatenated and projected again. In causal self-attention, a position cannot attend to later positions.
+
+## The feed-forward layer has a different job
+
+The block also contains a feed-forward network applied separately at each position, with shared parameters. Attention can mix information across tokens; this network transforms the resulting representation locally. Residual connections carry the stream around sublayers, and normalization participates in the block’s computation. The diagram omits normalization and projection details to keep these two jobs visible.
+
+The original paper describes an encoder–decoder Transformer. The illustration here isolates a causal, decoder-style block; it is not the full original architecture.
+
+## A mask is a constraint, not a learned preference
+
+For five positions, the last position can use all five inputs. The first can use only itself. The triangular pattern in the image shows **which positions are allowed**, not measured attention weights.
+
+That distinction matters when reading an attention visualization. A dark cell in a visibility mask is a permission. A large value in an attention matrix is a weight computed for a particular input and head. Neither, by itself, tells you the whole story of how the model arrived at its output.
+
+## Three questions to ask of an architecture diagram
+
+- Where can information cross between positions?
+- Which operations reuse the same parameters at every position?
+- Which paths carry representations forward without replacing them entirely?
+
+These questions make a dense block diagram easier to unpack before comparing model variants.
+
+## Reference
+
+- [Vaswani et al., Attention Is All You Need](https://arxiv.org/abs/1706.03762), especially Sections 3.1–3.3.

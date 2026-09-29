@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { parse } from "yaml";
 
 export type Metadata = {
   title: string;
@@ -7,6 +8,11 @@ export type Metadata = {
   summary: string;
   image?: string;
   author?: string;
+  category?: string;
+  artwork?: string;
+  objectLabel?: string;
+  draft?: string;
+  imageAlt?: string;
 };
 
 function parseFrontmatter(fileContent: string) {
@@ -14,15 +20,10 @@ function parseFrontmatter(fileContent: string) {
   const match = frontmatterRegex.exec(fileContent);
   const frontMatterBlock = match![1];
   const content = fileContent.replace(frontmatterRegex, "").trim();
-  const frontMatterLines = frontMatterBlock.trim().split("\n");
-  const metadata: Partial<Metadata> = {};
-
-  frontMatterLines.forEach((line) => {
-    const [key, ...valueArr] = line.split(": ");
-    let value = valueArr.join(": ").trim();
-    value = value.replace(/^['"](.*)['"]$/, "$1"); // Remove quotes
-    metadata[key.trim() as keyof Metadata] = value;
-  });
+  const parsed = parse(frontMatterBlock) as Record<string, unknown>;
+  const metadata = Object.fromEntries(
+    Object.entries(parsed).map(([key, value]) => [key, String(value ?? "")]),
+  );
 
   return { metadata: metadata as Metadata, content };
 }
@@ -54,7 +55,11 @@ export function getBlogPosts() {
   return getMDXData(path.join(process.cwd(), "app", "blog", "posts"));
 }
 
-export function formatDate(date: string, includeRelative = false, abbreviated = false) {
+export function formatDate(
+  date: string,
+  includeRelative = false,
+  abbreviated = false,
+) {
   const currentDate = new Date();
   if (!date.includes("T")) {
     date = `${date}T00:00:00`;

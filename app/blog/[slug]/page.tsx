@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { CustomMDX } from "@/app/components/mdx";
 import { formatDate, getBlogPosts } from "@/app/blog/utils";
+import Link from "next/link";
 import Image from "next/image";
 
 export async function generateStaticParams() {
@@ -37,6 +38,7 @@ export async function generateMetadata({
       type: "article",
       publishedTime,
     },
+    ...(post.metadata.draft === "true" ? { robots: { index: false, follow: true } } : {}),
     twitter: {
       card: "summary_large_image",
       title,
@@ -57,50 +59,25 @@ export default async function BlogPost({
     notFound();
   }
 
+  const minutes = Math.max(1, Math.ceil(post.content.split(/\s+/).length / 220));
   return (
-    <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-14 pb-16">
-      <article className="prose prose-lg animate-fade-blur">
-        <script
-          type="application/ld+json"
-          suppressHydrationWarning
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "BlogPosting",
-              headline: post.metadata.title,
-              datePublished: post.metadata.publishedAt,
-              dateModified: post.metadata.publishedAt,
-              description: post.metadata.summary,
-            }),
-          }}
-        />
-        <h1 className="text-3xl font-semibold mb-4 mt-8 text-foreground text-center">
-          {post.metadata.title}
-        </h1>
-        <div className="flex items-center justify-center gap-2 text-sm text-foreground-muted mb-6">
-          <time>{formatDate(post.metadata.publishedAt)}</time>
-          {post.metadata.author && (
-            <>
-              <span>•</span>
-              <span>{post.metadata.author}</span>
-            </>
-          )}
-        </div>
-
-        {post.metadata.image && (
-          <div className="max-w-lg mx-auto mb-8">
-            <Image
-              src={post.metadata.image}
-              alt={post.metadata.title}
-              width={500}
-              height={350}
-              className="h-auto rounded-lg"
-            />
-          </div>
-        )}
-
-        <CustomMDX source={post.content} />
+    <div className="article-page">
+      <Link href="/" className="back-link">← Collection</Link>
+      <article>
+        {post.metadata.draft !== "true" && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org", "@type": "BlogPosting", headline: post.metadata.title,
+          datePublished: post.metadata.publishedAt, dateModified: post.metadata.publishedAt,
+          description: post.metadata.summary, author: { "@type": "Person", name: post.metadata.author || "Sriraam" },
+        }).replace(/</g, "\\u003c") }} /> }
+        <header className="article-header">
+          <div className="article-type">{post.metadata.category || "Experiments"}</div>
+          <h1>{post.metadata.title}</h1>
+          <div className="article-meta"><time dateTime={post.metadata.publishedAt}>{formatDate(post.metadata.publishedAt)}</time>{post.metadata.author && <span>By {post.metadata.author}</span>}{post.metadata.draft === "true" && <span className="draft-label">Draft note</span>}<span>{minutes} min read</span></div>
+        </header>
+        {post.metadata.image && <figure className="article-illustration"><Image src={post.metadata.image} alt={post.metadata.imageAlt || post.metadata.title} width={960} height={520} sizes="(max-width: 720px) 100vw, 720px" priority /></figure>}
+        <div className="article-body"><CustomMDX source={post.content} /></div>
+        <div className="article-end"><Link href="/">← Collection</Link></div>
       </article>
-    </main>
+    </div>
   );
 }

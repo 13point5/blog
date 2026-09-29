@@ -4,6 +4,9 @@ import { transformers } from "./lib/highlight-code.mjs";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  outputFileTracingIncludes: {
+    '/studio': ['./app/blog/posts/*.mdx'],
+  },
   // Configure `pageExtensions` to include markdown and MDX files
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
   images: {

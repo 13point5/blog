@@ -1,0 +1,48 @@
+---
+title: 'A proof checker is not a judge model'
+publishedAt: '2026-09-23'
+summary: 'Why generating a proof and checking a proof are different jobs—and what the distinction does not guarantee.'
+category: 'Formal verification'
+artwork: 'book'
+objectLabel: 'Proof, not plausibility'
+draft: 'true'
+image: '/images/notes/verification.svg'
+imageAlt: 'A formal statement and proposed proof are checked by a kernel, with rejected attempts feeding a retry loop. The guarantee depends on the statement and its assumptions.'
+---
+A language model can produce a convincing mathematical argument that contains a gap. A judge model can assign that argument a high score. Neither event is the same as a proof being accepted by a formal proof checker.
+
+## Propose freely; check precisely
+
+In Lean, a theorem is represented by a proposition and a proof by a term inhabiting that proposition’s type. The [kernel](https://lean-lang.org/doc/reference/latest/Elaboration-and-Compilation/) checks the elaborated term against the rules of the underlying type theory.
+
+This separates two tasks. Searching for a proof may be expensive, heuristic, and model-assisted. Checking a proposed proof follows an explicit formal system. Lean’s [tactics](https://lean-lang.org/doc/reference/latest/Tactic-Proofs/) help construct proof terms; they do not replace the kernel’s checking step.
+
+## A deliberately small example
+
+```lean title="swap.lean"
+theorem swap (p q : Prop) : p ∧ q → q ∧ p := by
+  intro h
+  exact And.intro h.right h.left
+```
+
+The assumption `h` contains evidence for both `p` and `q`. The proof uses the two pieces in the opposite order. The checker is verifying that this term establishes the formal proposition; it is not judging whether the prose “sounds right.”
+
+## Check the statement as carefully as the proof
+
+Imagine asking an agent to prove that a function preserves the contents of a list. If the agent changes the theorem to say only that the output is a list, an accepted proof would establish a much weaker claim.
+
+This is a specification problem. A reliable evaluation should hold the target statement fixed and inspect the assumptions and dependencies of the submitted result.
+
+[Lean tracks axiom dependencies](https://lean-lang.org/doc/reference/latest/Axioms/). That is relevant when a proof uses an admitted assumption: acceptance under extra assumptions is different from establishing the intended theorem under the intended foundation.
+
+<div className="callout-note"><strong>What is actually guaranteed?</strong>A checked proof establishes the encoded statement relative to the system’s rules and assumptions. It does not establish that the statement captures an informal request, that external data is accurate, or that every part of a surrounding application is correct.</div>
+
+## Why this is interesting for LLM evaluation
+
+A proof assistant can provide structured feedback to a model: a goal, a rejected step, or a completed proof. This makes an attractive setting for exploring search and learning from verifiable feedback. The challenge includes faithfully formalizing the task, not merely producing something the checker will accept.
+
+## References
+
+- [Lean Reference: Elaboration and Compilation](https://lean-lang.org/doc/reference/latest/Elaboration-and-Compilation/)
+- [Lean Reference: Tactic Proofs](https://lean-lang.org/doc/reference/latest/Tactic-Proofs/)
+- [Lean Reference: Axioms](https://lean-lang.org/doc/reference/latest/Axioms/)
