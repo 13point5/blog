@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import {
   Geist,
+  EB_Garamond,
   IM_Fell_English,
   IM_Fell_English_SC,
-  Orbitron,
-  Rajdhani,
 } from "next/font/google";
 // OpenDyslexic font for dyslexia-friendly reading - all weights and styles
 import "@fontsource/opendyslexic/400.css"; // Regular
@@ -22,7 +21,7 @@ const geist = Geist({
   variable: "--font-geist",
 });
 
-// Theme fonts are only fetched when the Marauder's Map / Arc Reactor themes use them
+// Theme fonts are only fetched when the Marauder's Map theme uses them
 const fell = IM_Fell_English({
   subsets: ["latin"],
   weight: "400",
@@ -31,23 +30,17 @@ const fell = IM_Fell_English({
   preload: false,
 });
 
+const garamond = EB_Garamond({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  variable: "--font-garamond",
+  preload: false,
+});
+
 const fellSC = IM_Fell_English_SC({
   subsets: ["latin"],
   weight: "400",
   variable: "--font-fell-sc",
-  preload: false,
-});
-
-const orbitron = Orbitron({
-  subsets: ["latin"],
-  variable: "--font-orbitron",
-  preload: false,
-});
-
-const rajdhani = Rajdhani({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-rajdhani",
   preload: false,
 });
 
@@ -93,7 +86,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geist.variable} ${fell.variable} ${fellSC.variable} ${orbitron.variable} ${rajdhani.variable} font-sans`}
+      className={`${geist.variable} ${fell.variable} ${fellSC.variable} ${garamond.variable} font-sans`}
       suppressHydrationWarning
     >
       <head>
@@ -107,11 +100,8 @@ export default function RootLayout({
                   const root = document.documentElement;
                   
                   // Apply theme
-                  root.classList.remove('dark', 'warm', 'map', 'reactor');
-                  if (theme === 'dark' || theme === 'reactor') {
-                    root.classList.add('dark');
-                  }
-                  if (theme === 'map' || theme === 'reactor') {
+                  root.classList.remove('dark', 'warm', 'map');
+                  if (theme === 'dark' || theme === 'map') {
                     root.classList.add(theme);
                   }
                   

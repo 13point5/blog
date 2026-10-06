@@ -262,9 +262,9 @@ const SOCIALS = [
 
 // Walkers' routes run along corridor centre lines.
 const ROUTE_SRIRAAM: Pt[] = [
-  [600, 398],
-  [560, 372],
-  [425, 360],
+  [600, 402],
+  [490, 402],
+  [455, 362],
   [330, 372],
   [250, 440],
   [245, 525],
@@ -277,6 +277,7 @@ const ROUTE_SRIRAAM: Pt[] = [
   [600, 440],
 ];
 
+// Name tags float above the feet, so routes skirt the Great Hall's lettering.
 const ROUTE_QWEN: Pt[] = [
   [955, 455],
   [955, 525],
@@ -286,9 +287,10 @@ const ROUTE_QWEN: Pt[] = [
   [680, 650],
   [600, 600],
   [600, 500],
-  [630, 420],
-  [700, 372],
-  [775, 360],
+  [600, 440],
+  [640, 402],
+  [730, 402],
+  [762, 362],
   [880, 365],
   [930, 410],
 ];
@@ -332,36 +334,23 @@ function MapDrawing({ posts, animate }: { posts: HeroPost[]; animate: boolean })
       </defs>
 
       <g filter="url(#mm-rough)">
-        {/* ---- title cartouche ---- */}
+        {/* ---- title ---- */}
         <g>
-          <Ink d="M410 22H790V178H410Z" delay={0.1} dur={1.6} />
-          <Ink d="M420 32H780V168H420Z" delay={0.3} dur={1.6} className="mm-faint" />
-          {[
-            [410, 22, 1, 1],
-            [790, 22, -1, 1],
-            [410, 178, 1, -1],
-            [790, 178, -1, -1],
-          ].map(([cx, cy, sx, sy], i) => (
-            <Ink
-              key={i}
-              d={`M${cx} ${cy + 26 * sy}c${-14 * sx} 0 ${-20 * sx} ${-14 * sy} ${-10 * sx} ${-22 * sy}s${22 * sx} ${-6 * sy} ${22 * sx} ${-14 * sy}c${10 * sx} ${-8 * sy} ${22 * sx} ${-2 * sy} ${12 * sx} ${8 * sy}`}
-              delay={0.9 + i * 0.1}
-              dur={0.8}
-            />
-          ))}
-          <Write x={600} y={56} delay={0.6} size={15} className="mm-it">
+          <Write x={600} y={52} delay={0.2} size={14} className="mm-it mm-soft">
             Messrs. Reward, Policy, Rollout &amp; Gradient
           </Write>
-          <Write x={600} y={76} delay={0.8} size={13} className="mm-it">
-            Purveyors of Aids to Magical Model-Makers
+          <Write x={600} y={72} delay={0.45} size={12.5} className="mm-it mm-soft">
+            Purveyors of Aids to Magical Model-Makers, are proud to present
           </Write>
-          <Write x={600} y={96} delay={1.0} size={13} className="mm-it">
-            are proud to present
-          </Write>
-          <Write x={600} y={138} delay={1.3} size={31} className="mm-sc mm-title">
+          <Write x={600} y={122} delay={0.9} size={34} className="mm-sc mm-title">
             The Marauder&apos;s Map
           </Write>
-          <Write x={600} y={160} delay={1.6} size={14} className="mm-it">
+          <Ink
+            d="M470 146h96M634 146h96M566 146c6-9 16-9 18 0s-11 9-11 0 24-10 24 0-11 9-11 0 10-9 18 0"
+            delay={1.3}
+            dur={1.4}
+          />
+          <Write x={600} y={174} delay={1.6} size={13.5} className="mm-it mm-soft">
             of sriraam.me
           </Write>
         </g>

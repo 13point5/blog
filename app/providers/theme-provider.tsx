@@ -8,8 +8,8 @@ import React, {
   useSyncExternalStore,
 } from "react";
 
-export type Theme = "light" | "dark" | "map" | "reactor";
-export const THEMES: Theme[] = ["light", "dark", "map", "reactor"];
+export type Theme = "light" | "dark" | "map";
+export const THEMES: Theme[] = ["light", "dark", "map"];
 type FontFamily = "sans" | "dyslexia";
 
 interface ThemeContextType {
@@ -53,14 +53,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (!hasMounted) return;
 
     const root = document.documentElement;
-    root.classList.remove("dark", "warm", "map", "reactor");
+    root.classList.remove("dark", "warm", "map");
 
-    // The arc reactor theme is dark at heart, so it also gets `dark`
-    // (dark code highlighting, dark: variants).
-    if (theme === "dark" || theme === "reactor") {
-      root.classList.add("dark");
-    }
-    if (theme === "map" || theme === "reactor") {
+    if (theme === "dark" || theme === "map") {
       root.classList.add(theme);
     }
 

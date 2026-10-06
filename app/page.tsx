@@ -18,7 +18,7 @@ export default function Home() {
 
   return (
     <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-14 pb-25 flex flex-col">
-      {/* Marauder's Map / Arc Reactor themes only */}
+      {/* Marauder's Map theme only */}
       <ThemedHero posts={posts} />
 
       {/* Hero Section */}
