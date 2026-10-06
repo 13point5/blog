@@ -74,7 +74,7 @@ export default async function BlogPost({
             }),
           }}
         />
-        <h1 className="text-3xl font-semibold mb-4 mt-8 text-foreground text-center">
+        <h1 className="post-title text-3xl font-semibold mb-4 mt-8 text-foreground text-center">
           {post.metadata.title}
         </h1>
         <div className="flex items-center justify-center gap-2 text-sm text-foreground-muted mb-6">

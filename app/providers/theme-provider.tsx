@@ -8,7 +8,8 @@ import React, {
   useSyncExternalStore,
 } from "react";
 
-type Theme = "light" | "dark";
+export type Theme = "light" | "dark" | "map";
+export const THEMES: Theme[] = ["light", "dark", "map"];
 type FontFamily = "sans" | "dyslexia";
 
 interface ThemeContextType {
@@ -23,8 +24,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 function getStoredTheme(): Theme {
   if (typeof window === "undefined") return "light";
   const stored = localStorage.getItem("theme");
-  if (stored === "dark") return "dark";
-  return "light";
+  return THEMES.includes(stored as Theme) ? (stored as Theme) : "light";
 }
 
 function getStoredFont(): FontFamily {
@@ -53,10 +53,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (!hasMounted) return;
 
     const root = document.documentElement;
-    root.classList.remove("dark", "warm");
+    root.classList.remove("dark", "warm", "map");
 
-    if (theme === "dark") {
-      root.classList.add("dark");
+    if (theme === "dark" || theme === "map") {
+      root.classList.add(theme);
     }
 
     localStorage.setItem("theme", theme);

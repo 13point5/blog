@@ -1,6 +1,6 @@
 "use client";
 
-import { Sun, Moon, Type } from "lucide-react";
+import { Sun, Moon, Type, Map as MapIcon } from "lucide-react";
 import { useTheme } from "../providers/theme-provider";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +21,7 @@ export function SettingsDropdown() {
   const themes = [
     { value: "light", label: "Light", icon: Sun },
     { value: "dark", label: "Dark", icon: Moon },
+    { value: "map", label: "Marauder's Map", icon: MapIcon },
   ] as const;
 
   return (

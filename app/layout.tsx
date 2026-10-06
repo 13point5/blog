@@ -1,11 +1,18 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import {
+  Geist,
+  EB_Garamond,
+  Herr_Von_Muellerhoff,
+  IM_Fell_English,
+  IM_Fell_English_SC,
+} from "next/font/google";
 // OpenDyslexic font for dyslexia-friendly reading - all weights and styles
 import "@fontsource/opendyslexic/400.css"; // Regular
 import "@fontsource/opendyslexic/400-italic.css"; // Regular Italic
 import "@fontsource/opendyslexic/700.css"; // Bold
 import "@fontsource/opendyslexic/700-italic.css"; // Bold Italic
 import "./globals.css";
+import "./themes.css";
 import { ThemeProvider } from "./providers/theme-provider";
 import { Header } from "./components/header";
 import { Footer } from "./components/footer";
@@ -13,6 +20,37 @@ import { Footer } from "./components/footer";
 const geist = Geist({
   subsets: ["latin"],
   variable: "--font-geist",
+});
+
+// Theme fonts are only fetched when the Marauder's Map theme uses them
+const fell = IM_Fell_English({
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+  variable: "--font-fell",
+  preload: false,
+});
+
+const garamond = EB_Garamond({
+  subsets: ["latin"],
+  style: ["normal", "italic"],
+  variable: "--font-garamond",
+  preload: false,
+});
+
+// the tiny handwriting that fills the map's walls
+const scrawl = Herr_Von_Muellerhoff({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-scrawl",
+  preload: false,
+});
+
+const fellSC = IM_Fell_English_SC({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-fell-sc",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -57,7 +95,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geist.variable} font-sans`}
+      className={`${geist.variable} ${fell.variable} ${fellSC.variable} ${garamond.variable} ${scrawl.variable} font-sans`}
       suppressHydrationWarning
     >
       <head>
@@ -71,9 +109,9 @@ export default function RootLayout({
                   const root = document.documentElement;
                   
                   // Apply theme
-                  root.classList.remove('dark', 'warm');
-                  if (theme === 'dark') {
-                    root.classList.add('dark');
+                  root.classList.remove('dark', 'warm', 'map');
+                  if (theme === 'dark' || theme === 'map') {
+                    root.classList.add(theme);
                   }
                   
                   // Apply font (remove all font classes first)
@@ -102,7 +140,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <ThemeProvider>
-          <div className="min-h-screen flex flex-col bg-background">
+          <div className="site-shell min-h-screen flex flex-col bg-background">
             <Header />
             <main className="flex-1">{children}</main>
             <Footer />

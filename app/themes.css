@@ -1,0 +1,573 @@
+/*
+ * The Marauder's Map theme (html.map), picked from the menu. It keeps the
+ * site's quiet, editorial layout and lets one hand-drawn map do the talking.
+ * Theme fonts only apply with the default font choice, so OpenDyslexic still wins.
+ */
+
+/* =========================================================
+   Marauder's Map — tokens & page
+   ========================================================= */
+
+html.map {
+  --mm-paper: #f3ebd8;
+  --mm-ribbon: #f6efdf;
+  --mm-ink: #4b3522;
+  --mm-red: #8c3a22;
+  --background: #f3ebd8;
+  --foreground: #33241a;
+  --background-card: #f1e6c8;
+  --background-alt: #dfcd9f;
+  --foreground-muted: #7a624a;
+  --link: #8c3a22;
+  --link-hover: #5f1d0e;
+  --accent: #e0cfa3;
+  --accent-light: #d8c38f;
+  --border: rgba(75, 53, 34, 0.2);
+  --code-bg: #e3d2a8;
+  --code-foreground: #2f1d10;
+  --code-highlight: #d6c08c;
+  --code-line-number: #8a6d4b;
+  --code-border: rgba(61, 37, 20, 0.25);
+  --card: #f1e6c8;
+  --card-foreground: #2f1d10;
+  --popover: #efe2bf;
+  --popover-foreground: #2f1d10;
+  --primary: #3d2514;
+  --primary-foreground: #f1e6c8;
+  --secondary: #e0cfa3;
+  --secondary-foreground: #3d2514;
+  --muted: #e0cfa3;
+  --muted-foreground: #6e5235;
+  --accent-foreground: #3d2514;
+  --input: rgba(61, 37, 20, 0.25);
+  --ring: rgba(138, 45, 23, 0.5);
+  color-scheme: light;
+}
+
+html.map .site-shell {
+  background-color: var(--mm-paper);
+  background-image:
+    radial-gradient(ellipse at 15% 8%, rgba(255, 252, 240, 0.6), transparent 50%),
+    radial-gradient(ellipse at 88% 92%, rgba(150, 105, 50, 0.08), transparent 55%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .36 0 0 0 0 .22 0 0 0 0 .09 0 0 0 .1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-attachment: fixed;
+}
+
+/* a whisper of aged edges */
+html.map .site-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+  box-shadow: inset 0 0 180px rgba(120, 80, 35, 0.12);
+}
+
+html.map.font-sans,
+html.map.font-sans body,
+html.map.font-sans *:not(code):not(pre):not(pre *):not(.katex):not(.katex *) {
+  font-family: var(--font-garamond), "EB Garamond", Georgia, serif;
+}
+
+html.map.font-sans :is(h1, h2, h3, h4, h5, h6):not(code):not(pre):not(pre *):not(.katex):not(.katex *) {
+  font-family: var(--font-fell-sc), "IM Fell English SC", Georgia, serif !important;
+}
+
+/* map lettering: IM Fell, its small caps, and a scrawl for the walls */
+html.map.font-sans .mm :is(text, tspan, textPath),
+html.map.font-sans .mm :is(.mm-incantation, .mm-managed, .mm-hint) {
+  font-family: var(--font-fell), "IM Fell English", Georgia, serif !important;
+}
+
+html.map.font-sans .mm :is(.sc, .mm-micro-caps, .mm-tap) {
+  font-family: var(--font-fell-sc), "IM Fell English SC", Georgia, serif !important;
+}
+
+html.map.font-sans .mm .mm-scrawl {
+  font-family: var(--font-scrawl), "Herr Von Muellerhoff", cursive !important;
+}
+
+html.map body {
+  font-size: 18px;
+}
+
+html.map ::selection {
+  background: rgba(138, 45, 23, 0.18);
+  color: var(--foreground);
+}
+
+html.map main :is(h1, h2, h3) {
+  font-weight: 400;
+  letter-spacing: 0.03em;
+}
+
+html.map main ul li::marker {
+  content: "–  ";
+  color: var(--foreground-muted);
+}
+
+html.map .link-default {
+  color: var(--link);
+  font-weight: 400;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in oklab, var(--link) 40%, transparent);
+  text-underline-offset: 4px;
+}
+
+html.map .link-default:hover {
+  text-decoration-color: var(--link);
+}
+
+
+html.map article img {
+  filter: sepia(0.18) contrast(0.97);
+}
+
+html.map .post-title::after {
+  content: "";
+  display: block;
+  width: 240px;
+  max-width: 70%;
+  height: 22px;
+  margin: 0.6rem auto 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 22' fill='none' stroke='%233d2514' stroke-width='1.4' stroke-linecap='round'%3E%3Cpath d='M4 11h86M150 11h86M90 11c8-10 20-10 22 0s-14 10-14 0 30-12 30 0-14 10-14 0 12-10 22 0'/%3E%3Ccircle cx='120' cy='11' r='2.2' fill='%233d2514'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  clip-path: inset(0 50% 0 50%);
+  animation: mm-reveal-x 1.4s 0.4s cubic-bezier(0.6, 0, 0.3, 1) forwards;
+}
+
+@keyframes mm-reveal-x {
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+/* =========================================================
+   Marauder's Map — the map itself
+   Folded: the cover. Open: the gatefold swings out and the
+   inside inks itself outward from the centre.
+   ========================================================= */
+
+.mm {
+  --mp: #ecdcab;
+  --mp-ink: #3a2316;
+  --mp-red: #8a3424;
+  margin: 2.5rem 0 1rem;
+}
+
+.mm-frame {
+  position: relative;
+}
+
+.mm-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(58, 35, 22, 0.3) transparent;
+}
+
+.mm-closed .mm-scroll,
+.mm-closing .mm-scroll {
+  overflow-x: hidden;
+}
+
+.mm-interior {
+  min-width: 1080px;
+  aspect-ratio: 16 / 9;
+  opacity: 0;
+  box-shadow: 0 22px 40px -26px rgba(70, 40, 10, 0.55);
+}
+
+.mm-open .mm-interior {
+  opacity: 1;
+  animation: mm-unfold 1s cubic-bezier(0.55, 0.05, 0.25, 1) both;
+}
+
+.mm-closing .mm-interior {
+  opacity: 0;
+  transition: opacity 0.55s ease;
+}
+
+@keyframes mm-unfold {
+  from {
+    clip-path: inset(0 30% 0 30%);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.mm-svg,
+.mm-cover-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* the folded cover, sized to the map's height but never wider than the screen */
+.mm-cover {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(calc(max(100%, 1080px) * 0.4018), calc(100% - 16px));
+  aspect-ratio: 600 / 840;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  perspective: 2200px;
+  transform: translate(-50%, -50%);
+  transition: transform 0.4s ease, visibility 0s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mm-closed .mm-cover:hover {
+  transform: translate(-50%, calc(-50% - 4px));
+}
+
+.mm-cover:focus-visible {
+  outline: 1px solid var(--mp-red);
+  outline-offset: 6px;
+}
+
+.mm-cover-half {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  backface-visibility: hidden;
+  box-shadow: 0 18px 34px -20px rgba(70, 40, 10, 0.6);
+  transition:
+    transform 1s cubic-bezier(0.55, 0.05, 0.25, 1),
+    opacity 0.3s ease;
+}
+
+.mm-cover-left {
+  left: 0;
+  transform-origin: left center;
+}
+
+.mm-cover-right {
+  right: 0;
+  transform-origin: right center;
+}
+
+/* the seam where the gatefold meets */
+.mm-cover-left::after,
+.mm-cover-right::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  pointer-events: none;
+}
+
+.mm-cover-left::after {
+  right: 0;
+  background: linear-gradient(90deg, transparent, rgba(90, 55, 20, 0.22));
+}
+
+.mm-cover-right::after {
+  left: 0;
+  background: linear-gradient(270deg, transparent, rgba(90, 55, 20, 0.12));
+}
+
+.mm-open .mm-cover {
+  pointer-events: none;
+  visibility: hidden;
+  transition: visibility 0s 1s;
+}
+
+.mm-open .mm-cover-left {
+  transform: rotateY(-170deg);
+  opacity: 0;
+  transition:
+    transform 1s cubic-bezier(0.55, 0.05, 0.25, 1),
+    opacity 0.35s ease 0.55s;
+}
+
+.mm-open .mm-cover-right {
+  transform: rotateY(170deg);
+  opacity: 0;
+  transition:
+    transform 1s cubic-bezier(0.55, 0.05, 0.25, 1),
+    opacity 0.35s ease 0.55s;
+}
+
+.mm-closing .mm-cover-half {
+  transition-delay: 0.35s;
+}
+
+/* paper & ink */
+.mm-parchment {
+  fill: var(--mp);
+}
+
+.mm-mottle {
+  fill: url(#mm-mottle-g);
+}
+
+.mm-spot {
+  fill: #8f5d28;
+}
+
+.mm-l,
+.mm-solid,
+.mm-bar,
+.mm-red-dot {
+  fill: var(--mp-ink);
+}
+
+.mm-red-dot {
+  fill: var(--mp-red);
+}
+
+.it {
+  font-style: italic;
+}
+
+.mm-micro {
+  fill: var(--mp-ink);
+  fill-opacity: 0.88;
+}
+
+.mm-micro-caps {
+  letter-spacing: 0.04em;
+}
+
+.mm-wall,
+.mm-line,
+.mm-hair,
+.mm-frame-line,
+.mm-ray,
+.mm-red-line {
+  fill: none;
+  stroke: var(--mp-ink);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mm-wall {
+  stroke-width: 1.35;
+}
+
+.mm-line {
+  stroke-width: 1.15;
+}
+
+.mm-hair {
+  stroke-width: 0.6;
+  stroke-opacity: 0.8;
+}
+
+.mm-frame-line {
+  stroke-width: 1.3;
+}
+
+.mm-ray {
+  stroke-width: 0.75;
+  stroke-opacity: 0.8;
+}
+
+.mm-red-line {
+  stroke: var(--mp-red);
+  stroke-width: 0.9;
+}
+
+.mm-paper {
+  fill: var(--mp);
+}
+
+.mm-motto {
+  letter-spacing: 0.05em;
+}
+
+.mm-blob {
+  fill: #3e2316;
+}
+
+.mm-knock {
+  fill: #ecdcab;
+  fill-opacity: 0.92;
+}
+
+.mm-plaque {
+  fill: #4b2919;
+  stroke: var(--mp-ink);
+  stroke-width: 1.2;
+}
+
+.mm-plaque-text {
+  fill: #eedfb2;
+}
+
+.mm-ribbon-edge {
+  fill: none;
+  stroke: var(--mp-ink);
+  stroke-width: 5.2;
+  stroke-linecap: round;
+}
+
+.mm-ribbon-face {
+  fill: none;
+  stroke: var(--mp);
+  stroke-width: 2.8;
+  stroke-linecap: round;
+}
+
+.mm-spaced {
+  letter-spacing: 0.3em;
+}
+
+/* places are links */
+.mm-place {
+  cursor: pointer;
+  outline: none;
+}
+
+.mm-hit {
+  fill: transparent;
+}
+
+.mm-hit-stroke {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 28;
+}
+
+.mm-place .mm-l {
+  transition: fill 0.2s ease;
+}
+
+.mm-place:hover .mm-l,
+.mm-place:focus-visible .mm-l {
+  fill: var(--mp-red);
+}
+
+.mm-place:focus-visible .mm-hit {
+  fill: rgba(138, 52, 36, 0.06);
+}
+
+/* footprints */
+.mm-walker {
+  fill: var(--mp-ink);
+}
+
+.mm-nametag path {
+  fill: var(--mp);
+  stroke: var(--mp-ink);
+  stroke-width: 0.8;
+}
+
+/* under the map */
+.mm-footer {
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  gap: 1rem;
+  min-height: 2.6rem;
+  margin-top: 1rem;
+}
+
+.mm-open .mm-footer {
+  justify-content: flex-end;
+}
+
+.mm-incantation {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  margin: 0;
+  text-align: center;
+}
+
+.mm-words {
+  font-style: italic;
+  font-size: 1.2rem;
+  color: var(--foreground);
+}
+
+.mm-words span {
+  opacity: 0;
+  animation: mm-ink-in 0.9s ease-out forwards;
+}
+
+.mm-tap {
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: lowercase;
+  color: var(--foreground-muted);
+  opacity: 0;
+  animation: mm-fade 0.8s ease 2.4s forwards;
+}
+
+@keyframes mm-ink-in {
+  from {
+    opacity: 0;
+    filter: blur(3px);
+  }
+  60% {
+    opacity: 0.9;
+    filter: blur(0.4px);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+  }
+}
+
+@keyframes mm-fade {
+  to {
+    opacity: 1;
+  }
+}
+
+.mm-managed {
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--foreground-muted);
+  cursor: pointer;
+  opacity: 0;
+  animation: mm-fade 0.6s ease 3s forwards;
+  transition: color 0.2s ease;
+}
+
+.mm-managed:hover {
+  color: var(--link);
+}
+
+.mm-hint {
+  display: none;
+}
+
+@media (max-width: 800px) {
+  .mm-hint {
+    display: block;
+    margin: 0 auto 0 0;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: var(--foreground-muted);
+  }
+}
+
+/* reduced motion: no swinging, no ink spreading */
+.mm.is-static :is(.mm-interior, .mm-cover, .mm-cover-half) {
+  animation: none;
+  transition: none;
+}
+
+.mm.is-static :is(.mm-words span, .mm-tap, .mm-managed) {
+  animation: none;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.map .post-title::after {
+    animation: none;
+    clip-path: none;
+  }
+}
