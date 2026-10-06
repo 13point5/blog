@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import {
   Geist,
   EB_Garamond,
+  Herr_Von_Muellerhoff,
   IM_Fell_English,
   IM_Fell_English_SC,
 } from "next/font/google";
@@ -34,6 +35,14 @@ const garamond = EB_Garamond({
   subsets: ["latin"],
   style: ["normal", "italic"],
   variable: "--font-garamond",
+  preload: false,
+});
+
+// the tiny handwriting that fills the map's walls
+const scrawl = Herr_Von_Muellerhoff({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-scrawl",
   preload: false,
 });
 
@@ -86,7 +95,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geist.variable} ${fell.variable} ${fellSC.variable} ${garamond.variable} font-sans`}
+      className={`${geist.variable} ${fell.variable} ${fellSC.variable} ${garamond.variable} ${scrawl.variable} font-sans`}
       suppressHydrationWarning
     >
       <head>
