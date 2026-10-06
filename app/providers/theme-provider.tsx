@@ -8,7 +8,8 @@ import React, {
   useSyncExternalStore,
 } from "react";
 
-type Theme = "light" | "dark";
+export type Theme = "light" | "dark" | "map" | "reactor";
+export const THEMES: Theme[] = ["light", "dark", "map", "reactor"];
 type FontFamily = "sans" | "dyslexia";
 
 interface ThemeContextType {
@@ -23,8 +24,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 function getStoredTheme(): Theme {
   if (typeof window === "undefined") return "light";
   const stored = localStorage.getItem("theme");
-  if (stored === "dark") return "dark";
-  return "light";
+  return THEMES.includes(stored as Theme) ? (stored as Theme) : "light";
 }
 
 function getStoredFont(): FontFamily {
@@ -53,10 +53,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (!hasMounted) return;
 
     const root = document.documentElement;
-    root.classList.remove("dark", "warm");
+    root.classList.remove("dark", "warm", "map", "reactor");
 
-    if (theme === "dark") {
+    // The arc reactor theme is dark at heart, so it also gets `dark`
+    // (dark code highlighting, dark: variants).
+    if (theme === "dark" || theme === "reactor") {
       root.classList.add("dark");
+    }
+    if (theme === "map" || theme === "reactor") {
+      root.classList.add(theme);
     }
 
     localStorage.setItem("theme", theme);

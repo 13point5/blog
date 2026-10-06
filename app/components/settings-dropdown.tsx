@@ -1,6 +1,6 @@
 "use client";
 
-import { Sun, Moon, Type } from "lucide-react";
+import { Sun, Moon, Type, Map as MapIcon } from "lucide-react";
 import { useTheme } from "../providers/theme-provider";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,12 +15,41 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
+function ReactorIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      className={className}
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="10" />
+      <circle cx="12" cy="12" r="3.2" />
+      {Array.from({ length: 8 }, (_, i) => (
+        <line
+          key={i}
+          x1="12"
+          y1="4.2"
+          x2="12"
+          y2="7"
+          transform={`rotate(${i * 45} 12 12)`}
+          strokeLinecap="round"
+        />
+      ))}
+    </svg>
+  );
+}
+
 export function SettingsDropdown() {
   const { theme, setTheme, fontFamily, setFontFamily } = useTheme();
 
   const themes = [
     { value: "light", label: "Light", icon: Sun },
     { value: "dark", label: "Dark", icon: Moon },
+    { value: "map", label: "Marauder's Map", icon: MapIcon },
+    { value: "reactor", label: "Arc Reactor", icon: ReactorIcon },
   ] as const;
 
   return (

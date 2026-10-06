@@ -1,11 +1,18 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import {
+  Geist,
+  IM_Fell_English,
+  IM_Fell_English_SC,
+  Orbitron,
+  Rajdhani,
+} from "next/font/google";
 // OpenDyslexic font for dyslexia-friendly reading - all weights and styles
 import "@fontsource/opendyslexic/400.css"; // Regular
 import "@fontsource/opendyslexic/400-italic.css"; // Regular Italic
 import "@fontsource/opendyslexic/700.css"; // Bold
 import "@fontsource/opendyslexic/700-italic.css"; // Bold Italic
 import "./globals.css";
+import "./themes.css";
 import { ThemeProvider } from "./providers/theme-provider";
 import { Header } from "./components/header";
 import { Footer } from "./components/footer";
@@ -13,6 +20,35 @@ import { Footer } from "./components/footer";
 const geist = Geist({
   subsets: ["latin"],
   variable: "--font-geist",
+});
+
+// Theme fonts are only fetched when the Marauder's Map / Arc Reactor themes use them
+const fell = IM_Fell_English({
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
+  variable: "--font-fell",
+  preload: false,
+});
+
+const fellSC = IM_Fell_English_SC({
+  subsets: ["latin"],
+  weight: "400",
+  variable: "--font-fell-sc",
+  preload: false,
+});
+
+const orbitron = Orbitron({
+  subsets: ["latin"],
+  variable: "--font-orbitron",
+  preload: false,
+});
+
+const rajdhani = Rajdhani({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-rajdhani",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -57,7 +93,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geist.variable} font-sans`}
+      className={`${geist.variable} ${fell.variable} ${fellSC.variable} ${orbitron.variable} ${rajdhani.variable} font-sans`}
       suppressHydrationWarning
     >
       <head>
@@ -71,9 +107,12 @@ export default function RootLayout({
                   const root = document.documentElement;
                   
                   // Apply theme
-                  root.classList.remove('dark', 'warm');
-                  if (theme === 'dark') {
+                  root.classList.remove('dark', 'warm', 'map', 'reactor');
+                  if (theme === 'dark' || theme === 'reactor') {
                     root.classList.add('dark');
+                  }
+                  if (theme === 'map' || theme === 'reactor') {
+                    root.classList.add(theme);
                   }
                   
                   // Apply font (remove all font classes first)
@@ -102,7 +141,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <ThemeProvider>
-          <div className="min-h-screen flex flex-col bg-background">
+          <div className="site-shell min-h-screen flex flex-col bg-background">
             <Header />
             <main className="flex-1">{children}</main>
             <Footer />
