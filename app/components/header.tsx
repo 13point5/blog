@@ -10,7 +10,8 @@ export function Header() {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const pathname = usePathname();
-  const isOnBlogPage = pathname.startsWith("/blog");
+  // Top-level section shown as a breadcrumb next to the name.
+  const section = ["blog", "stitch"].find((s) => pathname.startsWith(`/${s}`));
 
   useEffect(() => {
     const handleScroll = () => {
@@ -44,21 +45,21 @@ export function Header() {
             href="/"
             className={cn(
               "font-bold hover:text-foreground-muted transition-colors shrink-0",
-              isOnBlogPage && "text-foreground-muted"
+              section && "text-foreground-muted"
             )}
           >
             sriraam
           </Link>
-          {isOnBlogPage && (
+          {section && (
             <>
               <span className="text-foreground-muted" aria-hidden="true">
                 /
               </span>
               <Link
-                href="/blog"
+                href={`/${section}`}
                 className="font-normal hover:text-foreground-muted transition-colors"
               >
-                blog
+                {section}
               </Link>
             </>
           )}
