@@ -4,24 +4,24 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #faf9f6;
+  --background: #f8f4ee;
   --foreground: #1d1d1b;
   --foreground-muted: #6f6e69;
-  --background-card: #ffffff;
+  --background-card: #fdfbf7;
   --background-alt: #efede8;
   --link: #1d1d1b;
   --link-hover: #c2401a;
   --koi: #d9532b;
-  --accent: #f1efea;
-  --accent-light: #e6e3dc;
-  --border: #dedbd3;
+  --accent: #f0ebe2;
+  --accent-light: #e6dfd3;
+  --border: #e3ddd2;
   --radius: 0.375rem;
 
-  --code-bg: #f4f2ed;
+  --code-bg: #f2ede4;
   --code-foreground: #262624;
   --code-highlight: #e9e6de;
   --code-line-number: #a09e97;
-  --code-border: #e2dfd7;
+  --code-border: #e3ddd2;
 
   --card: var(--background-card);
   --card-foreground: var(--foreground);
@@ -39,9 +39,9 @@
   --ring: #a09e97;
 
   /* Typography: serif headings, sans text. Swappable from the menu. */
-  --ff-display: var(--f-instrument), Georgia, serif;
+  --ff-display: var(--f-newsreader), Georgia, serif;
   --ff-body: var(--f-geist), system-ui, sans-serif;
-  --ds: 1.22; /* display scale */
+  --ds: 1.08; /* display scale */
   --dw: 400; /* display weight */
   --bs: 1; /* body scale */
 }
@@ -157,12 +157,31 @@ h4,
 }
 .d-md { font-size: calc(1.1rem * var(--ds)); }
 .d-lg { font-size: calc(1.4rem * var(--ds)); }
-.d-xl { font-size: calc(2.1rem * var(--ds)); line-height: 1.1; }
+.d-xl { font-size: clamp(calc(1.9rem * var(--ds)), calc(4.6vw * var(--ds)), calc(2.7rem * var(--ds))); line-height: 1.08; letter-spacing: -0.015em; }
 
-/* The only place pixels show up: small procedural scenes */
+/* Pixel art is drawn tiny and scaled up. It never sits in a box: each piece
+   is masked so it dissolves into the paper around it. */
 .pixelated {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
+}
+.art-round {
+  -webkit-mask-image: radial-gradient(closest-side, #000 58%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 58%, transparent 100%);
+}
+.art-corner {
+  -webkit-mask-image: radial-gradient(ellipse 95% 58% at 100% 50%, #000 22%, transparent 76%);
+  mask-image: radial-gradient(ellipse 95% 58% at 100% 50%, #000 22%, transparent 76%);
+}
+.art-cover {
+  -webkit-mask-image:
+    linear-gradient(to bottom, transparent 0%, #000 22%, #000 52%, transparent 96%),
+    linear-gradient(to right, transparent 0%, #000 20%, #000 80%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to bottom, transparent 0%, #000 22%, #000 52%, transparent 96%),
+    linear-gradient(to right, transparent 0%, #000 20%, #000 80%, transparent 100%);
+  mask-composite: intersect;
 }
 
 @keyframes fadeIn {

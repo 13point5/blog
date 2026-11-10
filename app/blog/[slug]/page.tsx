@@ -76,7 +76,14 @@ export default async function BlogPost({
             }),
           }}
         />
-        <header className="mb-8">
+        {/* One piece of pixel art per post, fading into the page above the title */}
+        {metadata.cover && (
+          <div className="-mx-5 sm:-mx-20 -mt-10 -mb-2 sm:-mb-6">
+            <PixelScene scene={metadata.cover} className="art-cover" />
+          </div>
+        )}
+
+        <header className="relative mb-10">
           <h1 className="d-xl mb-4 text-balance">{metadata.title}</h1>
           <p className="text-sm text-foreground-muted flex flex-wrap gap-x-2">
             <time dateTime={metadata.publishedAt}>{formatDate(metadata.publishedAt)}</time>
@@ -84,9 +91,6 @@ export default async function BlogPost({
             <span>{readingMinutes(post.content)} min read</span>
           </p>
         </header>
-
-        {/* One piece of pixel art per post, and only here */}
-        {metadata.cover && <PixelScene scene={metadata.cover} className="rounded-sm mb-10" />}
 
         {metadata.placeholder === "true" && (
           <p role="note" className="text-sm text-foreground-muted italic mb-8">

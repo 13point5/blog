@@ -15,7 +15,7 @@ export type FontOption = {
 
 export const FONTS: FontOption[] = [
   { id: "instrument", css: "var(--f-instrument), Georgia, serif", ds: 1.22, dw: 400, bs: 1.15 },
-  { id: "newsreader", css: "var(--f-newsreader), Georgia, serif", ds: 1.08, dw: 500, bs: 1.1 },
+  { id: "newsreader", css: "var(--f-newsreader), Georgia, serif", ds: 1.08, dw: 400, bs: 1.1 },
   { id: "geist", css: "var(--f-geist), system-ui, sans-serif", ds: 1, dw: 600, bs: 1 },
   { id: "pixelify", css: "var(--f-pixelify), system-ui, sans-serif", ds: 1, dw: 500, bs: 1.05 },
   { id: "dyslexic", css: '"OpenDyslexic", sans-serif', ds: 0.86, dw: 700, bs: 0.94 },
@@ -24,9 +24,10 @@ export const FONTS: FontOption[] = [
 export type FontPreset = { id: string; label: string; display: string; body: string };
 
 export const PRESETS: FontPreset[] = [
-  { id: "classic", label: "Serif + sans", display: "instrument", body: "geist" },
-  { id: "serif", label: "Serif", display: "instrument", body: "newsreader" },
-  { id: "sans", label: "Sans", display: "geist", body: "geist" },
+  { id: "classic", label: "Serif + sans", display: "newsreader", body: "geist" },
+  { id: "display", label: "Display serif + sans", display: "instrument", body: "geist" },
+  { id: "serif", label: "All serif", display: "newsreader", body: "newsreader" },
+  { id: "sans", label: "All sans", display: "geist", body: "geist" },
   { id: "pixel", label: "Pixel + sans", display: "pixelify", body: "geist" },
   { id: "dyslexic", label: "OpenDyslexic", display: "dyslexic", body: "dyslexic" },
 ];

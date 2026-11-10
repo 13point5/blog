@@ -75,7 +75,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <ThemeProvider>
-          <div className="min-h-screen flex flex-col bg-background">
+          <div className="relative isolate min-h-screen flex flex-col bg-background">
             <Header />
             <main className="flex-1">{children}</main>
             <Footer />
