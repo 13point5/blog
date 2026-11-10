@@ -1,39 +1,23 @@
 import Link from "next/link";
-import { formatDate, parseTags, readingMinutes, type Metadata } from "@/app/blog/utils";
-import { PixelScene } from "./pixel-scene";
-import { PixelWindow } from "./pixel-window";
-import { DEFAULT_COVER } from "@/lib/pixel";
+import { formatDate, type Metadata } from "@/app/blog/utils";
 
 type BlogPostItemProps = {
   slug: string;
   metadata: Metadata;
-  content: string;
 };
 
-/** A post, shown as a little desktop window with an animated cover. */
-export function BlogPostItem({ slug, metadata, content }: BlogPostItemProps) {
-  const tags = parseTags(metadata.tags);
+export function BlogPostItem({ slug, metadata }: BlogPostItemProps) {
   return (
-    <Link href={`/blog/${slug}`} className="block px-card px-window h-full">
-      <PixelWindow title={`${slug}.px`} className="!border-0 !shadow-none h-full flex flex-col" bodyClassName="flex flex-col flex-1">
-        <div className="border-b-[3px] border-frame">
-          <PixelScene scene={metadata.cover ?? DEFAULT_COVER} />
-        </div>
-        <article className="p-4 flex flex-col gap-2 flex-1">
-          <div className="flex flex-wrap gap-1.5">
-            {metadata.placeholder === "true" && <span className="px-tag px-tag-warn">placeholder</span>}
-            {tags.map((t) => (
-              <span key={t} className="px-tag">{t}</span>
-            ))}
-          </div>
-          <h3 className="d-md">{metadata.title}</h3>
-          <p className="text-[0.9em] text-foreground-muted leading-snug line-clamp-3">{metadata.summary}</p>
-          <p className="d-xs text-foreground-muted mt-auto pt-2 flex justify-between gap-2">
-            <time dateTime={metadata.publishedAt}>{formatDate(metadata.publishedAt, false, true)}</time>
-            <span>{readingMinutes(content)} min read</span>
-          </p>
-        </article>
-      </PixelWindow>
+    <Link href={`/blog/${slug}`} className="group flex items-baseline justify-between gap-6 py-2.5">
+      <span className="min-w-0">
+        <span className="group-hover:text-link-hover transition-colors">{metadata.title}</span>
+        {metadata.placeholder === "true" && (
+          <span className="ml-2 text-xs text-foreground-muted">placeholder</span>
+        )}
+      </span>
+      <time dateTime={metadata.publishedAt} className="hidden sm:block text-sm text-foreground-muted whitespace-nowrap tabular-nums">
+        {formatDate(metadata.publishedAt, false, true)}
+      </time>
     </Link>
   );
 }

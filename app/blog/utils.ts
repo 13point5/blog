@@ -9,8 +9,6 @@ export type Metadata = {
   author?: string;
   /** Name of a pixel-art scene in lib/pixel (see SCENES). */
   cover?: string;
-  /** Comma-separated tags. */
-  tags?: string;
   /** "true" marks filler content that exists to show off the layout. */
   placeholder?: string;
 };
@@ -65,10 +63,6 @@ export function getSortedPosts() {
   return getBlogPosts().sort(
     (a, b) => +new Date(b.metadata.publishedAt) - +new Date(a.metadata.publishedAt)
   );
-}
-
-export function parseTags(tags?: string) {
-  return (tags ?? "").split(",").map((t) => t.trim()).filter(Boolean);
 }
 
 export function readingMinutes(content: string) {

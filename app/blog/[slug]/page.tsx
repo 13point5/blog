@@ -1,11 +1,7 @@
 import { notFound } from "next/navigation";
 import { CustomMDX } from "@/app/components/mdx";
-import { formatDate, getBlogPosts, parseTags, readingMinutes } from "@/app/blog/utils";
-import Link from "next/link";
+import { formatDate, getBlogPosts, readingMinutes } from "@/app/blog/utils";
 import { PixelScene } from "@/app/components/pixel-scene";
-import { PixelWindow } from "@/app/components/pixel-window";
-import { ReadingProgress } from "@/app/components/reading-progress";
-import { DEFAULT_COVER } from "@/lib/pixel";
 
 export async function generateStaticParams() {
   const posts = getBlogPosts();
@@ -62,11 +58,9 @@ export default async function BlogPost({
   }
 
   const { metadata } = post;
-  const tags = parseTags(metadata.tags);
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-22 pb-24">
-      <ReadingProgress />
+    <div className="max-w-2xl mx-auto px-5 pt-28 pb-8">
       <article className="animate-fade-blur">
         <script
           type="application/ld+json"
@@ -82,32 +76,21 @@ export default async function BlogPost({
             }),
           }}
         />
-        <Link href="/blog" className="d-sm text-foreground-muted hover:text-koi">
-          <span aria-hidden="true">◂</span> all posts
-        </Link>
-
-        <header className="mt-4 mb-8">
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            {tags.map((t) => (
-              <span key={t} className="px-tag">{t}</span>
-            ))}
-          </div>
-          <h1 className="d-2xl mb-3 text-balance">{metadata.title}</h1>
-          <p className="d-sm text-foreground-muted flex flex-wrap gap-x-3 gap-y-1">
+        <header className="mb-8">
+          <h1 className="d-xl mb-4 text-balance">{metadata.title}</h1>
+          <p className="text-sm text-foreground-muted flex flex-wrap gap-x-2">
             <time dateTime={metadata.publishedAt}>{formatDate(metadata.publishedAt)}</time>
-            {metadata.author && <span>by {metadata.author}</span>}
+            <span aria-hidden="true">·</span>
             <span>{readingMinutes(post.content)} min read</span>
           </p>
         </header>
 
-        <PixelWindow title={`${slug}.px`} className="mb-8">
-          <PixelScene scene={metadata.cover ?? DEFAULT_COVER} />
-        </PixelWindow>
+        {/* One piece of pixel art per post, and only here */}
+        {metadata.cover && <PixelScene scene={metadata.cover} className="rounded-sm mb-10" />}
 
         {metadata.placeholder === "true" && (
-          <p role="note" className="border-[3px] border-frame bg-gold/25 px-4 py-3 mb-8 text-[0.95em]">
-            <strong className="font-display uppercase">Placeholder post.</strong> This one is filler
-            written to try out the layout, the covers, and the math rendering. Don&apos;t cite it.
+          <p role="note" className="text-sm text-foreground-muted italic mb-8">
+            This is a placeholder post, written to try out the layout and the math. Don&apos;t cite it.
           </p>
         )}
 

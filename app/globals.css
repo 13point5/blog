@@ -3,46 +3,32 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ============================================================
-   Palette — pulled from a rainy-city window and a koi pond.
-   ============================================================ */
 :root {
-  --background: #e6ecda;
-  --tile: #d8e1c9;
-  --foreground: #1b2a41;
-  --foreground-muted: #56677a;
-  --background-card: #f8f9ef;
-  --background-alt: #d5dec6;
+  --background: #faf9f6;
+  --foreground: #1d1d1b;
+  --foreground-muted: #6f6e69;
+  --background-card: #ffffff;
+  --background-alt: #efede8;
+  --link: #1d1d1b;
+  --link-hover: #c2401a;
+  --koi: #d9532b;
+  --accent: #f1efea;
+  --accent-light: #e6e3dc;
+  --border: #dedbd3;
+  --radius: 0.375rem;
 
-  --frame: #1f3a5f;
-  --titlebar: #6b93b8;
-  --titlebar-ink: #f1f5ff;
-  --hard-shadow: rgb(31 58 95 / 0.28);
-
-  --koi: #e8552d;
-  --teal: #2f8f8a;
-  --leaf: #3d7a50;
-  --gold: #d9a441;
-
-  --link: #c2401a;
-  --link-hover: #e8552d;
-  --accent: #e3e9d6;
-  --accent-light: #d2dcc3;
-  --border: rgb(31 58 95 / 0.32);
-  --radius: 0rem;
-
-  --code-bg: #f1f4e6;
-  --code-foreground: #1b2a41;
-  --code-highlight: #e0e7d2;
-  --code-line-number: #8695a3;
-  --code-border: #c3cdb8;
+  --code-bg: #f4f2ed;
+  --code-foreground: #262624;
+  --code-highlight: #e9e6de;
+  --code-line-number: #a09e97;
+  --code-border: #e2dfd7;
 
   --card: var(--background-card);
   --card-foreground: var(--foreground);
   --popover: var(--background-card);
   --popover-foreground: var(--foreground);
-  --primary: var(--frame);
-  --primary-foreground: #f8f9ef;
+  --primary: var(--foreground);
+  --primary-foreground: var(--background);
   --secondary: var(--accent);
   --secondary-foreground: var(--foreground);
   --muted: var(--accent);
@@ -50,48 +36,36 @@
   --accent-foreground: var(--foreground);
   --destructive: #c8321f;
   --input: var(--border);
-  --ring: var(--koi);
+  --ring: #a09e97;
 
-  /* Typography — swapped at runtime from the menu (see lib/fonts-config.ts) */
-  --ff-display: var(--f-pixelify), system-ui, sans-serif;
+  /* Typography: serif headings, sans text. Swappable from the menu. */
+  --ff-display: var(--f-instrument), Georgia, serif;
   --ff-body: var(--f-geist), system-ui, sans-serif;
-  --ds: 1; /* display scale */
+  --ds: 1.22; /* display scale */
+  --dw: 400; /* display weight */
   --bs: 1; /* body scale */
-  --lh: 1.7;
 }
 
 .dark {
-  --background: #121a29;
-  --tile: #172135;
-  --foreground: #dbe6f5;
-  --foreground-muted: #8ea2bc;
-  --background-card: #1a2538;
-  --background-alt: #223049;
-
-  --frame: #45659a;
-  --titlebar: #25395c;
-  --titlebar-ink: #cfe0ff;
-  --hard-shadow: rgb(0 0 0 / 0.5);
-
+  --background: #171716;
+  --foreground: #ecebe6;
+  --foreground-muted: #a09e97;
+  --background-card: #1f1f1d;
+  --background-alt: #262624;
+  --link: #ecebe6;
+  --link-hover: #ff9166;
   --koi: #ff7a4d;
-  --teal: #58c7bd;
-  --leaf: #6dbb82;
-  --gold: #f2c96a;
+  --accent: #242422;
+  --accent-light: #30302d;
+  --border: #353532;
 
-  --link: #ff9166;
-  --link-hover: #ffb090;
-  --accent: #202c44;
-  --accent-light: #2a3a58;
-  --border: rgb(110 145 200 / 0.35);
-
-  --code-bg: #0e1522;
-  --code-foreground: #d3deee;
-  --code-highlight: #1c2940;
-  --code-line-number: #5f738f;
-  --code-border: #2a3a58;
-
-  --primary-foreground: #0e1522;
+  --code-bg: #1d1d1b;
+  --code-foreground: #dddcd6;
+  --code-highlight: #2b2b28;
+  --code-line-number: #77756f;
+  --code-border: #353532;
   --destructive: #ff6b57;
+  --ring: #77756f;
 }
 
 @theme inline {
@@ -100,13 +74,7 @@
   --color-background-alt: var(--background-alt);
   --color-foreground: var(--foreground);
   --color-foreground-muted: var(--foreground-muted);
-  --color-frame: var(--frame);
-  --color-titlebar: var(--titlebar);
-  --color-titlebar-ink: var(--titlebar-ink);
   --color-koi: var(--koi);
-  --color-teal: var(--teal);
-  --color-leaf: var(--leaf);
-  --color-gold: var(--gold);
   --color-accent: var(--accent);
   --color-accent-light: var(--accent-light);
   --color-border: var(--border);
@@ -129,12 +97,11 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 6px);
   --font-display: var(--ff-display);
-  --font-body: var(--ff-body);
 }
 
 * {
@@ -149,14 +116,8 @@ html {
 body {
   font-family: var(--ff-body);
   font-size: calc(1rem * var(--bs));
-  line-height: var(--lh);
-  /* Pixelify's fi/fl ligatures read as a different letter */
-  font-variant-ligatures: none;
-  /* faint courtyard tiles */
-  background-image:
-    linear-gradient(var(--tile) 2px, transparent 2px),
-    linear-gradient(90deg, var(--tile) 2px, transparent 2px);
-  background-size: 48px 48px;
+  line-height: 1.7;
+  font-variant-ligatures: common-ligatures;
 }
 
 /* Code always stays monospace, whatever the menu says */
@@ -170,8 +131,8 @@ samp {
 }
 
 ::selection {
-  background: var(--koi);
-  color: #fff;
+  background: var(--accent-light);
+  color: var(--foreground);
 }
 
 @layer base {
@@ -183,219 +144,56 @@ samp {
   }
 }
 
-/* ============================================================
-   Pixel kit
-   ============================================================ */
+/* Headings follow the display font and its optical scale */
+h1,
+h2,
+h3,
+h4,
+.font-display {
+  font-family: var(--ff-display);
+  font-weight: var(--dw);
+  letter-spacing: -0.005em;
+  line-height: 1.2;
+}
+.d-md { font-size: calc(1.1rem * var(--ds)); }
+.d-lg { font-size: calc(1.4rem * var(--ds)); }
+.d-xl { font-size: calc(2.1rem * var(--ds)); line-height: 1.1; }
 
+/* The only place pixels show up: small procedural scenes */
 .pixelated {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
 
-/* Display type: follows the menu's heading font and its optical scale */
-.font-display,
-.d-xs,
-.d-sm,
-.d-md,
-.d-lg,
-.d-xl,
-.d-2xl {
-  font-family: var(--ff-display);
-  line-height: 1.3;
-  letter-spacing: 0;
-}
-.d-xs { font-size: calc(0.8rem * var(--ds)); }
-.d-sm { font-size: calc(0.95rem * var(--ds)); }
-.d-md { font-size: calc(1.2rem * var(--ds)); }
-.d-lg { font-size: calc(1.5rem * var(--ds)); }
-.d-xl { font-size: calc(1.95rem * var(--ds)); }
-.d-2xl { font-size: clamp(calc(2rem * var(--ds)), calc(5.2vw * var(--ds)), calc(3.1rem * var(--ds))); }
-
-.px-window {
-  background: var(--background-card);
-  border: 3px solid var(--frame);
-  box-shadow: 6px 6px 0 0 var(--hard-shadow);
-}
-
-.px-titlebar {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 30px;
-  padding: 3px 4px 3px 8px;
-  background: var(--titlebar);
-  color: var(--titlebar-ink);
-  border-bottom: 3px solid var(--frame);
-  font-family: var(--ff-display);
-  font-size: calc(0.9rem * var(--ds));
-  line-height: 1;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  /* subtle scan stripes like an old title bar */
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0 3px,
-    rgb(255 255 255 / 0.07) 3px 4px
-  );
-}
-
-.px-winbtn {
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  flex: none;
-  background: color-mix(in srgb, var(--titlebar) 55%, var(--background-card));
-  border: 2px solid var(--frame);
-  color: var(--frame);
-}
-.dark .px-winbtn {
-  color: var(--titlebar-ink);
-}
-
-.px-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.45rem 0.85rem;
-  font-family: var(--ff-display);
-  font-size: calc(0.95rem * var(--ds));
-  line-height: 1.2;
-  color: var(--foreground);
-  background: var(--background-card);
-  border: 3px solid var(--frame);
-  box-shadow: 4px 4px 0 0 var(--hard-shadow);
-  cursor: pointer;
-  transition: transform 60ms steps(2), box-shadow 60ms steps(2);
-}
-.px-btn:hover {
-  background: var(--accent-light);
-}
-.px-btn:active,
-.px-btn[aria-pressed="true"] {
-  transform: translate(3px, 3px);
-  box-shadow: 1px 1px 0 0 var(--hard-shadow);
-}
-.px-btn[aria-pressed="true"] {
-  background: var(--frame);
-  color: var(--primary-foreground);
-}
-.px-btn:focus-visible {
-  outline: 3px solid var(--koi);
-  outline-offset: 2px;
-}
-.px-btn-primary {
-  background: var(--koi);
-  color: #fff;
-}
-.px-btn-primary:hover {
-  background: color-mix(in srgb, var(--koi) 85%, #000);
-}
-
-.px-tag {
-  display: inline-block;
-  padding: 1px 6px;
-  font-family: var(--ff-display);
-  font-size: calc(0.75rem * var(--ds));
-  line-height: 1.5;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  border: 2px solid var(--frame);
-  background: var(--accent);
-  color: var(--foreground);
-}
-.px-tag-warn {
-  background: var(--gold);
-  color: #2a1c05;
-}
-
-/* Cards lift on hover, in hard steps rather than a smooth glide */
-.px-card {
-  transition: transform 90ms steps(3), box-shadow 90ms steps(3);
-}
-.px-card:hover,
-.px-card:focus-visible {
-  transform: translate(-3px, -3px);
-  box-shadow: 9px 9px 0 0 var(--hard-shadow);
-}
-.px-card:focus-visible {
-  outline: 3px solid var(--koi);
-  outline-offset: 3px;
-}
-
-.px-divider {
-  height: 3px;
-  border: 0;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--frame) 0 9px,
-    transparent 9px 15px
-  );
-  opacity: 0.55;
-}
-
-/* Blinking terminal caret */
-.px-caret::after {
-  content: "";
-  display: inline-block;
-  width: 0.55em;
-  height: 0.9em;
-  margin-left: 0.12em;
-  vertical-align: -0.08em;
-  background: var(--koi);
-  animation: px-blink 1s steps(1) infinite;
-}
-@keyframes px-blink {
-  50% { opacity: 0; }
-}
-
-/* Gentle idle bob for sprites */
-.px-bob {
-  animation: px-bob 1.2s steps(2) infinite;
-}
-@keyframes px-bob {
-  50% { transform: translateY(-3px); }
-}
-
-/* Sections pop in on a 3-step fade, like a sprite spawning */
-@keyframes px-in {
-  from { opacity: 0; transform: translateY(12px); }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
 .animate-fade-blur {
   opacity: 0;
-  animation: px-in 0.36s steps(4) forwards;
+  animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
-.animation-delay-100 { animation-delay: 0.12s; }
-.animation-delay-200 { animation-delay: 0.24s; }
-.animation-delay-300 { animation-delay: 0.36s; }
-.animation-delay-400 { animation-delay: 0.48s; }
-
+.animation-delay-100 { animation-delay: 0.15s; }
+.animation-delay-200 { animation-delay: 0.3s; }
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-blur { animation: none; opacity: 1; }
-  .px-bob, .px-caret::after { animation: none; }
   html { scroll-behavior: auto; }
 }
-html[data-motion="off"] .animate-fade-blur { animation: none; opacity: 1; }
-html[data-motion="off"] .px-bob,
-html[data-motion="off"] .px-caret::after { animation: none; }
 
 .section-divider {
-  height: 3px;
+  height: 1px;
   border: 0;
-  background: repeating-linear-gradient(90deg, var(--frame) 0 9px, transparent 9px 15px);
-  opacity: 0.55;
+  background: var(--border);
 }
 
-/* Links in prose: koi orange with a chunky underline */
+/* Links: ink with a quiet underline that warms up on hover */
 .link-default {
   color: var(--link);
-  font-weight: 500;
   text-decoration: underline;
-  text-decoration-thickness: 2px;
+  text-decoration-thickness: 1px;
   text-underline-offset: 3px;
-  text-decoration-color: color-mix(in srgb, var(--link) 40%, transparent);
+  text-decoration-color: var(--ring);
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
 }
 .link-default:hover {
   color: var(--link-hover);
@@ -404,27 +202,32 @@ html[data-motion="off"] .px-caret::after { animation: none; }
 .link-default:focus-visible {
   outline: 2px solid var(--koi);
   outline-offset: 2px;
+  border-radius: 2px;
 }
 
 /* Long-form posts */
-.post-body {
-  overflow-wrap: break-word;
-}
+.post-body { overflow-wrap: break-word; }
 .post-body h1,
 .post-body h2,
 .post-body h3,
-.post-body h4 {
-  font-family: var(--ff-display);
-  line-height: 1.25;
-  scroll-margin-top: 5rem;
+.post-body h4 { scroll-margin-top: 5rem; }
+.post-body h1 { font-size: calc(1.55rem * var(--ds)); margin: 2.6rem 0 0.9rem; }
+.post-body h2 { font-size: calc(1.25rem * var(--ds)); margin: 2.1rem 0 0.7rem; }
+.post-body h3 { font-size: calc(1.08rem * var(--ds)); margin: 1.7rem 0 0.6rem; }
+.post-body p { margin-bottom: 1.15rem; }
+.post-body ul, .post-body ol { margin: 0 0 1.15rem 1.4rem; }
+.post-body ul { list-style: disc; }
+.post-body ol { list-style: decimal; }
+.post-body li { margin-bottom: 0.4rem; }
+.post-body li::marker { color: var(--foreground-muted); }
+.post-body strong { font-weight: 600; }
+.post-body blockquote {
+  border-left: 2px solid var(--border);
+  padding-left: 1rem;
+  margin-bottom: 1.15rem;
+  color: var(--foreground-muted);
 }
-.post-body h1 { font-size: calc(1.7rem * var(--ds)); margin: 2.4rem 0 1rem; }
-.post-body h2 { font-size: calc(1.35rem * var(--ds)); margin: 2rem 0 0.8rem; }
-.post-body h3 { font-size: calc(1.15rem * var(--ds)); margin: 1.6rem 0 0.6rem; }
-.post-body h1::before {
-  content: "▸ ";
-  color: var(--koi);
-}
+.post-body hr { margin: 2.2rem 0; }
 
 /* KaTeX Math Styling */
 .katex {
@@ -772,19 +575,3 @@ dd {
   color: var(--foreground-muted);
 }
 
-/* Prose rhythm for posts (Tailwind's preflight strips these) */
-.post-body p { margin-bottom: 1.1rem; }
-.post-body ul, .post-body ol { margin: 0 0 1.1rem 1.5rem; }
-.post-body ul { list-style: square; }
-.post-body ol { list-style: decimal; }
-.post-body li { margin-bottom: 0.4rem; }
-.post-body li::marker { color: var(--koi); }
-.post-body strong { font-weight: 650; }
-.post-body blockquote {
-  border-left: 6px solid var(--koi);
-  background: var(--accent);
-  padding: 0.6rem 1rem;
-  margin-bottom: 1.1rem;
-}
-.post-body hr { margin: 2rem 0; }
-.post-body img { border: 3px solid var(--frame); }

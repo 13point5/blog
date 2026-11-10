@@ -2,104 +2,50 @@
 
 import { useTheme } from "../providers/theme-provider";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { FONTS, PRESETS, getFont } from "@/lib/fonts-config";
-import { PixelIcon } from "./pixel-icon";
+import { PRESETS, getFont } from "@/lib/fonts-config";
+import { cn } from "@/lib/utils";
 
-function Stepper({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (id: string) => void;
-}) {
-  const i = Math.max(0, FONTS.findIndex((f) => f.id === value));
-  const step = (d: number) => onChange(FONTS[(i + d + FONTS.length) % FONTS.length].id);
-  const font = FONTS[i];
-  return (
-    <div className="flex items-center gap-2">
-      <span className="d-xs uppercase text-foreground-muted w-16 shrink-0">{label}</span>
-      <button type="button" className="px-btn !px-2 !py-0.5 !shadow-none" onClick={() => step(-1)} aria-label={`Previous ${label} font`}>◀</button>
-      <span
-        className="flex-1 text-center truncate"
-        style={{ fontFamily: font.css, fontSize: `${0.95 * font.bs}rem` }}
-        aria-live="polite"
-      >
-        {font.label}
-      </span>
-      <button type="button" className="px-btn !px-2 !py-0.5 !shadow-none" onClick={() => step(1)} aria-label={`Next ${label} font`}>▶</button>
-    </div>
-  );
-}
+const row =
+  "flex w-full items-center justify-between gap-6 rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent outline-none focus-visible:bg-accent cursor-pointer";
 
 export function SettingsDropdown() {
-  const { theme, setTheme, display, body, setFonts, motion, setMotion } = useTheme();
+  const { theme, setTheme, display, body, setFonts } = useTheme();
 
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <button type="button" className="px-btn !py-1 !px-2.5 !shadow-none" aria-label="Open settings menu">
+        <button
+          type="button"
+          className="text-foreground-muted hover:text-foreground transition-colors outline-none focus-visible:text-foreground cursor-pointer"
+          aria-label="Open settings menu"
+        >
           menu
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        sideOffset={10}
-        className="px-window w-[min(calc(100vw-1.5rem),22rem)] p-0 text-foreground rounded-none"
-      >
-        <div className="px-titlebar">
-          <span className="flex-1">settings.cfg</span>
-        </div>
+      <DropdownMenuContent align="end" sideOffset={10} className="w-52 p-1.5 bg-background-card text-foreground">
+        <p className="px-2 pt-1 pb-1 text-xs text-foreground-muted">Theme</p>
+        {(["light", "dark"] as const).map((t) => (
+          <button key={t} type="button" className={row} aria-pressed={theme === t} onClick={() => setTheme(t)}>
+            <span className="capitalize">{t}</span>
+            {theme === t && <span aria-hidden="true" className="size-1.5 bg-koi" />}
+          </button>
+        ))}
 
-        <div className="p-3 flex flex-col gap-4">
-          <section aria-label="Theme" className="grid grid-cols-2 gap-2">
-            <button type="button" className="px-btn" aria-pressed={theme === "light"} onClick={() => setTheme("light")}>
-              <PixelIcon name="sun" size={2} /> day
+        <div className="my-1.5 h-px bg-border" aria-hidden="true" />
+
+        <p className="px-2 pt-1 pb-1 text-xs text-foreground-muted">Type</p>
+        {PRESETS.map((p) => {
+          const active = display === p.display && body === p.body;
+          const font = getFont(p.display);
+          return (
+            <button key={p.id} type="button" className={row} aria-pressed={active} onClick={() => setFonts(p.display, p.body)}>
+              <span className={cn("truncate")} style={{ fontFamily: font.css, fontSize: `${0.9 * font.ds}rem`, lineHeight: 1.3 }}>
+                {p.label}
+              </span>
+              {active && <span aria-hidden="true" className="size-1.5 bg-koi shrink-0" />}
             </button>
-            <button type="button" className="px-btn" aria-pressed={theme === "dark"} onClick={() => setTheme("dark")}>
-              <PixelIcon name="moon" size={2} /> night
-            </button>
-          </section>
-
-          <section aria-label="Font presets">
-            <h3 className="d-xs uppercase text-foreground-muted mb-2">Font presets</h3>
-            <div className="grid grid-cols-2 gap-2">
-              {PRESETS.map((p) => {
-                const d = getFont(p.display);
-                const b = getFont(p.body);
-                return (
-                  <button
-                    key={p.id}
-                    type="button"
-                    className="px-btn !flex-col !items-start !gap-0 !px-2 !py-1.5 text-left !shadow-none min-w-0"
-                    aria-pressed={display === p.display && body === p.body}
-                    onClick={() => setFonts(p.display, p.body)}
-                  >
-                    <span className="truncate max-w-full" style={{ fontFamily: d.css, fontSize: `${1.05 * d.ds}rem`, lineHeight: 1.3 }}>
-                      {p.label}
-                    </span>
-                    <span className="truncate max-w-full opacity-75" style={{ fontFamily: b.css, fontSize: `${0.72 * b.bs}rem`, lineHeight: 1.4 }}>
-                      {p.note}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-
-          <section aria-label="Mix your own fonts" className="flex flex-col gap-2">
-            <h3 className="d-xs uppercase text-foreground-muted">Mix your own</h3>
-            <Stepper label="Titles" value={display} onChange={(id) => setFonts(id, body)} />
-            <Stepper label="Text" value={body} onChange={(id) => setFonts(display, id)} />
-          </section>
-
-          <section aria-label="Animation" className="flex items-center gap-2">
-            <span className="d-xs uppercase text-foreground-muted w-16 shrink-0">Motion</span>
-            <button type="button" className="px-btn !py-0.5 !shadow-none flex-1" aria-pressed={motion} onClick={() => setMotion(true)}>on</button>
-            <button type="button" className="px-btn !py-0.5 !shadow-none flex-1" aria-pressed={!motion} onClick={() => setMotion(false)}>off</button>
-          </section>
-        </div>
+          );
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   );

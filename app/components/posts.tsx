@@ -5,10 +5,10 @@ export function BlogPosts({ limit }: { limit?: number }) {
   const posts = getSortedPosts().slice(0, limit);
 
   return (
-    <ul className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3 not-prose">
+    <ul className="divide-y divide-border not-prose">
       {posts.map((post) => (
         <li key={post.slug}>
-          <BlogPostItem slug={post.slug} metadata={post.metadata} content={post.content} />
+          <BlogPostItem slug={post.slug} metadata={post.metadata} />
         </li>
       ))}
     </ul>

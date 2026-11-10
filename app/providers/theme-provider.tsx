@@ -13,8 +13,6 @@ interface Settings {
   /** body font id */
   body: string;
   setFonts: (display: string, body: string) => void;
-  motion: boolean;
-  setMotion: (on: boolean) => void;
 }
 
 const ThemeContext = createContext<Settings | undefined>(undefined);
@@ -41,7 +39,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("light");
   const [display, setDisplay] = useState(DEFAULT_DISPLAY);
   const [body, setBody] = useState(DEFAULT_BODY);
-  const [motion, setMotionState] = useState(true);
 
   useEffect(() => {
     const d = read("fontDisplay");
@@ -50,7 +47,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setThemeState(read("theme") === "dark" ? "dark" : "light");
     if (isFont(d)) setDisplay(d);
     if (isFont(b)) setBody(b);
-    setMotionState(read("motion") !== "off");
   }, []);
 
   const setTheme = (next: Theme) => {
@@ -68,15 +64,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     write("fontBody", nextBody);
   };
 
-  const setMotion = (on: boolean) => {
-    setMotionState(on);
-    if (on) delete document.documentElement.dataset.motion;
-    else document.documentElement.dataset.motion = "off";
-    write("motion", on ? "on" : "off");
-  };
-
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, display, body, setFonts, motion, setMotion }}>
+    <ThemeContext.Provider value={{ theme, setTheme, display, body, setFonts }}>
       {children}
     </ThemeContext.Provider>
   );
