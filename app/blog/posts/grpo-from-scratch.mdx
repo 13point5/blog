@@ -1,0 +1,84 @@
+---
+title: "GRPO: the baseline is your friends"
+publishedAt: "2026-10-12"
+summary: "Group Relative Policy Optimization in one page of math: why it needs no critic, what a group of rollouts buys you, and what happens when every rollout fails."
+author: "Sriraam Raja"
+cover: "grpo"
+tags: "rl, math"
+placeholder: "true"
+---
+
+GRPO (Group Relative Policy Optimization) is PPO with the critic deleted. Instead of learning a value function to tell you how good a rollout was, you sample several rollouts for the same prompt and grade each one against the others.
+
+# Start from the policy gradient
+
+For a prompt $q$ and a sampled completion $o$ with reward $r(o)$, the policy gradient is
+
+$$
+\nabla_\theta J(\theta) = \mathbb{E}_{o \sim \pi_\theta(\cdot \mid q)} \big[ (r(o) - b(q)) \, \nabla_\theta \log \pi_\theta(o \mid q) \big]
+$$
+
+The baseline $b(q)$ can be anything that does not depend on $o$. It leaves the gradient unbiased and, chosen well, cuts its variance. PPO learns $b$ with a critic. GRPO estimates it from the group.
+
+# The group
+
+Sample $G$ completions $o_1, \dots, o_G$ for the same prompt and score them $r_1, \dots, r_G$. The advantage of rollout $i$ is its z-score inside the group:
+
+$$
+\hat{A}_i = \frac{r_i - \mu}{\sigma + \varepsilon}, \qquad \mu = \frac{1}{G} \sum_{j=1}^{G} r_j, \qquad \sigma = \sqrt{\frac{1}{G} \sum_{j=1}^{G} (r_j - \mu)^2}
+$$
+
+Every token in rollout $i$ gets the same advantage $\hat{A}_i$. That is the whole trick.
+
+```python
+import numpy as np
+
+def group_advantages(rewards, eps=1e-6):
+    r = np.asarray(rewards, dtype=float)
+    return (r - r.mean()) / (r.std() + eps)
+
+group_advantages([1, 0, 0, 0])  # [ 1.73, -0.58, -0.58, -0.58]
+```
+
+# The objective
+
+With the token-level importance ratio
+
+$$
+\rho_{i,t} = \frac{\pi_\theta(o_{i,t} \mid q, o_{i,<t})}{\pi_{\theta_{\text{old}}}(o_{i,t} \mid q, o_{i,<t})}
+$$
+
+GRPO maximizes PPO's clipped surrogate, averaged over the group, with a KL penalty toward a reference policy:
+
+$$
+J(\theta) = \mathbb{E} \left[ \frac{1}{G} \sum_{i=1}^{G} \frac{1}{|o_i|} \sum_{t=1}^{|o_i|} \Big( \min \big( \rho_{i,t} \hat{A}_i, \; \text{clip}(\rho_{i,t}, 1 - \epsilon, 1 + \epsilon) \, \hat{A}_i \big) - \beta \, D_{\text{KL}} \big[ \pi_\theta \,\|\, \pi_{\text{ref}} \big] \Big) \right]
+$$
+
+The clip stops one lucky rollout from dragging the policy too far. The KL term keeps the model close to where it started.
+
+# Binary rewards
+
+Most of my rewards are pass/fail. If a fraction $p$ of the group passes, then $\mu = p$ and $\sigma = \sqrt{p(1-p)}$, so
+
+$$
+\hat{A}_{\text{pass}} = \sqrt{\frac{1-p}{p}}, \qquad \hat{A}_{\text{fail}} = -\sqrt{\frac{p}{1-p}}
+$$
+
+Two things fall out of this.
+
+**Rare wins are loud.** With $G = 8$ and one pass, $p = 1/8$ and the winner gets $\hat{A} = \sqrt{7} \approx 2.65$, while each loser gets about $-0.38$.
+
+**Unanimous groups are silent.** If every rollout passes or every rollout fails, $r_i = \mu$ for all $i$ and every advantage is zero. No gradient. A task that the model fails 100% of the time teaches it nothing, no matter how many times you sample it.
+
+That second point is why task difficulty matters so much. You want prompts where the group disagrees with itself.
+
+# Known wrinkles
+
+- **Length bias.** The $1/|o_i|$ term means a long wrong answer is punished less per token than a short one. Dr. GRPO drops it.
+- **Dividing by $\sigma$.** Near-unanimous groups have tiny $\sigma$, which inflates the advantages of prompts that are almost solved or almost hopeless. Dr. GRPO drops this too and uses $r_i - \mu$.
+- **Small groups.** $\mu$ is a noisy baseline when $G$ is small. Bigger groups cost more samples per update.
+
+# References
+
+- Shao et al., [DeepSeekMath](https://arxiv.org/abs/2402.03300) (2024), which introduced GRPO.
+- Liu et al., [Understanding R1-Zero-Like Training: A Critical Perspective](https://arxiv.org/abs/2503.20783) (2025), which proposes Dr. GRPO.

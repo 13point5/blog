@@ -1,19 +1,22 @@
 import { BlogPosts } from "@/app/components/posts";
+import { getBlogPosts } from "@/app/blog/utils";
 
 export const metadata = {
   title: "Blog",
-  description: "Thoughts on AI, engineering, and development by 13point5.",
+  description: "Notes on RL, LLMs, and benchmarks by Sriraam.",
 };
 
 export default function BlogPage() {
+  const count = getBlogPosts().length;
   return (
-    <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-14 pb-16">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-22 pb-16">
       <section className="animate-fade-blur">
-        <h1 className="text-2xl font-semibold mb-4 mt-6 text-foreground">
-          blog
-        </h1>
+        <h1 className="d-2xl mb-1">blog</h1>
+        <p className="text-foreground-muted mb-8">
+          {count} posts on RL, LLMs, and benchmarks. Every cover is drawn in code and animated.
+        </p>
         <BlogPosts />
       </section>
-    </main>
+    </div>
   );
 }

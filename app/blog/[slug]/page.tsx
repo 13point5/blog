@@ -1,7 +1,11 @@
 import { notFound } from "next/navigation";
 import { CustomMDX } from "@/app/components/mdx";
-import { formatDate, getBlogPosts } from "@/app/blog/utils";
-import Image from "next/image";
+import { formatDate, getBlogPosts, parseTags, readingMinutes } from "@/app/blog/utils";
+import Link from "next/link";
+import { PixelScene } from "@/app/components/pixel-scene";
+import { PixelWindow } from "@/app/components/pixel-window";
+import { ReadingProgress } from "@/app/components/reading-progress";
+import { DEFAULT_COVER } from "@/lib/pixel";
 
 export async function generateStaticParams() {
   const posts = getBlogPosts();
@@ -57,9 +61,13 @@ export default async function BlogPost({
     notFound();
   }
 
+  const { metadata } = post;
+  const tags = parseTags(metadata.tags);
+
   return (
-    <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-14 pb-16">
-      <article className="prose prose-lg animate-fade-blur">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-22 pb-24">
+      <ReadingProgress />
+      <article className="animate-fade-blur">
         <script
           type="application/ld+json"
           suppressHydrationWarning
@@ -67,40 +75,46 @@ export default async function BlogPost({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "BlogPosting",
-              headline: post.metadata.title,
-              datePublished: post.metadata.publishedAt,
-              dateModified: post.metadata.publishedAt,
-              description: post.metadata.summary,
+              headline: metadata.title,
+              datePublished: metadata.publishedAt,
+              dateModified: metadata.publishedAt,
+              description: metadata.summary,
             }),
           }}
         />
-        <h1 className="text-3xl font-semibold mb-4 mt-8 text-foreground text-center">
-          {post.metadata.title}
-        </h1>
-        <div className="flex items-center justify-center gap-2 text-sm text-foreground-muted mb-6">
-          <time>{formatDate(post.metadata.publishedAt)}</time>
-          {post.metadata.author && (
-            <>
-              <span>•</span>
-              <span>{post.metadata.author}</span>
-            </>
-          )}
-        </div>
+        <Link href="/blog" className="d-sm text-foreground-muted hover:text-koi">
+          <span aria-hidden="true">◂</span> all posts
+        </Link>
 
-        {post.metadata.image && (
-          <div className="max-w-lg mx-auto mb-8">
-            <Image
-              src={post.metadata.image}
-              alt={post.metadata.title}
-              width={500}
-              height={350}
-              className="h-auto rounded-lg"
-            />
+        <header className="mt-4 mb-8">
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {tags.map((t) => (
+              <span key={t} className="px-tag">{t}</span>
+            ))}
           </div>
+          <h1 className="d-2xl mb-3 text-balance">{metadata.title}</h1>
+          <p className="d-sm text-foreground-muted flex flex-wrap gap-x-3 gap-y-1">
+            <time dateTime={metadata.publishedAt}>{formatDate(metadata.publishedAt)}</time>
+            {metadata.author && <span>by {metadata.author}</span>}
+            <span>{readingMinutes(post.content)} min read</span>
+          </p>
+        </header>
+
+        <PixelWindow title={`${slug}.px`} className="mb-8">
+          <PixelScene scene={metadata.cover ?? DEFAULT_COVER} />
+        </PixelWindow>
+
+        {metadata.placeholder === "true" && (
+          <p role="note" className="border-[3px] border-frame bg-gold/25 px-4 py-3 mb-8 text-[0.95em]">
+            <strong className="font-display uppercase">Placeholder post.</strong> This one is filler
+            written to try out the layout, the covers, and the math rendering. Don&apos;t cite it.
+          </p>
         )}
 
-        <CustomMDX source={post.content} />
+        <div className="post-body">
+          <CustomMDX source={post.content} />
+        </div>
       </article>
-    </main>
+    </div>
   );
 }

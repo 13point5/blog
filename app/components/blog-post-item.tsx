@@ -1,38 +1,39 @@
 import Link from "next/link";
-import Image from "next/image";
-import { formatDate, Metadata } from "@/app/blog/utils";
+import { formatDate, parseTags, readingMinutes, type Metadata } from "@/app/blog/utils";
+import { PixelScene } from "./pixel-scene";
+import { PixelWindow } from "./pixel-window";
+import { DEFAULT_COVER } from "@/lib/pixel";
 
 type BlogPostItemProps = {
   slug: string;
   metadata: Metadata;
+  content: string;
 };
 
-export function BlogPostItem({ slug, metadata }: BlogPostItemProps) {
+/** A post, shown as a little desktop window with an animated cover. */
+export function BlogPostItem({ slug, metadata, content }: BlogPostItemProps) {
+  const tags = parseTags(metadata.tags);
   return (
-    <Link href={`/blog/${slug}`} className="block group">
-      <article className="flex items-start justify-between gap-4 py-2">
-        <div className="flex items-start gap-3 min-w-0">
-          {metadata.image && (
-            <Image
-              src={metadata.image}
-              alt=""
-              width={32}
-              height={32}
-              className="w-8 h-8 rounded object-cover flex-shrink-0"
-            />
-          )}
-          <h3 className="font-medium group-hover:text-foreground-muted transition-colors">
-            {metadata.title}
-          </h3>
+    <Link href={`/blog/${slug}`} className="block px-card px-window h-full">
+      <PixelWindow title={`${slug}.px`} className="!border-0 !shadow-none h-full flex flex-col" bodyClassName="flex flex-col flex-1">
+        <div className="border-b-[3px] border-frame">
+          <PixelScene scene={metadata.cover ?? DEFAULT_COVER} />
         </div>
-        <time
-          dateTime={metadata.publishedAt}
-          className="hidden sm:block text-sm text-foreground-muted whitespace-nowrap"
-        >
-          {formatDate(metadata.publishedAt, false, true)}
-        </time>
-      </article>
+        <article className="p-4 flex flex-col gap-2 flex-1">
+          <div className="flex flex-wrap gap-1.5">
+            {metadata.placeholder === "true" && <span className="px-tag px-tag-warn">placeholder</span>}
+            {tags.map((t) => (
+              <span key={t} className="px-tag">{t}</span>
+            ))}
+          </div>
+          <h3 className="d-md">{metadata.title}</h3>
+          <p className="text-[0.9em] text-foreground-muted leading-snug line-clamp-3">{metadata.summary}</p>
+          <p className="d-xs text-foreground-muted mt-auto pt-2 flex justify-between gap-2">
+            <time dateTime={metadata.publishedAt}>{formatDate(metadata.publishedAt, false, true)}</time>
+            <span>{readingMinutes(content)} min read</span>
+          </p>
+        </article>
+      </PixelWindow>
     </Link>
   );
 }
-

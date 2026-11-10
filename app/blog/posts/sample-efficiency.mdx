@@ -1,0 +1,59 @@
+---
+title: "Three tries in the dungeon: a note on sample efficiency"
+publishedAt: "2026-09-18"
+summary: "Why policy gradients need so many samples, written as a short walk through variance, baselines, and what a learner does with a single mistake."
+author: "Sriraam Raja"
+cover: "dungeon"
+tags: "rl, learning"
+placeholder: "true"
+---
+
+The knight in the cover falls into lava twice and finds the chest on the third try. That is an unrealistic amount of learning from two mistakes, and it is the thing I want from RL.
+
+# Where the samples go
+
+The simplest policy gradient estimator, REINFORCE, uses one trajectory $\tau$ with return $R(\tau)$:
+
+$$
+\hat{g} = R(\tau) \sum_{t=0}^{T-1} \nabla_\theta \log \pi_\theta(a_t \mid s_t)
+$$
+
+It is unbiased. It is also noisy, because every action in the trajectory gets credit for the whole return, including the actions that had nothing to do with it. Averaging $N$ independent trajectories only shrinks the noise as
+
+$$
+\text{Var}\big[\bar{g}_N\big] = \frac{\text{Var}[\hat{g}]}{N}
+$$
+
+so halving the error costs four times the samples. Most of sample efficiency is finding ways to shrink $\text{Var}[\hat{g}]$ instead of growing $N$.
+
+# Three ways to waste less
+
+**Subtract a baseline.** Replace $R(\tau)$ with $R(\tau) - b(s_t)$. The estimator stays unbiased and its variance drops when $b$ tracks the expected return.
+
+**Credit only what came after.** An action at step $t$ cannot affect rewards before $t$, so use the reward-to-go:
+
+$$
+\hat{g} = \sum_{t=0}^{T-1} \nabla_\theta \log \pi_\theta(a_t \mid s_t) \left( \sum_{t'=t}^{T-1} \gamma^{t'-t} r_{t'} - b(s_t) \right)
+$$
+
+**Reuse old data.** On-policy methods throw each trajectory away after one update. Importance weighting lets you reuse it, at the cost of variance that grows as the policies drift apart:
+
+$$
+\mathbb{E}_{\tau \sim \pi_\theta}[f(\tau)] = \mathbb{E}_{\tau \sim \pi_{\text{old}}} \left[ \frac{\pi_\theta(\tau)}{\pi_{\text{old}}(\tau)} f(\tau) \right]
+$$
+
+# What the knight does differently
+
+When the knight dies on tile $(9, 1)$, it does not nudge the probability of every step in the episode. It learns one specific thing: lava is at $(9, 1)$. Then it replans.
+
+That is a different kind of update. It is closer to editing a model of the world than to adjusting a policy, and it is why I keep coming back to three questions:
+
+1. What did this one failure rule out?
+1. Which earlier decision was the mistake?
+1. What would I try next that I have not tried?
+
+A policy gradient answers none of them directly. It answers a blurrier question, "on average, were trajectories like this good?", and needs many samples to make the average mean something.
+
+# A sketch, not a result
+
+I do not have an answer here. The directions I find interesting are the ones in my quest log: world models that can be edited from one observation, and agents that keep what they learned in one episode for the next one.

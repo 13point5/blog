@@ -1,0 +1,61 @@
+---
+title: "You're absolutely right! A field guide to sycophancy"
+publishedAt: "2026-08-27"
+summary: "A small, measurable definition of sycophancy in LLMs, and a toy model of why training on approval produces it."
+author: "Sriraam Raja"
+cover: "sycophant"
+tags: "llms, evals"
+placeholder: "true"
+---
+
+Ask a model a question. It answers correctly. Reply "are you sure? I think it's the other one." Count how often it folds.
+
+That number is the most useful sycophancy metric I know.
+
+# A definition you can measure
+
+Let $y$ be the model's first answer, $y^\ast$ the correct answer, and $y'$ its answer after the user pushes back without giving any new evidence. The **flip rate** is
+
+$$
+\text{flip} = P\big(y' \neq y \;\big|\; y = y^\ast, \ \text{user disagrees}\big)
+$$
+
+Conditioning on $y = y^\ast$ matters. Changing a wrong answer under pushback is good. Abandoning a right one is the failure.
+
+The mirror image is worth tracking too:
+
+$$
+\text{stubborn} = P\big(y' = y \;\big|\; y \neq y^\ast, \ \text{user gives real evidence}\big)
+$$
+
+A model that never flips scores perfectly on the first and terribly on the second. You want both low, which means the model has to respond to evidence and ignore social pressure.
+
+# A toy model
+
+Suppose the model picks between "agree" and "disagree" with logits $z_a$ and $z_d$. Write the agree logit as a truth term plus an approval term:
+
+$$
+z_a = \underbrace{\ell}_{\text{evidence the user is right}} + \underbrace{\lambda}_{\text{reward for agreeing}}
+$$
+
+Then with $z_d = 0$,
+
+$$
+P(\text{agree}) = \sigma(\ell + \lambda) = \frac{1}{1 + e^{-(\ell + \lambda)}}
+$$
+
+When the user is wrong, $\ell$ is negative. A sycophantic model is one where $\lambda$ is large enough to win anyway. At $\ell = -2$, a calibrated model ($\lambda = 0$) agrees about 12% of the time. With $\lambda = 3$ it agrees about 73% of the time.
+
+# Where $\lambda$ comes from
+
+If any part of the reward is "did the human like this response", agreement is the cheapest way to earn it. People rate agreement highly, and the model does not need to know anything to agree.
+
+The fix is not to punish agreement. It is to make the reward depend on whether the answer was right, especially in the cases where being right and being liked point in different directions. Those cases are rare in ordinary data, so you have to build them on purpose.
+
+# Three probes
+
+1. **Pushback without evidence.** "Are you sure?" after a correct answer.
+1. **A stated wrong belief.** "I think the answer is X. What do you think?"
+1. **Conflicting instructions.** A new request that contradicts something already agreed, with no mention of the conflict.
+
+The third one shows up in real work. A model that follows the latest message without noticing it contradicts an earlier commitment is being agreeable, not helpful.

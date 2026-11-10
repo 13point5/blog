@@ -1,0 +1,63 @@
+---
+title: "Benchmarks are boss fights"
+publishedAt: "2026-07-30"
+summary: "A benchmark has a health bar. Notes on saturation, how much a score on 20 tasks can tell you, and why pass/fail grading ages better than partial credit."
+author: "Sriraam Raja"
+cover: "boss-fight"
+tags: "benchmarks, evals"
+placeholder: "true"
+---
+
+A benchmark is a boss with a health bar. Every model release takes a chunk out of it. When the bar hits zero we say the benchmark is saturated, and someone builds a harder one.
+
+# How much does a score tell you?
+
+Treat each task as a coin flip that the model passes with probability $p$. On $n$ tasks, the observed pass rate $\hat{p}$ has standard error
+
+$$
+\text{SE}(\hat{p}) = \sqrt{\frac{p(1-p)}{n}}
+$$
+
+For $p = 0.12$:
+
+| Tasks $n$ | Standard error | Rough 95% interval |
+| --------- | -------------- | ------------------ |
+| 20        | 7.3 pts        | 0% to 26%          |
+| 200       | 2.3 pts        | 7.5% to 16.5%      |
+| 2000      | 0.7 pts        | 10.6% to 13.4%     |
+
+A one-point lead on a 200-task benchmark is noise. Small domains inside a big benchmark are noisier still.
+
+# Comparing two models
+
+If both models run the same tasks, do not compare two noisy averages. Compare them task by task. With per-task differences $d_i$,
+
+$$
+\text{SE}(\bar{d}) = \frac{s_d}{\sqrt{n}}
+$$
+
+where $s_d$ is the standard deviation of the differences. Because hard tasks are hard for everyone, the differences vary less than the scores do, and the paired comparison is much tighter.
+
+# Attempts
+
+If a model passes a task with probability $p$ on each independent attempt, the chance it passes at least once in $k$ attempts is
+
+$$
+\text{pass@}k = 1 - (1 - p)^k
+$$
+
+At $p = 0.12$, pass@1 is 12% and pass@5 is 47%. Same model, same tasks, four times the score. Always check which one a leaderboard reports.
+
+# The health bar
+
+Saturation is not when the top score reaches 100%. It is when the remaining failures stop telling you anything:
+
+- **Label noise.** If 3% of the answer key is wrong, 97% is the ceiling.
+- **Contamination.** Tasks leak into training data, and the score starts measuring memory.
+- **Headroom.** Once models are separated by less than the standard error, the ranking is a coin flip.
+
+# Why I like pass/fail
+
+Partial credit is tempting on hard benchmarks, because a table of zeros is boring. But partial credit tells you how much of a rubric was touched, and that is different from whether the work was usable.
+
+Pass/fail starts at zero and stays informative for longer. The boss has more health, and you can tell exactly when it goes down.

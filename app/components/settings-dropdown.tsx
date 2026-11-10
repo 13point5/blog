@@ -1,113 +1,105 @@
 "use client";
 
-import { Sun, Moon, Type } from "lucide-react";
 import { useTheme } from "../providers/theme-provider";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { FONTS, PRESETS, getFont } from "@/lib/fonts-config";
+import { PixelIcon } from "./pixel-icon";
+
+function Stepper({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (id: string) => void;
+}) {
+  const i = Math.max(0, FONTS.findIndex((f) => f.id === value));
+  const step = (d: number) => onChange(FONTS[(i + d + FONTS.length) % FONTS.length].id);
+  const font = FONTS[i];
+  return (
+    <div className="flex items-center gap-2">
+      <span className="d-xs uppercase text-foreground-muted w-16 shrink-0">{label}</span>
+      <button type="button" className="px-btn !px-2 !py-0.5 !shadow-none" onClick={() => step(-1)} aria-label={`Previous ${label} font`}>◀</button>
+      <span
+        className="flex-1 text-center truncate"
+        style={{ fontFamily: font.css, fontSize: `${0.95 * font.bs}rem` }}
+        aria-live="polite"
+      >
+        {font.label}
+      </span>
+      <button type="button" className="px-btn !px-2 !py-0.5 !shadow-none" onClick={() => step(1)} aria-label={`Next ${label} font`}>▶</button>
+    </div>
+  );
+}
 
 export function SettingsDropdown() {
-  const { theme, setTheme, fontFamily, setFontFamily } = useTheme();
-
-  const themes = [
-    { value: "light", label: "Light", icon: Sun },
-    { value: "dark", label: "Dark", icon: Moon },
-  ] as const;
+  const { theme, setTheme, display, body, setFonts, motion, setMotion } = useTheme();
 
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className="text-base sm:text-lg font-normal tracking-tight hover:text-foreground-muted transition-colors outline-none focus-visible:text-foreground-muted cursor-pointer"
-          aria-label="Menu"
-        >
+        <button type="button" className="px-btn !py-1 !px-2.5 !shadow-none" aria-label="Open settings menu">
           menu
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="flex items-center gap-1 sm:gap-1.5 p-1.5 sm:p-2 min-w-0 w-auto bg-background text-foreground"
         align="end"
-        sideOffset={8}
+        sideOffset={10}
+        className="px-window w-[min(calc(100vw-1.5rem),22rem)] p-0 text-foreground rounded-none"
       >
-        {themes.map(({ value, label, icon: Icon }) => (
-          <Tooltip key={value}>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                aria-label={label}
-                aria-pressed={theme === value}
-                onClick={() => setTheme(value)}
-                className={cn(
-                  "rounded-md sm:size-9",
-                  theme === value &&
-                    "bg-foreground text-background hover:bg-foreground hover:text-background"
-                )}
-              >
-                <Icon className="size-4 sm:size-[18px]" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">{label}</TooltipContent>
-          </Tooltip>
-        ))}
+        <div className="px-titlebar">
+          <span className="flex-1">settings.cfg</span>
+        </div>
 
-        <div
-          className="mx-0.5 h-5 sm:h-6 w-px bg-border/60"
-          aria-hidden="true"
-        />
+        <div className="p-3 flex flex-col gap-4">
+          <section aria-label="Theme" className="grid grid-cols-2 gap-2">
+            <button type="button" className="px-btn" aria-pressed={theme === "light"} onClick={() => setTheme("light")}>
+              <PixelIcon name="sun" size={2} /> day
+            </button>
+            <button type="button" className="px-btn" aria-pressed={theme === "dark"} onClick={() => setTheme("dark")}>
+              <PixelIcon name="moon" size={2} /> night
+            </button>
+          </section>
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Sans"
-              aria-pressed={fontFamily === "sans"}
-              onClick={() => setFontFamily("sans")}
-              className={cn(
-                "rounded-md sm:size-9",
-                fontFamily === "sans" &&
-                  "bg-foreground text-background hover:bg-foreground hover:text-background"
-              )}
-            >
-              <Type className="size-4 sm:size-[18px]" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">Sans</TooltipContent>
-        </Tooltip>
+          <section aria-label="Font presets">
+            <h3 className="d-xs uppercase text-foreground-muted mb-2">Font presets</h3>
+            <div className="grid grid-cols-2 gap-2">
+              {PRESETS.map((p) => {
+                const d = getFont(p.display);
+                const b = getFont(p.body);
+                return (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className="px-btn !flex-col !items-start !gap-0 !px-2 !py-1.5 text-left !shadow-none min-w-0"
+                    aria-pressed={display === p.display && body === p.body}
+                    onClick={() => setFonts(p.display, p.body)}
+                  >
+                    <span className="truncate max-w-full" style={{ fontFamily: d.css, fontSize: `${1.05 * d.ds}rem`, lineHeight: 1.3 }}>
+                      {p.label}
+                    </span>
+                    <span className="truncate max-w-full opacity-75" style={{ fontFamily: b.css, fontSize: `${0.72 * b.bs}rem`, lineHeight: 1.4 }}>
+                      {p.note}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Open Dyslexia"
-              aria-pressed={fontFamily === "dyslexia"}
-              onClick={() => setFontFamily("dyslexia")}
-              className={cn(
-                "rounded-md font-dyslexia text-xs sm:text-sm font-bold tracking-tight sm:size-9",
-                fontFamily === "dyslexia" &&
-                  "bg-foreground text-background hover:bg-foreground hover:text-background"
-              )}
-            >
-              OD
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">Open Dyslexia</TooltipContent>
-        </Tooltip>
+          <section aria-label="Mix your own fonts" className="flex flex-col gap-2">
+            <h3 className="d-xs uppercase text-foreground-muted">Mix your own</h3>
+            <Stepper label="Titles" value={display} onChange={(id) => setFonts(id, body)} />
+            <Stepper label="Text" value={body} onChange={(id) => setFonts(display, id)} />
+          </section>
+
+          <section aria-label="Animation" className="flex items-center gap-2">
+            <span className="d-xs uppercase text-foreground-muted w-16 shrink-0">Motion</span>
+            <button type="button" className="px-btn !py-0.5 !shadow-none flex-1" aria-pressed={motion} onClick={() => setMotion(true)}>on</button>
+            <button type="button" className="px-btn !py-0.5 !shadow-none flex-1" aria-pressed={!motion} onClick={() => setMotion(false)}>off</button>
+          </section>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );
