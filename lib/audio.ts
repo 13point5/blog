@@ -59,3 +59,40 @@ export function playPrelude() {
   const id = setInterval(tick, 165);
   return () => clearInterval(id);
 }
+
+/** One bowed note: a filtered sawtooth with a slow attack and a little vibrato. */
+function bowed(freq: number, start: number, seconds: number, volume = 0.05) {
+  const ac = audio();
+  if (!ac) return;
+  const osc = ac.createOscillator();
+  const lfo = ac.createOscillator();
+  const depth = ac.createGain();
+  const filter = ac.createBiquadFilter();
+  const gain = ac.createGain();
+  osc.type = "sawtooth";
+  osc.frequency.value = freq;
+  lfo.frequency.value = 5.5;
+  depth.gain.value = freq * 0.006;
+  lfo.connect(depth).connect(osc.frequency);
+  filter.type = "lowpass";
+  filter.frequency.value = 2400;
+  const t = ac.currentTime + start;
+  gain.gain.setValueAtTime(0, t);
+  gain.gain.linearRampToValueAtTime(volume, t + 0.05);
+  gain.gain.setValueAtTime(volume, t + Math.max(0.06, seconds - 0.08));
+  gain.gain.linearRampToValueAtTime(0, t + seconds);
+  osc.connect(filter).connect(gain).connect(ac.destination);
+  osc.start(t); lfo.start(t);
+  osc.stop(t + seconds + 0.05); lfo.stop(t + seconds + 0.05);
+}
+
+/** The opening of "Spring" from Vivaldi's Four Seasons. */
+export function playSpring() {
+  const beat = 0.26;
+  const phrase: [number, number][] = [[76, 1], [80, 1], [80, 1], [80, 1], [78, 0.5], [76, 0.5], [83, 3]];
+  let at = 0;
+  for (const [note, beats] of phrase) {
+    bowed(midi(note), at, beats * beat * 0.96);
+    at += beats * beat;
+  }
+}

@@ -1,5 +1,5 @@
 import { Socials } from "./socials";
-import { PianoKeys, Toy } from "./toys";
+import { PianoKeys } from "./toys";
 
 export function Footer() {
   return (
@@ -9,8 +9,7 @@ export function Footer() {
         <div className="section-divider" />
       </div>
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
-        <figure className="relative">
-          <Toy id="metronome" scale={2} rows={18} className="absolute -left-9 bottom-1 hidden sm:block" />
+        <figure>
           <blockquote className="font-display italic d-md">
             What I cannot create, I do not understand.
           </blockquote>

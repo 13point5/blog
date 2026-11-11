@@ -10,15 +10,18 @@ const BASE = 39; // the shelf line
 export type Pal = {
   ink: string; mid: string; light: string; paper: string;
   accent: string; green: string; gold: string; blue: string;
+  wood: string; woodHi: string; woodLo: string; snow: string;
 };
 
 const LIGHT: Pal = {
   ink: "#2a2925", mid: "#8c877b", light: "#cfc9bb", paper: "#fdfbf7",
   accent: "#d9532b", green: "#3f7a5a", gold: "#c9973a", blue: "#3f6a9a",
+  wood: "#8a5230", woodHi: "#c0753a", woodLo: "#5a341d", snow: "#fdfbf7",
 };
 const DARK: Pal = {
   ink: "#e8e6df", mid: "#9a968b", light: "#5a574f", paper: "#262624",
   accent: "#ff7a4d", green: "#6dbb8a", gold: "#f2c96a", blue: "#7fa8dc",
+  wood: "#a8683c", woodHi: "#d98a4a", woodLo: "#6b3f22", snow: "#fdfbf7",
 };
 
 export type Item = {
@@ -30,37 +33,56 @@ export type Item = {
   draw: (g: Gfx, x: number, y: number, f: number, P: Pal, active?: boolean) => void;
 };
 
+// A snowy owl: round head, no ear tufts, yellow eyes, dark flecks.
 const OWL = [
-  "m.......m",
-  "mm.....mm",
-  "mmmmmmmmm",
-  "mpppmpppm",
-  "mpkpmpkpm",
-  "mpppgpppm",
-  "mmmmgmmmm",
-  "mlmlmlmlm",
-  "mmlmlmlmm",
-  "mlmlmlmlm",
-  ".mmmmmmm.",
-  "..g...g..",
+  "...kkkkk...",
+  "..kpppppk..",
+  ".kpppppppk.",
+  ".kpgpppgpk.",
+  ".kpppkpppk.",
+  ".kppmpmppk.",
+  "kpmpppppmpk",
+  "kppmpmpmppk",
+  "kpmpppppmpk",
+  "kppmpmpmppk",
+  ".kpppppppk.",
+  "..kkpkpkk..",
+  "...g...g...",
 ];
+export const owlPalette = (P: Pal) => ({ k: P.ink, p: P.snow, g: P.gold, m: P.mid });
 
+// A violin, front on: scroll and pegs, a black fingerboard, an hourglass body
+// with f-holes either side of the bridge, tailpiece and chinrest.
 const VIOLIN = [
-  "..kk..",
-  "..kk..",
-  "..kk..",
-  "..kk..",
-  "..kk..",
-  "..kk..",
-  ".gggg.",
-  "gggggg",
-  "gggggg",
-  ".gkkg.",
-  ".gkkg.",
-  "gggggg",
-  "gggggg",
-  "gggggg",
-  ".gggg.",
+  ".....kk.....",
+  "....kwwk....",
+  "...k.kk.k...",
+  ".....kk.....",
+  "...k.kk.k...",
+  ".....kk.....",
+  ".....kk.....",
+  ".....kk.....",
+  ".....kk.....",
+  ".....kk.....",
+  ".....kk.....",
+  "...lwkkwl...",
+  "..lwhkkhwl..",
+  ".lwhhkkhhwl.",
+  ".lwhhkkhhwl.",
+  ".lwhhkkhhwl.",
+  "..lwhkkhwl..",
+  "...lwkkwl...",
+  "...lwkkwl...",
+  "..lwhkkhwl..",
+  ".lwkhpphkwl.",
+  "lwhkhhhhkhwl",
+  "lwhhhkkhhhwl",
+  "lwhhhkkhhhwl",
+  "lwhhkkkkhhwl",
+  "lwkkkkkkhhwl",
+  ".lkkkkkhhwl.",
+  "..lwwwwwwl..",
+  "...llllll...",
 ];
 
 const ITEMS: Item[] = [
@@ -81,7 +103,7 @@ const ITEMS: Item[] = [
     },
   },
   {
-    // an owl dozing on a stack of spellbooks
+    // a snowy owl dozing on a stack of spellbooks
     id: "owl", w: 22, priority: 0,
     draw(g, x, y, f, P) {
       const books: [number, number, number, string][] = [[0, 22, 4, P.blue], [2, 18, 4, P.accent], [1, 19, 3, P.green]];
@@ -94,41 +116,46 @@ const ITEMS: Item[] = [
         g.rect(x + dx + w - 2, top + 1, 1, h - 1, P.paper);
       }
       g.rect(x, y - 1, 22, 1, P.ink);
-      const blink = f % 70 < 4;
       const bob = Math.floor(f / 18) % 2;
-      g.sprite(OWL, x + 6, top - 12 + bob, { m: P.mid, p: P.paper, k: P.ink, g: P.gold, l: P.light });
-      if (blink) {
-        g.rect(x + 7, top - 9 + bob, 3, 3, P.mid);
-        g.rect(x + 11, top - 9 + bob, 3, 3, P.mid);
-        g.rect(x + 7, top - 8 + bob, 3, 1, P.ink);
-        g.rect(x + 11, top - 8 + bob, 3, 1, P.ink);
+      g.sprite(OWL, x + 5, top - 13 + bob, owlPalette(P));
+      if (f % 70 < 4) {
+        g.px(x + 8, top - 10 + bob, P.ink);
+        g.px(x + 12, top - 10 + bob, P.ink);
       }
     },
   },
   {
-    // a record player, record turning, a few notes drifting up
-id: "record", w: 30, priority: 1,
+    // a turntable: wooden plinth, a black record with a bright label, a tonearm
+    id: "record", w: 34, priority: 1,
     draw(g, x, y, f, P, active = true) {
-      g.rect(x, y - 7, 30, 7, P.ink);
-      g.rect(x + 1, y - 6, 28, 5, P.gold);
-      g.rect(x + 1, y - 2, 28, 1, P.mid);
-      g.px(x + 25, y - 4, P.paper);
-      g.px(x + 22, y - 4, active ? P.accent : P.mid);
-      // the record, seen at an angle
-      const rows = [12, 18, 20, 18, 12];
-      rows.forEach((w, i) => g.rect(x + 12 - w / 2, y - 13 + i, w, 1, P.ink));
-      g.rect(x + 10, y - 11, 4, 1, P.accent);
-      const a = active ? f * 0.5 : 0.6;
-      g.px(x + 12 + Math.cos(a) * 7, y - 11 + Math.sin(a) * 1.6, P.mid);
-      g.px(x + 12 - Math.cos(a) * 5, y - 11 - Math.sin(a) * 1.2, P.mid);
-      // tonearm: on the record when playing, parked when not
-      g.rect(x + 25, y - 15, 2, 2, P.mid);
-      if (active) g.line(x + 25, y - 14, x + 18, y - 11, P.mid);
-      else g.line(x + 26, y - 14, x + 27, y - 9, P.mid);
+      // plinth: front face, then the top seen at an angle
+      g.rect(x, y - 6, 32, 6, P.woodLo);
+      g.rect(x + 1, y - 5, 30, 4, P.wood);
+      g.px(x + 27, y - 3, P.gold);
+      g.px(x + 24, y - 3, active ? P.accent : P.woodLo);
+      for (let i = 0; i < 10; i++) {
+        const off = Math.round((9 - i) * 0.25);
+        g.rect(x + off, y - 16 + i, 32, 1, P.woodLo);
+        g.rect(x + off + 1, y - 16 + i, 30, 1, i === 0 ? P.woodLo : P.light);
+      }
+      // the record
+      const cx = x + 13, cy = y - 11;
+      const rows = [10, 16, 20, 22, 22, 20, 16, 10];
+      rows.forEach((w, i) => g.rect(cx - w / 2, cy - 4 + i, w, 1, P.ink));
+      g.rect(cx - 3, cy - 1, 6, 2, P.accent);
+      g.px(cx, cy, P.snow);
+      const a = active ? f * 0.45 : 0.7;
+      g.px(cx + Math.cos(a) * 8, cy + Math.sin(a) * 2.6, P.mid);
+      g.px(cx - Math.cos(a) * 6, cy - Math.sin(a) * 2, P.mid);
+      // tonearm, from its pivot at the back right
+      g.rect(x + 28, y - 15, 3, 3, P.mid);
+      g.px(x + 29, y - 14, P.ink);
+      if (active) { g.line(x + 28, y - 13, x + 21, y - 9, P.mid); g.rect(x + 20, y - 9, 2, 2, P.ink); }
+      else { g.line(x + 29, y - 12, x + 29, y - 8, P.mid); g.rect(x + 29, y - 8, 2, 2, P.ink); }
       if (!active) return;
       for (let i = 0; i < 2; i++) {
         const p = (f * 0.35 + i * 9) % 18;
-        const nx = x + 6 + i * 9 + Math.round(Math.sin(p * 0.6 + i) * 1.5), ny = y - 17 - p;
+        const nx = x + 6 + i * 11 + Math.round(Math.sin(p * 0.6 + i) * 1.5), ny = y - 20 - p;
         const al = 1 - p / 18;
         g.rect(nx + 1, ny, 1, 4, P.ink, al);
         g.rect(nx, ny + 3, 2, 2, P.ink, al);
@@ -137,21 +164,25 @@ id: "record", w: 30, priority: 1,
     },
   },
   {
-    // three swords on a rack
-    id: "swords", w: 26, priority: 2,
+    // three katana on a stand, longest at the bottom, each with a slight curve
+    id: "swords", w: 34, priority: 2,
     draw(g, x, y, _f, P) {
-      g.rect(x + 2, y - 19, 2, 19, P.mid);
-      g.rect(x + 22, y - 19, 2, 19, P.mid);
-      g.rect(x, y - 1, 26, 1, P.ink);
-      const swords: [string, string][] = [[P.paper, P.light], [P.accent, P.ink], [P.ink, P.green]];
-      swords.forEach(([blade, grip], i) => {
-        const sy = y - 16 + i * 5;
-        g.rect(x - 1, sy - 1, 28, 3, P.ink);
-        g.rect(x, sy, 19, 1, blade);
-        g.rect(x + 19, sy - 2, 1, 5, P.gold);
-        g.rect(x + 20, sy, 6, 1, grip);
-        g.px(x + 22, sy, P.paper);
-        g.px(x + 24, sy, P.paper);
+      // stand
+      g.rect(x + 9, y - 19, 2, 18, P.woodLo);
+      g.rect(x + 23, y - 19, 2, 18, P.woodLo);
+      g.rect(x + 6, y - 2, 22, 2, P.woodLo);
+      const swords: [number, string, string][] = [[22, P.snow, P.snow], [28, P.accent, P.accent], [34, P.ink, P.green]];
+      swords.forEach(([len, sheath, wrap], i) => {
+        const sx = x + 17 - len / 2, sy = y - 16 + i * 6;
+        const tip = 6, hilt = 7;
+        // scabbard: straight, with the last stretch toward the tip lifting a pixel
+        g.rect(sx, sy - 1, len - tip, 3, P.ink);
+        g.rect(sx + len - tip, sy - 2, tip, 3, P.ink);
+        g.rect(sx + hilt + 1, sy, len - tip - hilt - 1, 1, sheath);
+        g.rect(sx + len - tip, sy - 1, tip - 1, 1, sheath);
+        // wrapped hilt on the left, then the guard
+        for (let k = 1; k < hilt; k++) g.px(sx + k, sy, k % 2 ? wrap : P.ink);
+        g.rect(sx + hilt, sy - 2, 1, 5, P.gold);
       });
     },
   },
@@ -184,22 +215,25 @@ id: "record", w: 30, priority: 1,
     // an upright piano that plays itself
     id: "piano", w: 30, priority: 3,
     draw(g, x, y, f, P) {
-      g.rect(x, y - 22, 30, 15, P.ink);
-      g.rect(x - 1, y - 23, 32, 2, P.ink);
-      g.rect(x + 1, y - 20, 28, 1, P.mid);
-      // music stand
-      g.rect(x + 9, y - 18, 12, 7, P.paper);
-      for (let i = 0; i < 3; i++) g.rect(x + 10, y - 17 + i * 2, 10 - (i % 2) * 3, 1, P.mid);
-      // keys
-      g.rect(x - 1, y - 9, 32, 4, P.ink);
-      g.rect(x, y - 8, 30, 2, P.paper);
-      for (let k = 1; k < 30; k += 2) if ((k >> 1) % 7 !== 2 && (k >> 1) % 7 !== 6) g.px(x + k, y - 8, P.ink);
+      g.rect(x, y - 23, 30, 23, P.woodLo);
+      g.rect(x + 1, y - 22, 28, 12, P.wood);
+      g.rect(x - 1, y - 24, 32, 2, P.woodLo);
+      // panelled front and a sheet of music
+      g.rect(x + 3, y - 20, 6, 7, P.woodHi);
+      g.rect(x + 21, y - 20, 6, 7, P.woodHi);
+      g.rect(x + 10, y - 20, 10, 7, P.snow);
+      for (let i = 0; i < 3; i++) g.rect(x + 11, y - 19 + i * 2, 8 - (i % 2) * 3, 1, P.mid);
+      // keyboard
+      g.rect(x - 1, y - 10, 32, 4, P.woodLo);
+      g.rect(x, y - 9, 30, 2, P.snow);
+      for (let k = 1; k < 30; k += 2) if ((k >> 1) % 7 !== 2 && (k >> 1) % 7 !== 6) g.px(x + k, y - 9, "#1d1d1b");
       const key = Math.floor(hash(Math.floor(f / 4), 3, 12) * 15) * 2;
-      g.rect(x + key, y - 7, 2, 1, P.accent);
-      // legs
-      g.rect(x, y - 5, 3, 5, P.ink);
-      g.rect(x + 27, y - 5, 3, 5, P.ink);
-      g.rect(x + 12, y - 2, 6, 1, P.gold);
+      g.rect(x + key, y - 8, 2, 1, P.accent);
+      // lower panel, legs and pedals
+      g.rect(x + 3, y - 6, 24, 6, P.wood);
+      g.rect(x, y - 6, 3, 6, P.woodLo);
+      g.rect(x + 27, y - 6, 3, 6, P.woodLo);
+      g.px(x + 13, y - 1, P.gold); g.px(x + 15, y - 1, P.gold); g.px(x + 17, y - 1, P.gold);
     },
   },
   {
@@ -221,27 +255,14 @@ id: "record", w: 30, priority: 1,
     },
   },
   {
-    // a metronome keeping time
-    id: "metronome", w: 9, priority: 9,
-    draw(g, x, y, f, P) {
-      for (let i = 0; i < 13; i++) {
-        const w = 3 + Math.floor((i * 6) / 13);
-        g.rect(x + 4 - Math.floor(w / 2), y - 13 + i, w, 1, i === 12 ? P.ink : P.gold);
-      }
-      g.rect(x + 1, y - 1, 7, 1, P.ink);
-      const swing = Math.sin(f * 0.42) * 3.2;
-      g.line(x + 4, y - 3, x + 4 + swing, y - 15, P.ink);
-      g.rect(x + 4 + swing * 0.6 - 1, y - 11, 2, 2, P.accent);
-    },
-  },
-  {
-    // a violin and its bow
-    id: "violin", w: 12, priority: 6,
+    // a violin with its bow leaning against it
+    id: "violin", w: 19, priority: 3.2,
     draw(g, x, y, _f, P) {
-      g.sprite(VIOLIN, x, y - 15, { k: P.ink, g: P.gold });
-      g.rect(x + 2, y - 9, 2, 8, P.ink, 0.35);
-      g.line(x + 11, y - 1, x + 7, y - 17, P.mid);
-      g.px(x + 11, y - 1, P.ink);
+      g.sprite(VIOLIN, x, y - 29, { k: "#1d1d1b", w: P.wood, h: P.woodHi, l: P.woodLo, p: P.snow });
+      // bow: a long stick with a dark frog at the bottom
+      g.line(x + 18, y - 1, x + 13, y - 33, P.woodLo);
+      g.rect(x + 17, y - 4, 2, 3, "#1d1d1b");
+      g.px(x + 13, y - 33, P.snow);
     },
   },
   {

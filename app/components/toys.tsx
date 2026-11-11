@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { Gfx } from "@/lib/pixel/engine";
-import { OWL_ROWS, TOYS, TOY_PALETTE } from "@/lib/pixel/scenes/shelf";
-import { midi, playPrelude, tone } from "@/lib/audio";
+import { OWL_ROWS, TOYS, TOY_PALETTE, owlPalette } from "@/lib/pixel/scenes/shelf";
+import { midi, playPrelude, playSpring, tone } from "@/lib/audio";
 import { useTheme } from "../providers/theme-provider";
 import { cn } from "@/lib/utils";
 
@@ -142,6 +142,22 @@ export function RecordPlayer({ className }: { className?: string }) {
   );
 }
 
+/** A violin. Tap it for the opening of Vivaldi's "Spring". */
+export function Violin({ className }: { className?: string }) {
+  const [kick, setKick] = useState(0);
+  if (!useToys()) return null;
+  return (
+    <Sprite
+      id="violin"
+      rows={38}
+      kick={kick}
+      onTap={() => { setKick((k) => k + 1); playSpring(); }}
+      label="Play the violin (Vivaldi, Spring)"
+      className={className}
+    />
+  );
+}
+
 /** Any other object: it hops when tapped, and the cube scrambles. */
 export function Toy({ id, scale, rows, className }: { id: string; scale?: number; rows?: number; className?: string }) {
   const [kick, setKick] = useState(0);
@@ -249,22 +265,47 @@ export function PianoKeys() {
     onPointerEnter: () => held.current && play(note),
   });
 
+  const wood = "bg-[#8a5230]", dark = "bg-[#5a341d]", hi = "bg-[#a9683c]";
   return (
-    <div ref={ref} className="relative flex h-12 select-none touch-none border border-[#1d1d1b] bg-[#1d1d1b] gap-px" aria-hidden="true" title="Play me">
-      {Array.from({ length: count }, (_, i) => {
-        const note = 60 + Math.floor(i / 7) * 12 + WHITE[i % 7];
-        return (
-          <span key={i} className="relative flex-1">
-            <span {...handlers(note)} className={cn("absolute inset-0 cursor-pointer", down === note ? "bg-koi" : "bg-[#f6f3ec]")} />
-            {HAS_SHARP[i % 7] && i < count - 1 && (
-              <span
-                {...handlers(note + 1)}
-                className={cn("absolute z-10 top-0 left-[68%] w-[64%] h-[60%] cursor-pointer", down === note + 1 ? "bg-koi" : "bg-[#1d1d1b]")}
-              />
-            )}
-          </span>
-        );
-      })}
+    <div className="select-none" aria-hidden="true" title="Play me">
+      {/* lid and panelled upper case */}
+      <div className={cn("h-1.5 -mx-1", dark)} />
+      <div className={cn("h-14 flex gap-2 p-2 border-x-4 border-[#5a341d]", wood)}>
+        <div className={cn("flex-1 border-2 border-[#5a341d]", hi)} />
+        <div className="flex-[1.4] border-2 border-[#5a341d] bg-[#f6f3ec] flex flex-col justify-center gap-1.5 px-3">
+          <span className="h-px bg-[#8c877b]" /><span className="h-px bg-[#8c877b] w-4/5" /><span className="h-px bg-[#8c877b]" /><span className="h-px bg-[#8c877b] w-3/5" />
+        </div>
+        <div className={cn("flex-1 border-2 border-[#5a341d]", hi)} />
+      </div>
+      <div className={cn("h-1.5", dark)} />
+      {/* the keyboard, between two cheek blocks */}
+      <div className={cn("flex -mx-1 px-2", dark)}>
+        <div ref={ref} className="relative flex flex-1 h-12 touch-none border-x border-[#1d1d1b] bg-[#1d1d1b] gap-px">
+          {Array.from({ length: count }, (_, i) => {
+            const note = 60 + Math.floor(i / 7) * 12 + WHITE[i % 7];
+            return (
+              <span key={i} className="relative flex-1">
+                <span {...handlers(note)} className={cn("absolute inset-0 cursor-pointer", down === note ? "bg-koi" : "bg-[#f6f3ec]")} />
+                {HAS_SHARP[i % 7] && i < count - 1 && (
+                  <span
+                    {...handlers(note + 1)}
+                    className={cn("absolute z-10 top-0 left-[68%] w-[64%] h-[60%] cursor-pointer", down === note + 1 ? "bg-koi" : "bg-[#1d1d1b]")}
+                  />
+                )}
+              </span>
+            );
+          })}
+        </div>
+      </div>
+      <div className={cn("h-1.5 -mx-1", dark)} />
+      {/* lower panel, legs and pedals */}
+      <div className="flex h-9 border-x-4 border-[#5a341d]">
+        <div className={cn("w-3", dark)} />
+        <div className={cn("flex-1 flex items-end justify-center gap-2 pb-0.5", wood)}>
+          <span className="w-2 h-1 bg-[#c9973a]" /><span className="w-2 h-1 bg-[#c9973a]" /><span className="w-2 h-1 bg-[#c9973a]" />
+        </div>
+        <div className={cn("w-3", dark)} />
+      </div>
     </div>
   );
 }
@@ -326,15 +367,16 @@ function Owl() {
       const P = isDark() ? TOY_PALETTE.dark : TOY_PALETTE.light;
       ctx.clearRect(0, 0, OWL_W, OWL_H);
       const blink = !flying && f % 64 < 3;
-      g.sprite(OWL_ROWS, 5, OWL_H - 12, { m: P.mid, p: P.paper, k: P.ink, g: P.gold, l: P.light }, dir < 0);
-      if (blink) { g.rect(6, 7, 3, 3, P.mid); g.rect(10, 7, 3, 3, P.mid); g.rect(6, 8, 3, 1, P.ink); g.rect(10, 8, 3, 1, P.ink); }
       if (flying) {
+        // wings first, so the body sits in front of them
         const up = Math.floor(f / 2) % 2 === 0;
-        const wy = up ? 3 : 9;
-        g.rect(0, wy, 5, 2, P.mid); g.rect(14, wy, 5, 2, P.mid);
-        g.rect(0, wy + (up ? -1 : 2), 3, 1, P.light); g.rect(16, wy + (up ? -1 : 2), 3, 1, P.light);
-        g.rect(7, 15, 5, 1, P.paper, 0); // tuck the feet
+        const wy = up ? 4 : 10;
+        g.rect(0, wy - 1, 6, 4, P.ink); g.rect(13, wy - 1, 6, 4, P.ink);
+        g.rect(1, wy, 4, 2, P.snow); g.rect(14, wy, 4, 2, P.snow);
+        g.px(2, wy + 1, P.mid); g.px(16, wy + 1, P.mid);
       }
+      g.sprite(OWL_ROWS, 4, OWL_H - 13, owlPalette(P), dir < 0);
+      if (blink) { g.px(7, OWL_H - 10, P.ink); g.px(11, OWL_H - 10, P.ink); }
     };
 
     const tick = (now: number) => {
