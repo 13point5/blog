@@ -36,7 +36,7 @@ export function Header() {
         <Link href="/" className="font-display d-md hover:text-foreground-muted transition-colors">
           Sriraam
         </Link>
-        <div className="flex items-center gap-5 text-sm">
+        <div className="flex items-center gap-5 font-display d-md">
           <Link
             href="/blog"
             className={cn(

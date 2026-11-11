@@ -4,6 +4,8 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { DEFAULT_BODY, DEFAULT_DISPLAY, FONTS } from "@/lib/fonts-config";
 
 type Theme = "light" | "dark";
+export type ArtWidth = "column" | "full";
+export type ArtEdge = "hard" | "dissolve";
 
 interface Settings {
   theme: Theme;
@@ -13,6 +15,11 @@ interface Settings {
   /** body font id */
   body: string;
   setFonts: (display: string, body: string) => void;
+  /** How wide pixel art is drawn. */
+  artWidth: ArtWidth;
+  /** Whether its edges are crisp or crumble into the page. */
+  artEdge: ArtEdge;
+  setArt: (width: ArtWidth, edge: ArtEdge) => void;
 }
 
 const ThemeContext = createContext<Settings | undefined>(undefined);
@@ -39,6 +46,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("light");
   const [display, setDisplay] = useState(DEFAULT_DISPLAY);
   const [body, setBody] = useState(DEFAULT_BODY);
+  const [artWidth, setArtWidth] = useState<ArtWidth>("full");
+  const [artEdge, setArtEdge] = useState<ArtEdge>("dissolve");
 
   useEffect(() => {
     const d = read("fontDisplay");
@@ -47,6 +56,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setThemeState(read("theme") === "dark" ? "dark" : "light");
     if (isFont(d)) setDisplay(d);
     if (isFont(b)) setBody(b);
+    if (read("artWidth") === "column") setArtWidth("column");
+    if (read("artEdge") === "hard") setArtEdge("hard");
   }, []);
 
   const setTheme = (next: Theme) => {
@@ -64,8 +75,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     write("fontBody", nextBody);
   };
 
+  const setArt = (width: ArtWidth, edge: ArtEdge) => {
+    setArtWidth(width);
+    setArtEdge(edge);
+    write("artWidth", width);
+    write("artEdge", edge);
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, display, body, setFonts }}>
+    <ThemeContext.Provider value={{ theme, setTheme, display, body, setFonts, artWidth, artEdge, setArt }}>
       {children}
     </ThemeContext.Provider>
   );

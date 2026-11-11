@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { CustomMDX } from "@/app/components/mdx";
 import { formatDate, getBlogPosts, readingMinutes } from "@/app/blog/utils";
-import { PixelScene } from "@/app/components/pixel-scene";
+import { Art } from "@/app/components/art";
 
 export async function generateStaticParams() {
   const posts = getBlogPosts();
@@ -77,7 +77,7 @@ export default async function BlogPost({
           }}
         />
         {/* One piece of pixel art per post, above the title */}
-        {metadata.cover && <PixelScene scene={metadata.cover} className="mb-8" />}
+        {metadata.cover && <Art scene={metadata.cover} className="-mt-4 mb-8" />}
 
         <header className="relative mb-10">
           <h1 className="d-xl mb-4 text-balance">{metadata.title}</h1>

@@ -6,7 +6,7 @@ const HORIZON = 80;
 
 type Building = { x: number; w: number; h: number; tone: number };
 type Drop = { x: number; y: number; len: number; sp: number; a: number };
-type State = { far: Building[]; mid: Building[]; drops: Drop[]; rng: Rng };
+type State = { far: Building[]; mid: Building[]; drops: Drop[]; rng: Rng; w: number };
 
 const DAY = {
   skyTop: "#6fb0bd",
@@ -36,13 +36,15 @@ const NIGHT = {
   rain: "#a9c8de",
 };
 
-function canopyTop(x: number) {
+/** Top of the tree line. `u` is measured from the left of the centred 128px view. */
+function canopyTop(u: number) {
+  const c = Math.max(0, Math.min(W, u));
   return (
     76 -
-    9 * Math.sin(x * 0.045 + 0.6) -
-    5 * Math.sin(x * 0.11 + 2) -
-    (x > 80 ? (x - 80) * 0.42 : 0) +
-    (x < 34 ? (34 - x) * 0.55 : 0)
+    9 * Math.sin(u * 0.045 + 0.6) -
+    5 * Math.sin(u * 0.11 + 2) -
+    (c > 80 ? (c - 80) * 0.42 : 0) +
+    (c < 34 ? (34 - c) * 0.55 : 0)
   );
 }
 
@@ -51,43 +53,48 @@ export const rainCity: Scene<State> = {
   h: H,
   fps: 14,
   poster: 30,
+  fluid: true,
+  band: [24, 104],
   alt: "Pixel art of rain falling over a hazy city skyline, seen across dense green treetops.",
 
-  init(rng) {
+  init(rng, w) {
     const far: Building[] = [];
-    for (let x = -4; x < W; ) {
+    for (let x = -4; x < w; ) {
       const w = 8 + Math.floor(rng() * 10);
       far.push({ x, w, h: 16 + Math.floor(rng() * 20), tone: 0 });
       x += w + Math.floor(rng() * 3) - 1;
     }
     const mid: Building[] = [];
-    for (let x = 4; x < W - 4; ) {
+    for (let x = 4; x < w - 4; ) {
       const w = 10 + Math.floor(rng() * 12);
       mid.push({ x, w, h: 24 + Math.floor(rng() * 30), tone: Math.floor(rng() * 3) });
       x += w + 1 + Math.floor(rng() * 5);
     }
     const drops: Drop[] = [];
-    for (let i = 0; i < 46; i++) {
+    for (let i = 0; i < Math.round((46 * w) / W); i++) {
       drops.push({
-        x: Math.floor(rng() * W),
+        x: Math.floor(rng() * w),
         y: rng() * H,
         len: 3 + Math.floor(rng() * 7),
         sp: 3 + rng() * 3,
         a: 0.35 + rng() * 0.4,
       });
     }
-    return { far, mid, drops, rng };
+    return { far, mid, drops, rng, w };
   },
 
   draw(g, f, s, env) {
     const P = env.night ? NIGHT : DAY;
+    const w = g.w;
+    const off = Math.floor((w - W) / 2);
+    const top = (x: number) => canopyTop(x - off);
 
     g.layer(env.night ? "night" : "day", (l) => {
-      l.rect(0, 0, W, H, P.sky);
-      l.rect(0, 0, W, 18, P.skyTop);
-      l.rect(0, 52, W, H - 52, P.skyLow);
+      l.rect(0, 0, w, H, P.sky);
+      l.rect(0, 0, w, 18, P.skyTop);
+      l.rect(0, 52, w, H - 52, P.skyLow);
       // dithered seams between the sky bands
-      for (let x = 0; x < W; x += 2) {
+      for (let x = 0; x < w; x += 2) {
         l.px(x, 18, P.skyTop);
         l.px(x + 1, 51, P.skyLow);
       }
@@ -95,10 +102,10 @@ export const rainCity: Scene<State> = {
       for (const b of s.far) l.rect(b.x, HORIZON - b.h, b.w, b.h, P.far);
 
       for (const b of s.mid) {
-        const top = HORIZON - b.h;
-        l.rect(b.x, top, b.w, b.h, P.mid[b.tone]);
-        l.rect(b.x, top, b.w, 1, P.far);
-        for (let wy = top + 3; wy < HORIZON - 3; wy += 4) {
+        const bt = HORIZON - b.h;
+        l.rect(b.x, bt, b.w, b.h, P.mid[b.tone]);
+        l.rect(b.x, bt, b.w, 1, P.far);
+        for (let wy = bt + 3; wy < HORIZON - 3; wy += 4) {
           for (let wx = b.x + 2; wx + 2 <= b.x + b.w - 1; wx += 3) {
             const h = hash(wx, wy, 7);
             const c = env.night
@@ -110,14 +117,14 @@ export const rainCity: Scene<State> = {
       }
 
       // canopy
-      for (let x = 0; x < W; x++) {
-        const top = canopyTop(x);
-        for (let y = Math.floor(top) - 3; y < H; y++) {
-          const d = y - (top + hash(x, y, 3) * 6 - 3);
+      for (let x = 0; x < w; x++) {
+        const t = top(x);
+        for (let y = Math.floor(t) - 3; y < H; y++) {
+          const d = y - (t + hash(x, y, 3) * 6 - 3);
           if (d < 0) continue;
           let v = 0.6 * hash(Math.floor(x / 3), Math.floor(y / 3), 11) + 0.4 * hash(x, y, 5);
           if (d < 2.5) v *= 0.35; // dark ragged edge
-          v *= 1 - 0.35 * ((y - top) / (H - top)); // darker toward the bottom
+          v *= 1 - 0.35 * ((y - t) / (H - t)); // darker toward the bottom
           const i = v < 0.2 ? 0 : v < 0.4 ? 1 : v < 0.62 ? 2 : v < 0.8 ? 3 : 4;
           l.px(x, y, P.leaves[i]);
         }
@@ -127,11 +134,11 @@ export const rainCity: Scene<State> = {
     // a few windows flicker at night
     if (env.night) {
       for (const b of s.mid) {
-        const top = HORIZON - b.h;
-        for (let wy = top + 3; wy < HORIZON - 3; wy += 4) {
+        const bt = HORIZON - b.h;
+        for (let wy = bt + 3; wy < HORIZON - 3; wy += 4) {
           for (let wx = b.x + 2; wx + 2 <= b.x + b.w - 1; wx += 3) {
             const h = hash(wx, wy, 7);
-            if (h < 0.03 && wy < canopyTop(wx) - 4 && Math.floor(f / 22 + h * 400) % 2) {
+            if (h < 0.03 && wy < top(wx) - 4 && Math.floor(f / 22 + h * 400) % 2) {
               g.rect(wx, wy, 2, 2, NIGHT.winB);
             }
           }
@@ -141,9 +148,9 @@ export const rainCity: Scene<State> = {
 
     // raindrops glinting off leaves
     const tick = Math.floor(f / 3);
-    for (let i = 0; i < 16; i++) {
-      const x = Math.floor(hash(i, tick, 21) * W);
-      const y = Math.floor(canopyTop(x) + 5 + hash(i, tick, 22) * (H - canopyTop(x) - 6));
+    for (let i = 0; i < Math.round((16 * w) / W); i++) {
+      const x = Math.floor(hash(i, tick, 21) * w);
+      const y = Math.floor(top(x) + 5 + hash(i, tick, 22) * (H - top(x) - 6));
       g.px(x, y, P.glint, 0.9);
     }
 
@@ -152,7 +159,7 @@ export const rainCity: Scene<State> = {
       d.y += d.sp;
       if (d.y > H) {
         d.y = -d.len - s.rng() * 20;
-        d.x = Math.floor(s.rng() * W);
+        d.x = Math.floor(s.rng() * w);
       }
     }
   },

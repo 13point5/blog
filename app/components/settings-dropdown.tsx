@@ -9,20 +9,20 @@ const row =
   "flex w-full items-center justify-between gap-6 rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent outline-none focus-visible:bg-accent cursor-pointer";
 
 export function SettingsDropdown() {
-  const { theme, setTheme, display, body, setFonts } = useTheme();
+  const { theme, setTheme, display, body, setFonts, artWidth, artEdge, setArt } = useTheme();
 
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="text-foreground-muted hover:text-foreground transition-colors outline-none focus-visible:text-foreground cursor-pointer"
+          className="font-display d-md text-foreground-muted hover:text-foreground transition-colors outline-none focus-visible:text-foreground cursor-pointer"
           aria-label="Open settings menu"
         >
           menu
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" sideOffset={10} className="w-52 p-1.5 bg-background-card text-foreground">
+      <DropdownMenuContent align="end" sideOffset={10} className="w-52 p-1.5 bg-background-card text-foreground max-h-[calc(100dvh-5rem)] overflow-y-auto">
         <p className="px-2 pt-1 pb-1 text-xs text-foreground-muted">Theme</p>
         {(["light", "dark"] as const).map((t) => (
           <button key={t} type="button" className={row} aria-pressed={theme === t} onClick={() => setTheme(t)}>
@@ -46,6 +46,23 @@ export function SettingsDropdown() {
             </button>
           );
         })}
+
+        <div className="my-1.5 h-px bg-border" aria-hidden="true" />
+
+        <p className="px-2 pt-1 pb-1 text-xs text-foreground-muted">Art width</p>
+        {([["column", "Text column"], ["full", "Full screen"]] as const).map(([v, label]) => (
+          <button key={v} type="button" className={row} aria-pressed={artWidth === v} onClick={() => setArt(v, artEdge)}>
+            <span>{label}</span>
+            {artWidth === v && <span aria-hidden="true" className="size-1.5 bg-koi" />}
+          </button>
+        ))}
+        <p className="px-2 pt-2 pb-1 text-xs text-foreground-muted">Art edges</p>
+        {([["hard", "Crisp"], ["dissolve", "Crumbling"]] as const).map(([v, label]) => (
+          <button key={v} type="button" className={row} aria-pressed={artEdge === v} onClick={() => setArt(artWidth, v)}>
+            <span>{label}</span>
+            {artEdge === v && <span aria-hidden="true" className="size-1.5 bg-koi" />}
+          </button>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );

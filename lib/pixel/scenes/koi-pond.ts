@@ -16,7 +16,7 @@ type Koi = {
 };
 type Food = { x: number; y: number; age: number };
 type Ripple = { x: number; y: number; age: number };
-type State = { koi: Koi[]; food: Food[]; ripples: Ripple[]; rng: Rng };
+type State = { koi: Koi[]; food: Food[]; ripples: Ripple[]; rng: Rng; ox: number; w: number };
 
 const PATTERNS = [
   ["#f4efe6", "#e8452c", "#f4efe6", "#e8452c", "#f4efe6", "#f4efe6"],
@@ -40,46 +40,62 @@ function oct(x: number, y: number) {
   return Math.max(dx, dy, (dx + dy) * 0.7071);
 }
 
-function paintGround(l: Gfx) {
+/**
+ * The courtyard. Painted in pond-local coordinates from `x0` to `x1`, so on a
+ * wide canvas the tiles simply keep going past both sides of the pond.
+ */
+function paintGround(l: Gfx, ox: number, w: number) {
+  const x0 = -ox, x1 = w - ox;
+  const px = (x: number, y: number, c: string) => l.px(x + ox, y, c);
+  const rect = (x: number, y: number, rw: number, rh: number, c: string) => l.rect(x + ox, y, rw, rh, c);
+
   // stone tiles
   for (let ty = 0; ty < 8; ty++) {
-    for (let tx = 0; tx < 8; tx++) {
+    for (let tx = Math.floor(x0 / 16); tx * 16 < x1; tx++) {
       const h = hash(tx, ty, 2);
       const c = h < 0.12 ? "#a79f8c" : h < 0.26 ? "#a3b592" : h < 0.6 ? "#b9c4a6" : "#c0caad";
-      l.rect(tx * 16, ty * 16, 16, 16, c);
-      l.rect(tx * 16, ty * 16, 16, 1, "#cdd6bd");
-      l.rect(tx * 16, ty * 16, 1, 16, "#cdd6bd");
-      l.rect(tx * 16, ty * 16 + 15, 16, 1, "#8c9a7e");
-      l.rect(tx * 16 + 15, ty * 16, 1, 16, "#8c9a7e");
+      rect(tx * 16, ty * 16, 16, 16, c);
+      rect(tx * 16, ty * 16, 16, 1, "#cdd6bd");
+      rect(tx * 16, ty * 16, 1, 16, "#cdd6bd");
+      rect(tx * 16, ty * 16 + 15, 16, 1, "#8c9a7e");
+      rect(tx * 16 + 15, ty * 16, 1, 16, "#8c9a7e");
       for (let i = 0; i < 3; i++) {
-        l.px(tx * 16 + 2 + hash(tx, ty, 30 + i) * 12, ty * 16 + 2 + hash(tx, ty, 40 + i) * 12, "#9aa98b");
+        px(tx * 16 + 2 + hash(tx, ty, 30 + i) * 12, ty * 16 + 2 + hash(tx, ty, 40 + i) * 12, "#9aa98b");
       }
     }
   }
-  // overgrown corners
+
+  // overgrown patches: the four around the pond, then more further out
   const greens = ["#3b6f34", "#4d8a3e", "#4d8a3e", "#6aa84f"];
-  const corners = [[0, 0, 30], [W, 0, 22], [0, H, 34], [W, H, 26]];
-  for (let y = 0; y < H; y++) {
-    for (let x = 0; x < W; x++) {
-      for (const [cx, cy, r] of corners) {
+  const patches: number[][] = [[0, 0, 30], [W, 0, 22], [0, H, 34], [W, H, 26]];
+  for (let k = 1; W + k * 84 < x1 + 40; k++) {
+    patches.push([W + k * 84 + hash(k, 1, 70) * 30, hash(k, 2, 70) < 0.5 ? 0 : H, 18 + hash(k, 3, 70) * 16]);
+    patches.push([-k * 84 - hash(k, 4, 70) * 30, hash(k, 5, 70) < 0.5 ? 0 : H, 18 + hash(k, 6, 70) * 16]);
+  }
+  for (const [cx, cy, r] of patches) {
+    for (let y = Math.max(0, Math.floor(cy - r - 6)); y < Math.min(H, cy + r + 6); y++) {
+      for (let x = Math.floor(cx - r - 6); x < cx + r + 6; x++) {
         const d = Math.hypot(x - cx, y - cy);
-        if (d < r - 8 + hash(Math.floor(x / 3), Math.floor(y / 3), 9) * 12) {
-          l.px(x, y, greens[Math.floor(hash(x, y, 8) * 4)]);
-        }
+        if (d < r - 8 + hash(Math.floor(x / 3), Math.floor(y / 3), 9) * 12) px(x, y, greens[Math.floor(hash(x, y, 8) * 4)]);
       }
     }
   }
   // moss between tiles + grass tufts
-  for (let i = 0; i < 26; i++) {
-    const x = Math.floor(hash(i, 1, 50) * W), y = Math.floor(hash(i, 2, 50) * H);
-    l.rect(x, y, 2, 1, "#6aa84f");
-    l.px(x, y - 1, "#4d8a3e");
+  for (let i = 0; i < Math.round((26 * w) / W); i++) {
+    const x = Math.floor(x0 + hash(i, 1, 50) * w), y = Math.floor(hash(i, 2, 50) * H);
+    rect(x, y, 2, 1, "#6aa84f");
+    px(x, y - 1, "#4d8a3e");
   }
   // rocks
-  for (const [x, y, r] of [[113, 12, 5], [101, 6, 3], [8, 76, 4], [121, 104, 4], [18, 14, 3]]) {
-    l.disc(x, y + 1, r, "#5f6b66");
-    l.disc(x, y, r, "#8f9a94");
-    l.disc(x - 1, y - 1, r - 2, "#b3bcb5");
+  const rocks: number[][] = [[113, 12, 5], [101, 6, 3], [8, 76, 4], [121, 104, 4], [18, 14, 3]];
+  for (let k = 1; W + k * 60 < x1 + 20; k++) {
+    rocks.push([W + k * 60 + hash(k, 1, 80) * 30, 10 + hash(k, 2, 80) * 108, 3 + hash(k, 3, 80) * 3]);
+    rocks.push([-k * 60 - hash(k, 4, 80) * 30, 10 + hash(k, 5, 80) * 108, 3 + hash(k, 6, 80) * 3]);
+  }
+  for (const [x, y, r] of rocks) {
+    l.disc(x + ox, y + 1, r, "#5f6b66");
+    l.disc(x + ox, y, r, "#8f9a94");
+    l.disc(x + ox - 1, y - 1, r - 2, "#b3bcb5");
   }
 }
 
@@ -137,9 +153,11 @@ export const koiPond: Scene<State> = {
   h: H,
   fps: 15,
   poster: 60,
+  fluid: true,
+  band: [6, 122],
   alt: "Pixel art koi pond: five koi swim in an octagonal wooden pond set in a mossy stone courtyard. Click the water to feed them.",
 
-  init(rng) {
+  init(rng, w) {
     const koi: Koi[] = PATTERNS.map((pal, i) => {
       const t = (i / PATTERNS.length) * Math.PI * 2;
       const k: Koi = {
@@ -149,10 +167,11 @@ export const koiPond: Scene<State> = {
       newTarget(k, rng);
       return k;
     });
-    return { koi, food: [], ripples: [], rng };
+    return { koi, food: [], ripples: [], rng, ox: Math.floor((w - W) / 2), w };
   },
 
   pointer(s, x, y) {
+    x -= s.ox;
     if (oct(x, y) > R_IN - 3) return false;
     if (s.food.length >= 10) s.food.shift();
     s.food.push({ x, y, age: 0 });
@@ -161,7 +180,10 @@ export const koiPond: Scene<State> = {
   },
 
   draw(g, f, s, env) {
-    g.layer("ground", paintGround);
+    g.layer("ground", (l) => paintGround(l, s.ox, g.w));
+    // everything about the pond itself is drawn in its own 128px-wide space
+    g.ctx.save();
+    g.ctx.translate(s.ox, 0);
     g.layer("pond", paintPond);
 
     // drifting caustics
@@ -270,11 +292,13 @@ export const koiPond: Scene<State> = {
       g.rect(x + lean, y - h, 1, 3, "#3f8a3e");
     }
 
+    g.ctx.restore();
+
     if (env.night) {
-      g.rect(0, 0, W, H, "#0b1430", 0.45);
-      for (let i = 0; i < 7; i++) {
+      g.rect(0, 0, g.w, H, "#0b1430", 0.45);
+      for (let i = 0; i < Math.round((7 * g.w) / W); i++) {
         const t = f * 0.03 + i * 2.1;
-        const x = hash(i, 0, 60) * W + Math.sin(t) * 6, y = hash(i, 1, 60) * H + Math.cos(t * 1.3) * 5;
+        const x = hash(i, 0, 60) * g.w + Math.sin(t) * 6, y = hash(i, 1, 60) * H + Math.cos(t * 1.3) * 5;
         if (Math.sin(f * 0.2 + i * 1.3) > -0.2) {
           g.px(x, y, "#fff3a0");
           g.disc(x, y, 1.2, "#f7e27a", 0.25);

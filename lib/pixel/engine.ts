@@ -46,6 +46,8 @@ export type Palette = Record<string, string>;
 
 export class Gfx {
   private layers = new Map<string, HTMLCanvasElement>();
+  /** The first static layer a scene paints, i.e. its background. */
+  backdrop: HTMLCanvasElement | null = null;
 
   constructor(
     public ctx: CanvasRenderingContext2D,
@@ -150,6 +152,7 @@ export class Gfx {
       if (!c) return;
       paint(new Gfx(c, this.w, this.h));
       this.layers.set(key, cv);
+      if (!this.backdrop) this.backdrop = cv;
     }
     this.ctx.drawImage(cv, 0, 0);
   }
@@ -166,7 +169,15 @@ export interface Scene<S = unknown> {
   poster?: number;
   /** Screen-reader description. */
   alt: string;
-  init: (rng: Rng) => S;
+  /**
+   * Fluid scenes can be drawn at any width (they read `g.w`), so they can
+   * span the whole screen. Other scenes are centred and their background is
+   * stretched out sideways.
+   */
+  fluid?: boolean;
+  /** Rows [top, bottom) to keep when shown as a full-width band. */
+  band?: [number, number];
+  init: (rng: Rng, w: number) => S;
   draw: (g: Gfx, f: number, s: S, env: Env) => void;
   /** Canvas-space click. Return true if the scene reacted. */
   pointer?: (s: S, x: number, y: number) => boolean;
