@@ -1,7 +1,6 @@
 import Bio from "@/content/bio.mdx";
 import WorkSection from "./components/work-section";
 import { HomeArt } from "./components/art";
-import { SwordDivider } from "./components/toys";
 
 export default function Home() {
   return (
@@ -13,8 +12,6 @@ export default function Home() {
 
       {/* The one piece of art on the page, between the intro and the writing */}
       <HomeArt className="animate-fade-blur animation-delay-100" />
-
-      <SwordDivider />
 
       <WorkSection />
     </div>

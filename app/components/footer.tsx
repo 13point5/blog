@@ -1,11 +1,11 @@
 import { Socials } from "./socials";
-import { PianoKeys } from "./toys";
+import { Piano } from "./toys";
 
 export function Footer() {
   return (
     <footer className="max-w-2xl w-full mx-auto px-5 pt-10 pb-12">
       <div className="mb-8" data-perch="0">
-        <PianoKeys />
+        <Piano />
         <div className="section-divider" />
       </div>
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">

@@ -577,20 +577,6 @@ dd {
 
 
 /* Toys */
-.slash {
-  position: absolute;
-  left: -20vmax;
-  width: 140vmax;
-  height: 3px;
-  background: var(--foreground);
-  transform-origin: left center;
-  animation: slash 0.42s cubic-bezier(0.2, 0.9, 0.2, 1) both;
-}
-@keyframes slash {
-  0% { transform: scaleX(0); opacity: 1; }
-  45% { transform: scaleX(1); opacity: 1; }
-  100% { transform: scaleX(1); opacity: 0; }
-}
 .hoot {
   position: fixed;
   left: 50%;

@@ -2,6 +2,7 @@
 // until the visitor taps something.
 
 let ctx: AudioContext | null = null;
+let noiseBuffer: AudioBuffer | null = null;
 
 function audio() {
   if (typeof window === "undefined") return null;
@@ -14,23 +15,108 @@ function audio() {
   }
 }
 
+function noise(ac: AudioContext) {
+  if (!noiseBuffer) {
+    noiseBuffer = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
+    const d = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  const src = ac.createBufferSource();
+  src.buffer = noiseBuffer;
+  return src;
+}
+
 export const midi = (n: number) => 440 * 2 ** ((n - 69) / 12);
 
-/** Play one soft, plucked note. */
-export function tone(freq: number, seconds = 0.9, volume = 0.07) {
+type Voice = { type?: OscillatorType; attack?: number; glideTo?: number; delay?: number };
+
+/** One enveloped oscillator note. */
+function note(freq: number, seconds: number, volume: number, { type = "sine", attack = 0.01, glideTo, delay = 0 }: Voice = {}) {
   const ac = audio();
   if (!ac) return;
   const osc = ac.createOscillator();
   const gain = ac.createGain();
-  osc.type = "triangle";
-  osc.frequency.value = freq;
-  const t = ac.currentTime;
+  const t = ac.currentTime + delay;
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, t);
+  if (glideTo) osc.frequency.exponentialRampToValueAtTime(glideTo, t + seconds);
   gain.gain.setValueAtTime(0, t);
-  gain.gain.linearRampToValueAtTime(volume, t + 0.012);
+  gain.gain.linearRampToValueAtTime(volume, t + attack);
   gain.gain.exponentialRampToValueAtTime(0.0001, t + seconds);
   osc.connect(gain).connect(ac.destination);
   osc.start(t);
   osc.stop(t + seconds + 0.05);
+}
+
+/** A short burst of filtered noise. */
+function burst(seconds: number, volume: number, filter: BiquadFilterType, from: number, to = from, delay = 0) {
+  const ac = audio();
+  if (!ac) return;
+  const src = noise(ac);
+  const f = ac.createBiquadFilter();
+  const gain = ac.createGain();
+  const t = ac.currentTime + delay;
+  f.type = filter;
+  f.frequency.setValueAtTime(from, t);
+  if (to !== from) f.frequency.exponentialRampToValueAtTime(to, t + seconds);
+  gain.gain.setValueAtTime(volume, t);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + seconds);
+  src.connect(f).connect(gain).connect(ac.destination);
+  src.start(t);
+  src.stop(t + seconds + 0.02);
+}
+
+/** A piano-ish note: a struck fundamental with two quieter partials that die away. */
+export function piano(freq: number, volume = 0.1, delay = 0) {
+  note(freq, 1.8, volume, { type: "triangle", attack: 0.004, delay });
+  note(freq * 2, 0.9, volume * 0.28, { attack: 0.004, delay });
+  note(freq * 3.01, 0.4, volume * 0.1, { attack: 0.004, delay });
+  burst(0.03, volume * 0.25, "bandpass", 2500, 2500, delay); // hammer
+}
+
+/** Owl: two soft, falling hoots. */
+export function hoot() {
+  note(410, 0.22, 0.09, { attack: 0.04, glideTo: 350 });
+  note(390, 0.42, 0.09, { attack: 0.05, glideTo: 320, delay: 0.3 });
+}
+
+/** Wand: a glittering run, rising for Lumos and falling for Nox. */
+export function chime(rising: boolean) {
+  const notes = [84, 88, 91, 96, 100];
+  (rising ? notes : [...notes].reverse()).forEach((n, i) => note(midi(n), 0.5, 0.035, { delay: i * 0.055 }));
+}
+
+/** Cube: the click of one layer turning. */
+export function click() {
+  burst(0.035, 0.12, "bandpass", 1800);
+  burst(0.05, 0.08, "bandpass", 900, 900, 0.045);
+}
+
+/** Cube solved, or anything else worth a small flourish. */
+export function fanfare() {
+  [72, 76, 79, 84].forEach((n, i) => note(midi(n), 0.5, 0.06, { type: "triangle", delay: i * 0.09 }));
+}
+
+/** Yoyo: the string snapping it back up. */
+export function whoosh() {
+  burst(0.28, 0.07, "bandpass", 500, 2600);
+}
+
+/** Floppy disk: a drive head stepping across the tracks. */
+export function driveSeek() {
+  for (let i = 0; i < 7; i++) note(70 + (i % 3) * 14, 0.05, 0.07, { type: "square", delay: i * 0.075 });
+  burst(0.5, 0.012, "lowpass", 900);
+}
+
+/** Console: an 8-bit coin. */
+export function coin() {
+  note(midi(83), 0.08, 0.05, { type: "square" });
+  note(midi(88), 0.3, 0.05, { type: "square", delay: 0.08 });
+}
+
+/** Something small and soft, for objects with no sound of their own. */
+export function pluck() {
+  note(midi(72), 0.25, 0.05, { type: "triangle" });
 }
 
 // The opening bars of Bach's Prelude in C (BWV 846): five notes, then the last
@@ -47,52 +133,33 @@ const BARS = [
 ];
 const PATTERN = [0, 1, 2, 3, 4, 2, 3, 4];
 
-/** Start the prelude on a loop. Returns a function that stops it. */
-export function playPrelude() {
+/** Put the record on: the prelude on a loop, with vinyl crackle. Returns a stop function. */
+export function playRecord() {
+  const ac = audio();
+  let hiss: AudioBufferSourceNode | null = null;
+  if (ac) {
+    burst(0.12, 0.05, "lowpass", 300); // the needle dropping
+    hiss = noise(ac);
+    hiss.loop = true;
+    const f = ac.createBiquadFilter();
+    const g = ac.createGain();
+    f.type = "highpass";
+    f.frequency.value = 3500;
+    g.gain.value = 0.006;
+    hiss.connect(f).connect(g).connect(ac.destination);
+    hiss.start();
+  }
   let step = 0;
   const tick = () => {
     const bar = BARS[Math.floor(step / 16) % BARS.length];
-    tone(midi(bar[PATTERN[step % 8]]), 1.1, 0.045);
+    piano(midi(bar[PATTERN[step % 8]]), 0.05);
+    if (Math.random() < 0.3) burst(0.012, 0.03, "highpass", 2000); // a pop
     step++;
   };
   tick();
   const id = setInterval(tick, 165);
-  return () => clearInterval(id);
-}
-
-/** One bowed note: a filtered sawtooth with a slow attack and a little vibrato. */
-function bowed(freq: number, start: number, seconds: number, volume = 0.05) {
-  const ac = audio();
-  if (!ac) return;
-  const osc = ac.createOscillator();
-  const lfo = ac.createOscillator();
-  const depth = ac.createGain();
-  const filter = ac.createBiquadFilter();
-  const gain = ac.createGain();
-  osc.type = "sawtooth";
-  osc.frequency.value = freq;
-  lfo.frequency.value = 5.5;
-  depth.gain.value = freq * 0.006;
-  lfo.connect(depth).connect(osc.frequency);
-  filter.type = "lowpass";
-  filter.frequency.value = 2400;
-  const t = ac.currentTime + start;
-  gain.gain.setValueAtTime(0, t);
-  gain.gain.linearRampToValueAtTime(volume, t + 0.05);
-  gain.gain.setValueAtTime(volume, t + Math.max(0.06, seconds - 0.08));
-  gain.gain.linearRampToValueAtTime(0, t + seconds);
-  osc.connect(filter).connect(gain).connect(ac.destination);
-  osc.start(t); lfo.start(t);
-  osc.stop(t + seconds + 0.05); lfo.stop(t + seconds + 0.05);
-}
-
-/** The opening of "Spring" from Vivaldi's Four Seasons. */
-export function playSpring() {
-  const beat = 0.26;
-  const phrase: [number, number][] = [[76, 1], [80, 1], [80, 1], [80, 1], [78, 0.5], [76, 0.5], [83, 3]];
-  let at = 0;
-  for (const [note, beats] of phrase) {
-    bowed(midi(note), at, beats * beat * 0.96);
-    at += beats * beat;
-  }
+  return () => {
+    clearInterval(id);
+    try { hiss?.stop(); } catch {}
+  };
 }

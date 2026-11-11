@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
-import { Gfx } from "@/lib/pixel/engine";
-import { OWL_ROWS, TOYS, TOY_PALETTE, owlPalette } from "@/lib/pixel/scenes/shelf";
-import { midi, playPrelude, playSpring, tone } from "@/lib/audio";
+import { Gfx, hash } from "@/lib/pixel/engine";
+import { OWL_PAL, OWL_ROWS, TOYS, TOY_PALETTE, owlBlink } from "@/lib/pixel/scenes/shelf";
+import { chime, hoot, midi, piano, playRecord, whoosh } from "@/lib/audio";
 import { useTheme } from "../providers/theme-provider";
 import { cn } from "@/lib/utils";
 
@@ -31,29 +30,25 @@ type SpriteProps = {
   rows?: number;
   /** for toys that can be switched on */
   active?: boolean;
-  /** bump to make it hop and to skip its animation ahead */
-  kick?: number;
+  /** how many times it has been poked; each poke makes it hop */
+  taps?: number;
   className?: string;
-  style?: React.CSSProperties;
   label?: string;
   onTap?: () => void;
 };
 
-export function Sprite({ id, scale = 3, rows = 30, active, kick = 0, className, style, label, onTap }: SpriteProps) {
+export function Sprite({ id, scale = 3, rows = 30, active, taps = 0, className, label, onTap }: SpriteProps) {
   const ref = useRef<HTMLCanvasElement>(null);
   const item = TOYS[id];
-  const live = useRef({ active, kick, hop: 0, skip: 0 });
+  const live = useRef({ active, taps, hop: 0 });
   const w = item.w + 6;
   const tappable = Boolean(onTap);
 
   useEffect(() => {
-    if (live.current.kick !== kick) {
-      live.current.hop = 8;
-      live.current.skip += 22;
-    }
+    if (live.current.taps !== taps) live.current.hop = 8;
     live.current.active = active;
-    live.current.kick = kick;
-  }, [active, kick]);
+    live.current.taps = taps;
+  }, [active, taps]);
 
   useEffect(() => {
     const canvas = ref.current;
@@ -67,7 +62,7 @@ export function Sprite({ id, scale = 3, rows = 30, active, kick = 0, className, 
       const lift = s.hop > 0 ? Math.round(Math.sin((s.hop / 8) * Math.PI) * 4) : 0;
       if (s.hop > 0) s.hop--;
       ctx.clearRect(0, 0, w, rows);
-      item.draw(g, 3, rows - 2 - lift, f + s.skip, isDark() ? TOY_PALETTE.dark : TOY_PALETTE.light, s.active);
+      item.draw(g, 3, rows - 2 - lift, f, isDark() ? TOY_PALETTE.dark : TOY_PALETTE.light, s.active, s.taps);
     };
     paint();
     const tick = (now: number) => {
@@ -89,23 +84,15 @@ export function Sprite({ id, scale = 3, rows = 30, active, kick = 0, className, 
   }, [item, w, rows, tappable]);
 
   const canvas = (
-    <canvas
-      ref={ref}
-      width={w}
-      height={rows}
-      aria-hidden="true"
-      className="pixelated block"
-      style={{ width: w * scale, height: rows * scale }}
-    />
+    <canvas ref={ref} width={w} height={rows} aria-hidden="true" className="pixelated block" style={{ width: w * scale, height: rows * scale }} />
   );
-  if (!onTap) return <span className={cn("block", className)} style={style}>{canvas}</span>;
+  if (!onTap) return <span className={cn("block", className)}>{canvas}</span>;
   return (
     <button
       type="button"
       onClick={onTap}
       aria-label={label}
       className={cn("block cursor-pointer touch-manipulation outline-none focus-visible:ring-2 ring-koi", className)}
-      style={style}
     >
       {canvas}
     </button>
@@ -127,13 +114,13 @@ export function RecordPlayer({ className }: { className?: string }) {
 
   const toggle = () => {
     stop.current?.();
-    stop.current = playing ? null : playPrelude();
+    stop.current = playing ? null : playRecord();
     setPlaying(!playing);
   };
   return (
     <Sprite
       id="record"
-      rows={38}
+      rows={50}
       active={playing}
       onTap={toggle}
       label={playing ? "Stop the record" : "Play the record (Bach, Prelude in C)"}
@@ -142,57 +129,15 @@ export function RecordPlayer({ className }: { className?: string }) {
   );
 }
 
-/** A violin. Tap it for the opening of Vivaldi's "Spring". */
-export function Violin({ className }: { className?: string }) {
-  const [kick, setKick] = useState(0);
-  if (!useToys()) return null;
-  return (
-    <Sprite
-      id="violin"
-      rows={38}
-      kick={kick}
-      onTap={() => { setKick((k) => k + 1); playSpring(); }}
-      label="Play the violin (Vivaldi, Spring)"
-      className={className}
-    />
-  );
-}
-
-/** Any other object: it hops when tapped, and the cube scrambles. */
+/** Any other object: poke it and it hops and makes its own sound. */
 export function Toy({ id, scale, rows, className }: { id: string; scale?: number; rows?: number; className?: string }) {
-  const [kick, setKick] = useState(0);
+  const [taps, setTaps] = useState(0);
   if (!useToys()) return null;
-  return (
-    <Sprite id={id} scale={scale} rows={rows} kick={kick} onTap={() => setKick((k) => k + 1)} label={`Poke the ${id}`} className={className} />
-  );
-}
-
-/** A rule with three swords resting on it. Tap them for three cuts across the page. */
-export function SwordDivider() {
-  const [cuts, setCuts] = useState(0);
-  const [kick, setKick] = useState(0);
-  if (!useToys()) return null;
-
-  const slash = () => {
-    setKick((k) => k + 1);
-    setCuts((c) => c + 1);
-    [392, 523, 784].forEach((hz, i) => setTimeout(() => tone(hz * 2, 0.18, 0.03), i * 70));
+  const poke = () => {
+    TOYS[id].sound?.(taps + 1);
+    setTaps(taps + 1);
   };
-  return (
-    <div className="relative animate-fade-blur animation-delay-100">
-      <div className="section-divider" />
-      <Sprite id="swords" rows={24} kick={kick} onTap={slash} label="Draw the three swords" className="absolute right-24 -bottom-[6px]" />
-      {cuts > 0 &&
-        createPortal(
-          <div key={cuts} className="fixed inset-0 z-[70] pointer-events-none overflow-hidden" aria-hidden="true">
-            {[0, 1, 2].map((i) => (
-              <span key={i} className="slash" style={{ top: `${30 + i * 18}%`, animationDelay: `${i * 70}ms`, rotate: `${-24 + i * 20}deg` }} />
-            ))}
-          </div>,
-          document.body
-        )}
-    </div>
-  );
+  return <Sprite id={id} scale={scale} rows={rows} taps={taps} onTap={poke} label={`Poke the ${id}`} className={className} />;
 }
 
 /** Lumos / Nox: a wand that switches between the light and dark themes. */
@@ -205,14 +150,14 @@ export function Wand() {
 
   const cast = () => {
     setTheme(theme === "dark" ? "light" : "dark");
-    tone(midi(theme === "dark" ? 88 : 76), 0.5, 0.03);
+    chime(theme === "dark");
     setSparks(true);
     clearTimeout(timer.current);
     timer.current = setTimeout(() => setSparks(false), 900);
   };
   return (
     <span className="relative">
-      <Sprite id="wand" scale={2} rows={14} active={sparks} onTap={cast} label={theme === "dark" ? "Lumos: switch to the light theme" : "Nox: switch to the dark theme"} />
+      <Sprite id="wand" scale={2} rows={20} active={sparks} onTap={cast} label={theme === "dark" ? "Lumos: switch to the light theme" : "Nox: switch to the dark theme"} />
       {sparks && (
         <span className="absolute left-1/2 top-full -translate-x-1/2 text-xs italic font-display text-foreground-muted whitespace-nowrap animate-fade-blur">
           {theme === "dark" ? "nox" : "lumos"}
@@ -223,89 +168,179 @@ export function Wand() {
 }
 
 /* ------------------------------------------------------------------ */
-/* A playable strip of piano keys                                      */
+/* An upright piano you can play                                       */
 /* ------------------------------------------------------------------ */
 
+const P_SCALE = 3;
+const P_H = 68;
+const KEY_W = 8; // one white key plus the gap to its right
+const KEYS_Y = 31, KEYS_H = 17, BLACK_H = 11;
 const WHITE = [0, 2, 4, 5, 7, 9, 11];
 const HAS_SHARP = [true, true, false, true, true, true, false];
+const WOOD = "#8a5230", WOOD_HI = "#b97240", WOOD_LO = "#5a341d", WOOD_SHADE = "#70411f";
+const IVORY = "#f6f3ec", IVORY_SHADE = "#d6cfbf", EBONY = "#1d1d1b", BRASS = "#d9a441", PRESSED = "#e8552d";
 
-export function PianoKeys() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [count, setCount] = useState(14);
-  const [down, setDown] = useState<number | null>(null);
-  const held = useRef(false);
+export function Piano() {
+  const ref = useRef<HTMLCanvasElement>(null);
+  const [cols, setCols] = useState(116);
+  const down = useRef(new Map<number, number>());
+  const paintRef = useRef<() => void>(() => {});
   const on = useToys();
 
   useEffect(() => {
-    const el = ref.current;
+    const el = ref.current?.parentElement;
     if (!el) return;
-    const ro = new ResizeObserver(([e]) => setCount(Math.max(7, Math.floor(e.contentRect.width / 26))));
+    const ro = new ResizeObserver(([e]) => setCols(Math.max(70, Math.floor(e.contentRect.width / P_SCALE))));
     ro.observe(el);
-    const up = () => (held.current = false);
-    window.addEventListener("pointerup", up);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener("pointerup", up);
-    };
+    return () => ro.disconnect();
   }, [on]);
+
+  // how many keys fit, where they start, and which note the first one plays
+  const count = Math.floor((cols - 14) / KEY_W);
+  const x0 = Math.floor((cols - count * KEY_W) / 2);
+  const first = count > 18 ? 48 : 60;
+  const whiteNote = (i: number) => first + Math.floor(i / 7) * 12 + WHITE[i % 7];
+
+  useEffect(() => {
+    const canvas = ref.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+    const g = new Gfx(ctx, cols, P_H);
+    const W = cols;
+
+    paintRef.current = () => {
+      ctx.clearRect(0, 0, W, P_H);
+      // lid
+      g.rect(0, 0, W, 3, WOOD_LO);
+      g.rect(1, 0, W - 2, 1, WOOD_HI);
+      // upper case, with a little grain
+      g.rect(2, 3, W - 4, 25, WOOD);
+      g.rect(2, 3, 3, 25, WOOD_LO); g.rect(W - 5, 3, 3, 25, WOOD_LO);
+      for (let i = 0; i < Math.floor(W / 5); i++) {
+        g.rect(6 + hash(i, 1, 71) * (W - 20), 5 + Math.floor(hash(i, 2, 71) * 22), 3 + hash(i, 3, 71) * 6, 1, WOOD_SHADE);
+      }
+      // three panels; the middle one carries the music
+      const pw = Math.floor((W - 22) / 3.4);
+      const mid = W - 16 - pw * 2 - 8;
+      const panel = (px: number, w: number, music: boolean) => {
+        g.rect(px, 7, w, 17, WOOD_LO);
+        g.rect(px + 1, 8, w - 2, 15, music ? IVORY : WOOD_HI);
+        if (!music) {
+          g.rect(px + 1, 8, w - 2, 1, "#d08a50");
+          g.rect(px + 1, 22, w - 2, 1, WOOD);
+          g.rect(px + w - 2, 8, 1, 15, WOOD);
+          return;
+        }
+        // two staves and a handful of notes
+        for (const sy of [10, 17]) {
+          for (let l = 0; l < 3; l++) g.rect(px + 3, sy + l * 2, w - 6, 1, "#a9a394");
+          for (let n = 0; n < Math.floor((w - 8) / 5); n++) {
+            const ny = sy + Math.floor(hash(n, sy, 73) * 4);
+            g.rect(px + 5 + n * 5, ny + 1, 2, 2, EBONY);
+            g.rect(px + 7 + n * 5, ny - 2, 1, 4, EBONY);
+          }
+        }
+        g.rect(px + Math.floor(w / 2), 8, 1, 15, IVORY_SHADE);
+      };
+      panel(8, pw, false);
+      panel(8 + pw + 4, mid, true);
+      panel(W - 8 - pw, pw, false);
+      // fallboard with a brass maker's plate
+      g.rect(0, 28, W, 3, WOOD_LO);
+      g.rect(Math.floor(W / 2) - 5, 29, 10, 1, BRASS);
+      // keybed and cheek blocks
+      g.rect(0, KEYS_Y, W, KEYS_H + 3, WOOD_LO);
+      g.rect(1, KEYS_Y + 1, x0 - 2, KEYS_H - 1, WOOD); g.rect(W - x0 + 1, KEYS_Y + 1, x0 - 2, KEYS_H - 1, WOOD);
+      g.rect(x0 - 1, KEYS_Y, count * KEY_W + 1, KEYS_H, EBONY);
+      for (let i = 0; i < count; i++) {
+        const pressed = down.current.has(whiteNote(i));
+        const kx = x0 + i * KEY_W;
+        g.rect(kx, KEYS_Y, KEY_W - 1, KEYS_H - (pressed ? 0 : 1), pressed ? "#f3b8a4" : IVORY);
+        if (!pressed) g.rect(kx, KEYS_Y + KEYS_H - 3, KEY_W - 1, 2, IVORY_SHADE);
+      }
+      for (let i = 0; i < count - 1; i++) {
+        if (!HAS_SHARP[i % 7]) continue;
+        const pressed = down.current.has(whiteNote(i) + 1);
+        const kx = x0 + i * KEY_W + 5;
+        g.rect(kx, KEYS_Y, 5, BLACK_H + (pressed ? 1 : 0), pressed ? PRESSED : EBONY);
+        if (!pressed) { g.rect(kx + 1, KEYS_Y, 1, BLACK_H - 2, "#4a4842"); g.rect(kx, KEYS_Y + BLACK_H - 1, 5, 1, "#000000"); }
+      }
+      g.rect(0, KEYS_Y + KEYS_H, W, 1, WOOD_HI);
+      // lower case: turned legs, a recessed panel, three brass pedals
+      const ly = KEYS_Y + KEYS_H + 3;
+      g.rect(2, ly, W - 4, P_H - ly - 1, WOOD_SHADE);
+      g.rect(6, ly + 2, W - 12, P_H - ly - 6, WOOD);
+      g.rect(6, ly + 2, W - 12, 1, WOOD_LO);
+      for (const lx of [2, W - 9]) {
+        g.rect(lx, ly - 2, 7, P_H - ly + 1, WOOD_LO);
+        g.rect(lx + 1, ly, 5, P_H - ly - 3, WOOD);
+        g.rect(lx + 2, ly, 1, P_H - ly - 3, WOOD_HI);
+        g.rect(lx, ly + 4, 7, 1, WOOD_LO);
+      }
+      const c = Math.floor(W / 2);
+      for (const dx of [-6, -1, 4]) { g.rect(c + dx, P_H - 4, 3, 2, BRASS); g.rect(c + dx, P_H - 2, 3, 1, "#8a6a1f"); }
+      g.rect(0, P_H - 1, W, 1, WOOD_LO);
+    };
+    paintRef.current();
+    const mo = new MutationObserver(() => paintRef.current());
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => mo.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- whiteNote depends only on `first`
+  }, [cols, count, x0, first, on]);
+
   if (!on) return null;
 
-  const play = (note: number) => {
-    tone(midi(note), 1.2, 0.08);
-    setDown(note);
-    setTimeout(() => setDown((d) => (d === note ? null : d)), 180);
+  const noteAt = (e: React.PointerEvent) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const ax = ((e.clientX - r.left) / r.width) * cols, ay = ((e.clientY - r.top) / r.height) * P_H;
+    if (ay < KEYS_Y - 2 || ay > KEYS_Y + KEYS_H + 2) return null;
+    const i = Math.floor((ax - x0) / KEY_W);
+    if (i < 0 || i >= count) return null;
+    if (ay < KEYS_Y + BLACK_H) {
+      // black keys sit across the boundary between two whites
+      const within = ax - x0 - i * KEY_W;
+      if (within >= 5 && HAS_SHARP[i % 7] && i < count - 1) return whiteNote(i) + 1;
+      if (within < 2 && i > 0 && HAS_SHARP[(i - 1) % 7]) return whiteNote(i - 1) + 1;
+    }
+    return whiteNote(i);
   };
-  const handlers = (note: number) => ({
-    onPointerDown: (e: React.PointerEvent) => {
-      e.stopPropagation();
-      (e.target as Element).releasePointerCapture?.(e.pointerId);
-      held.current = true;
-      play(note);
-    },
-    onPointerEnter: () => held.current && play(note),
-  });
+  const strike = (n: number | null, last: React.RefObject<number | null>) => {
+    if (n === null || n === last.current) return;
+    last.current = n;
+    piano(midi(n), 0.12);
+    down.current.set(n, 1);
+    paintRef.current();
+    setTimeout(() => { down.current.delete(n); paintRef.current(); }, 190);
+  };
 
-  const wood = "bg-[#8a5230]", dark = "bg-[#5a341d]", hi = "bg-[#a9683c]";
+  return <PianoCanvas canvasRef={ref} cols={cols} noteAt={noteAt} strike={strike} />;
+}
+
+function PianoCanvas({
+  canvasRef, cols, noteAt, strike,
+}: {
+  canvasRef: React.RefObject<HTMLCanvasElement | null>;
+  cols: number;
+  noteAt: (e: React.PointerEvent) => number | null;
+  strike: (n: number | null, last: React.RefObject<number | null>) => void;
+}) {
+  const held = useRef(false);
+  const last = useRef<number | null>(null);
   return (
-    <div className="select-none" aria-hidden="true" title="Play me">
-      {/* lid and panelled upper case */}
-      <div className={cn("h-1.5 -mx-1", dark)} />
-      <div className={cn("h-14 flex gap-2 p-2 border-x-4 border-[#5a341d]", wood)}>
-        <div className={cn("flex-1 border-2 border-[#5a341d]", hi)} />
-        <div className="flex-[1.4] border-2 border-[#5a341d] bg-[#f6f3ec] flex flex-col justify-center gap-1.5 px-3">
-          <span className="h-px bg-[#8c877b]" /><span className="h-px bg-[#8c877b] w-4/5" /><span className="h-px bg-[#8c877b]" /><span className="h-px bg-[#8c877b] w-3/5" />
-        </div>
-        <div className={cn("flex-1 border-2 border-[#5a341d]", hi)} />
-      </div>
-      <div className={cn("h-1.5", dark)} />
-      {/* the keyboard, between two cheek blocks */}
-      <div className={cn("flex -mx-1 px-2", dark)}>
-        <div ref={ref} className="relative flex flex-1 h-12 touch-none border-x border-[#1d1d1b] bg-[#1d1d1b] gap-px">
-          {Array.from({ length: count }, (_, i) => {
-            const note = 60 + Math.floor(i / 7) * 12 + WHITE[i % 7];
-            return (
-              <span key={i} className="relative flex-1">
-                <span {...handlers(note)} className={cn("absolute inset-0 cursor-pointer", down === note ? "bg-koi" : "bg-[#f6f3ec]")} />
-                {HAS_SHARP[i % 7] && i < count - 1 && (
-                  <span
-                    {...handlers(note + 1)}
-                    className={cn("absolute z-10 top-0 left-[68%] w-[64%] h-[60%] cursor-pointer", down === note + 1 ? "bg-koi" : "bg-[#1d1d1b]")}
-                  />
-                )}
-              </span>
-            );
-          })}
-        </div>
-      </div>
-      <div className={cn("h-1.5 -mx-1", dark)} />
-      {/* lower panel, legs and pedals */}
-      <div className="flex h-9 border-x-4 border-[#5a341d]">
-        <div className={cn("w-3", dark)} />
-        <div className={cn("flex-1 flex items-end justify-center gap-2 pb-0.5", wood)}>
-          <span className="w-2 h-1 bg-[#c9973a]" /><span className="w-2 h-1 bg-[#c9973a]" /><span className="w-2 h-1 bg-[#c9973a]" />
-        </div>
-        <div className={cn("w-3", dark)} />
-      </div>
+    <div>
+      <canvas
+        ref={canvasRef}
+        width={cols}
+        height={P_H}
+        role="img"
+        aria-label="An upright piano. Tap or drag across the keys to play."
+        className="pixelated block w-full cursor-pointer select-none touch-none"
+        style={{ height: P_H * P_SCALE }}
+        onPointerDown={(e) => { e.stopPropagation(); e.currentTarget.setPointerCapture(e.pointerId); held.current = true; last.current = null; strike(noteAt(e), last); }}
+        onPointerMove={(e) => held.current && strike(noteAt(e), last)}
+        onPointerUp={() => { held.current = false; last.current = null; }}
+        onPointerCancel={() => { held.current = false; last.current = null; }}
+      />
     </div>
   );
 }
@@ -314,11 +349,11 @@ export function PianoKeys() {
 /* Site-wide: an owl that follows you around, and a yoyo               */
 /* ------------------------------------------------------------------ */
 
-const OWL_W = 19, OWL_H = 16, OWL_SCALE = 3;
+const OWL_W = 31, OWL_H = 23, OWL_SCALE = 3, OWL_X = 7, OWL_Y = OWL_H - 19;
 
 function Owl() {
   const ref = useRef<HTMLCanvasElement>(null);
-  const [hoot, setHoot] = useState(0);
+  const [hoots, setHoots] = useState(0);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -330,7 +365,7 @@ function Owl() {
     const perches = () => [...document.querySelectorAll<HTMLElement>("[data-perch], .post-body h1")];
     const spot = (el: HTMLElement) => {
       const r = el.getBoundingClientRect();
-      return { x: r.right + window.scrollX - 26, y: r.top + window.scrollY + Number(el.dataset.perch ?? 8) };
+      return { x: r.right + window.scrollX - 28, y: r.top + window.scrollY + Number(el.dataset.perch ?? 8) };
     };
 
     let cur: HTMLElement | null = null;
@@ -364,19 +399,20 @@ function Owl() {
     const arrive = setTimeout(land, 350);
 
     const paint = (flying: boolean) => {
-      const P = isDark() ? TOY_PALETTE.dark : TOY_PALETTE.light;
       ctx.clearRect(0, 0, OWL_W, OWL_H);
-      const blink = !flying && f % 64 < 3;
       if (flying) {
         // wings first, so the body sits in front of them
         const up = Math.floor(f / 2) % 2 === 0;
-        const wy = up ? 4 : 10;
-        g.rect(0, wy - 1, 6, 4, P.ink); g.rect(13, wy - 1, 6, 4, P.ink);
-        g.rect(1, wy, 4, 2, P.snow); g.rect(14, wy, 4, 2, P.snow);
-        g.px(2, wy + 1, P.mid); g.px(16, wy + 1, P.mid);
+        const wy = OWL_Y + (up ? 3 : 10);
+        for (const [wx, sx] of [[0, 1], [OWL_W - 8, -1]] as const) {
+          g.rect(wx, wy - 1, 8, 6, OWL_PAL.k);
+          g.rect(wx + 1, wy, 6, 4, OWL_PAL.d);
+          g.rect(wx + (sx > 0 ? 1 : 4), wy + (up ? 0 : 2), 3, 2, OWL_PAL.b);
+          g.px(wx + (sx > 0 ? 0 : 7), wy + (up ? -2 : 5), OWL_PAL.k);
+        }
       }
-      g.sprite(OWL_ROWS, 4, OWL_H - 13, owlPalette(P), dir < 0);
-      if (blink) { g.px(7, OWL_H - 10, P.ink); g.px(11, OWL_H - 10, P.ink); }
+      g.sprite(OWL_ROWS, OWL_X, OWL_Y, OWL_PAL, dir < 0);
+      if (!flying && f % 64 < 3) owlBlink(g, OWL_X, OWL_Y);
     };
 
     const tick = (now: number) => {
@@ -431,16 +467,18 @@ function Owl() {
         ref={ref}
         width={OWL_W}
         height={OWL_H}
-        onClick={() => { setHoot((h) => h + 1); tone(midi(64), 0.25, 0.04); setTimeout(() => tone(midi(60), 0.4, 0.04), 160); }}
+        onClick={() => { setHoots((h) => h + 1); hoot(); }}
         className="pixelated absolute top-0 left-0 pointer-events-auto cursor-pointer opacity-0 transition-opacity"
         style={{ width: OWL_W * OWL_SCALE, height: OWL_H * OWL_SCALE }}
         role="img"
         aria-label="An owl. It flies to wherever you tap."
       />
-      {hoot > 0 && <span key={hoot} className="hoot" aria-hidden="true">hoo</span>}
+      {hoots > 0 && <span key={hoots} className="hoot" aria-hidden="true">hoo hoo</span>}
     </>
   );
 }
+
+const YO = 13; // the yoyo's size in art pixels
 
 function Yoyo() {
   const root = useRef<HTMLDivElement>(null);
@@ -451,7 +489,8 @@ function Yoyo() {
     const el = root.current, s = str.current, canvas = disc.current;
     const ctx = canvas?.getContext("2d");
     if (!el || !s || !canvas || !ctx) return;
-    const g = new Gfx(ctx, 9, 9);
+    const g = new Gfx(ctx, YO, YO);
+    const c = (YO - 1) / 2;
     let len = 0, v = 0, ang = 0, av = 0, spin = 0, lastY = window.scrollY, raf = 0;
 
     const tick = () => {
@@ -473,14 +512,18 @@ function Yoyo() {
       s.style.height = `${Math.max(4, len)}px`;
       el.style.transform = `rotate(${ang}rad)`;
       const P = isDark() ? TOY_PALETTE.dark : TOY_PALETTE.light;
-      ctx.clearRect(0, 0, 9, 9);
-      g.disc(4, 4, 4, P.ink);
-      g.disc(4, 4, 3, P.accent);
-      g.px(4, 4, P.ink);
-      g.px(4 + Math.round(Math.cos(spin) * 2), 4 + Math.round(Math.sin(spin) * 2), P.paper);
+      ctx.clearRect(0, 0, YO, YO);
+      g.disc(c, c, 6, "#1d1d1b");
+      g.disc(c, c, 5, P.accent);
+      g.disc(c, c, 2, "#f2c14e");
+      g.px(c, c, "#1d1d1b");
+      // a rim highlight and two marks that show it spinning
+      g.px(c - 3, c - 3, "#ffffff"); g.px(c - 4, c - 2, "#ffffff");
+      g.px(c + Math.round(Math.cos(spin) * 4), c + Math.round(Math.sin(spin) * 4), "#fdfbf7");
+      g.px(c - Math.round(Math.cos(spin) * 4), c - Math.round(Math.sin(spin) * 4), "#1d1d1b");
     };
     raf = requestAnimationFrame(tick);
-    const yank = () => { v -= 16; av += 0.03; };
+    const yank = () => { v -= 16; av += 0.03; whoosh(); };
     canvas.addEventListener("pointerdown", yank);
     return () => {
       cancelAnimationFrame(raf);
@@ -491,7 +534,7 @@ function Yoyo() {
   return (
     <div ref={root} className="fixed top-0 right-0.5 sm:right-6 z-[60] flex flex-col items-center pointer-events-none origin-top" aria-hidden="true">
       <div ref={str} className="w-px bg-foreground-muted" />
-      <canvas ref={disc} width={9} height={9} className="pixelated pointer-events-auto cursor-grab -mt-px size-[21px] sm:size-[27px]" />
+      <canvas ref={disc} width={YO} height={YO} className="pixelated pointer-events-auto cursor-grab -mt-px size-[26px] sm:size-[39px]" />
     </div>
   );
 }
