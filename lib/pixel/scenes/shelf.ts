@@ -154,6 +154,31 @@ const ITEMS: Item[] = [
     },
   },
   {
+    // a puzzle cube that keeps scrambling itself
+    id: "cube", w: 17, priority: 3.5,
+    draw(g, x, y, f, P) {
+      const colors = [P.accent, P.blue, P.green, P.gold, P.paper];
+      const turn = Math.floor(f / 22);
+      const row = turn % 3; // the layer that has just been twisted
+      const pick = (face: number, i: number, j: number) =>
+        colors[Math.floor(hash(face * 9 + i * 3 + j, j === row ? turn : 0, 61) * colors.length)];
+      // front face
+      g.rect(x, y - 13, 13, 13, P.ink);
+      for (let j = 0; j < 3; j++) for (let i = 0; i < 3; i++) g.rect(x + 1 + i * 4, y - 12 + j * 4, 3, 3, pick(0, i, j));
+      // top face, leaning back
+      for (let j = 0; j < 3; j++) {
+        g.rect(x + 3 - j, y - 16 + j, 14, 1, P.ink);
+        for (let i = 0; i < 3; i++) g.rect(x + 4 - j + i * 4, y - 16 + j, 3, 1, pick(1, i, 0));
+      }
+      g.rect(x + 4, y - 17, 13, 1, P.ink);
+      // right face
+      for (let i = 0; i < 3; i++) {
+        g.rect(x + 13 + i, y - 13 - i, 2, 13, P.ink);
+        for (let j = 0; j < 3; j++) g.rect(x + 14 + i, y - 13 - i + j * 4, 1, 3, pick(2, i, j));
+      }
+    },
+  },
+  {
     // an upright piano that plays itself
     id: "piano", w: 30, priority: 3,
     draw(g, x, y, f, P) {
@@ -173,6 +198,24 @@ const ITEMS: Item[] = [
       g.rect(x, y - 5, 3, 5, P.ink);
       g.rect(x + 27, y - 5, 3, 5, P.ink);
       g.rect(x + 12, y - 2, 6, 1, P.gold);
+    },
+  },
+  {
+    // a yoyo, walking the dog
+    id: "yoyo", w: 13, priority: 5.5,
+    draw(g, x, y, f, P) {
+      g.rect(x + 1, y - 24, 1, 24, P.mid);
+      g.rect(x + 1, y - 24, 9, 1, P.mid);
+      g.rect(x, y - 1, 4, 1, P.ink);
+      // drops, sleeps at the bottom, climbs back
+      const t = (f % 48) / 48;
+      const drop = t < 0.3 ? t / 0.3 : t < 0.6 ? 1 : 1 - (t - 0.6) / 0.4;
+      const cy = y - 20 + Math.round(drop * drop * 15);
+      g.rect(x + 9, y - 23, 1, cy - (y - 23), P.ink, 0.6);
+      g.disc(x + 9, cy, 3, P.ink);
+      g.disc(x + 9, cy, 2, P.accent);
+      const a = f * 0.9;
+      g.px(x + 9 + Math.round(Math.cos(a) * 1.4), cy + Math.round(Math.sin(a) * 1.4), P.paper);
     },
   },
   {
@@ -268,7 +311,7 @@ export const shelf: Scene<State> = {
   fps: 12,
   poster: 20,
   fluid: true,
-  alt: "A row of small pixel-art objects standing on a line: an owl on a stack of books, a record player, three swords on a rack, a piano and other favourite things.",
+  alt: "A row of small pixel-art objects standing on a line: an owl on a stack of books, a record player, three swords on a rack, a puzzle cube, a piano, a yoyo and other favourite things.",
 
   init(_rng, w) {
     // Keep adding things, most important first, while they still fit.
