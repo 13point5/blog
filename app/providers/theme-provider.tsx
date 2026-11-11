@@ -6,6 +6,7 @@ import { DEFAULT_BODY, DEFAULT_DISPLAY, FONTS } from "@/lib/fonts-config";
 type Theme = "light" | "dark";
 export type ArtWidth = "column" | "full";
 export type ArtEdge = "hard" | "dissolve";
+export type ArtStyle = "color" | "ink";
 
 interface Settings {
   theme: Theme;
@@ -19,7 +20,9 @@ interface Settings {
   artWidth: ArtWidth;
   /** Whether its edges are crisp or crumble into the page. */
   artEdge: ArtEdge;
-  setArt: (width: ArtWidth, edge: ArtEdge) => void;
+  /** Full colour, or a few dithered tones of the text colour. */
+  artStyle: ArtStyle;
+  setArt: (width: ArtWidth, edge: ArtEdge, style: ArtStyle) => void;
 }
 
 const ThemeContext = createContext<Settings | undefined>(undefined);
@@ -48,6 +51,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [body, setBody] = useState(DEFAULT_BODY);
   const [artWidth, setArtWidth] = useState<ArtWidth>("full");
   const [artEdge, setArtEdge] = useState<ArtEdge>("dissolve");
+  const [artStyle, setArtStyle] = useState<ArtStyle>("color");
 
   useEffect(() => {
     const d = read("fontDisplay");
@@ -58,6 +62,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (isFont(b)) setBody(b);
     if (read("artWidth") === "column") setArtWidth("column");
     if (read("artEdge") === "hard") setArtEdge("hard");
+    if (read("artStyle") === "ink") setArtStyle("ink");
   }, []);
 
   const setTheme = (next: Theme) => {
@@ -75,15 +80,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     write("fontBody", nextBody);
   };
 
-  const setArt = (width: ArtWidth, edge: ArtEdge) => {
+  const setArt = (width: ArtWidth, edge: ArtEdge, style: ArtStyle) => {
     setArtWidth(width);
     setArtEdge(edge);
+    setArtStyle(style);
     write("artWidth", width);
     write("artEdge", edge);
+    write("artStyle", style);
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, display, body, setFonts, artWidth, artEdge, setArt }}>
+    <ThemeContext.Provider value={{ theme, setTheme, display, body, setFonts, artWidth, artEdge, artStyle, setArt }}>
       {children}
     </ThemeContext.Provider>
   );

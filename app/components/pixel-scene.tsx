@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Gfx, hash, mulberry32 } from "@/lib/pixel/engine";
+import { Gfx, mulberry32 } from "@/lib/pixel/engine";
 import { SCENES, DEFAULT_COVER } from "@/lib/pixel";
 import { cn } from "@/lib/utils";
 
@@ -19,11 +19,18 @@ type Props = {
   maxPx?: number;
   /** Crumble the edges into the page: "band" = top and bottom, "all" = every side. */
   dissolve?: "band" | "all";
+  /** Draw in a few dithered tones of the text colour instead of full colour. */
+  ink?: boolean;
 };
 
-const FADE = 13; // rows of art that crumble away at a dissolving edge
+const FADE = 14; // rows of art that crumble away at a dissolving edge
 
-/** Opaque wherever the art should be erased. Dithered, so the edge stays pixelly. */
+// 4x4 Bayer matrix: an ordered dither, the classic way pixel art blends two
+// tones. It gives a regular, woven texture instead of random speckle.
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+const bayer = (x: number, y: number) => (BAYER[(y & 3) * 4 + (x & 3)] + 0.5) / 16;
+
+/** Opaque wherever the art should be erased, so its edges weave into the page. */
 function dissolveMask(w: number, h: number, sides: boolean) {
   const cv = document.createElement("canvas");
   cv.width = w;
@@ -36,18 +43,52 @@ function dissolveMask(w: number, h: number, sides: boolean) {
       let d = Math.min(y, h - 1 - y);
       if (sides) d = Math.min(d, x, w - 1 - x);
       if (d >= FADE) continue;
-      const keep = ((d + 0.5) / FADE) ** 1.5;
-      if (hash(x, y, 91) > keep) c.fillRect(x, y, 1, 1);
+      if (bayer(x, y) > (d + 0.5) / FADE) c.fillRect(x, y, 1, 1);
     }
   }
   return cv;
+}
+
+// "Ink" style: the scene is reduced to a few tones of the text colour, dithered,
+// with the lightest tone left as bare page. One warm accent survives.
+const INK_LIGHT = [[38, 37, 34], [104, 100, 92], [163, 157, 143], [208, 202, 189]];
+const INK_DARK = [[236, 235, 230], [190, 186, 174], [134, 130, 120], [78, 76, 70]];
+const ACCENT_LIGHT = [217, 83, 43];
+const ACCENT_DARK = [255, 122, 77];
+
+function inkFilter(ctx: CanvasRenderingContext2D, w: number, h: number, night: boolean) {
+  const img = ctx.getImageData(0, 0, w, h);
+  const d = img.data;
+  const tones = night ? INK_DARK : INK_LIGHT;
+  const accent = night ? ACCENT_DARK : ACCENT_LIGHT;
+  const n = tones.length; // tone n = bare page
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      if (!d[i + 3]) continue;
+      const r = d[i], g = d[i + 1], b = d[i + 2];
+      // keep reds and oranges (the koi, lava, a red pen) as the single accent
+      if (r > 190 && r - b > 110 && g < r * 0.6) {
+        d[i] = accent[0]; d[i + 1] = accent[1]; d[i + 2] = accent[2];
+        continue;
+      }
+      let lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+      if (night) lum = 1 - lum; // on a dark page the darkest areas become bare page
+      lum = Math.min(1, Math.max(0, (lum - 0.08) / 0.8));
+      // mostly flat tones; dither only in a narrow band where two tones meet
+      const t = Math.min(n, Math.floor(lum * n + 0.3 + bayer(x, y) * 0.4));
+      if (t >= n) d[i + 3] = 0;
+      else { d[i] = tones[t][0]; d[i + 1] = tones[t][1]; d[i + 2] = tones[t][2]; }
+    }
+  }
+  ctx.putImageData(img, 0, 0);
 }
 
 /**
  * Renders a procedural pixel-art scene. The canvas is tiny and scaled up by
  * CSS; the loop pauses offscreen and holds a still frame when motion is off.
  */
-export function PixelScene({ scene, className, interactive, wide, maxPx = 640, dissolve }: Props) {
+export function PixelScene({ scene, className, interactive, wide, maxPx = 640, dissolve, ink }: Props) {
   const ref = useRef<HTMLCanvasElement>(null);
   const def = SCENES[scene] ?? SCENES[DEFAULT_COVER];
   const [box, setBox] = useState(0); // container width in CSS px (wide mode only)
@@ -68,7 +109,7 @@ export function PixelScene({ scene, className, interactive, wide, maxPx = 640, d
 
   useEffect(() => {
     const canvas = ref.current;
-    const ctx = canvas?.getContext("2d");
+    const ctx = canvas?.getContext("2d", { willReadFrequently: true });
     if (!canvas || !ctx || (wide && !box)) return;
     ctx.imageSmoothingEnabled = false;
 
@@ -107,6 +148,7 @@ export function PixelScene({ scene, className, interactive, wide, maxPx = 640, d
         def.draw(g, f, state, env);
         ctx.restore();
       }
+      if (ink) inkFilter(ctx, cols, rows, env.night);
       if (mask) {
         ctx.globalCompositeOperation = "destination-out";
         ctx.drawImage(mask, 0, 0);
@@ -169,7 +211,7 @@ export function PixelScene({ scene, className, interactive, wide, maxPx = 640, d
       mo.disconnect();
       canvas.removeEventListener("pointerdown", onPointer);
     };
-  }, [def, interactive, wide, box, cols, rows, top, dissolve]);
+  }, [def, interactive, wide, box, cols, rows, top, dissolve, ink]);
 
   return (
     <canvas

@@ -19,19 +19,20 @@ type Props = {
  * the width of the text column or the whole screen, with hard or crumbling edges.
  */
 export function Art({ scene, interactive, maxPx, className, columnClassName }: Props) {
-  const { artWidth, artEdge } = useTheme();
+  const { artWidth, artEdge, artStyle } = useTheme();
+  const ink = artStyle === "ink";
   const dissolving = artEdge === "dissolve";
 
   if (artWidth === "full") {
     return (
       <div className={cn("w-screen ml-[calc(50%-50vw)]", className)}>
-        <PixelScene scene={scene} interactive={interactive} wide maxPx={maxPx} dissolve={dissolving ? "band" : undefined} />
+        <PixelScene scene={scene} interactive={interactive} wide maxPx={maxPx} ink={ink} dissolve={dissolving ? "band" : undefined} />
       </div>
     );
   }
   return (
     <div className={cn(className, columnClassName)}>
-      <PixelScene scene={scene} interactive={interactive} dissolve={dissolving ? "all" : undefined} />
+      <PixelScene scene={scene} interactive={interactive} ink={ink} dissolve={dissolving ? "all" : undefined} />
     </div>
   );
 }
