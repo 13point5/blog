@@ -1,6 +1,8 @@
 import type { Scene } from "./engine";
 import { rainCity } from "./scenes/rain-city";
 import { koiPond } from "./scenes/koi-pond";
+import { shelf } from "./scenes/shelf";
+import { castle } from "./scenes/castle";
 import { vibeRl, gdpx, grpo } from "./scenes/covers-a";
 import { dungeon, sycophant, bossFight } from "./scenes/covers-b";
 
@@ -8,6 +10,8 @@ import { dungeon, sycophant, bossFight } from "./scenes/covers-b";
 export const SCENES: Record<string, Scene<any>> = {
   "rain-city": rainCity,
   "koi-pond": koiPond,
+  shelf,
+  castle,
   "vibe-rl": vibeRl,
   gdpx,
   grpo,

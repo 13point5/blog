@@ -9,7 +9,7 @@ const row =
   "flex w-full items-center justify-between gap-6 rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent outline-none focus-visible:bg-accent cursor-pointer";
 
 export function SettingsDropdown() {
-  const { theme, setTheme, display, body, setFonts, artWidth, artEdge, artStyle, setArt } = useTheme();
+  const { theme, setTheme, display, body, setFonts, artWidth, artStyle, homeArt, setArt } = useTheme();
 
   return (
     <DropdownMenu modal={false}>
@@ -49,25 +49,25 @@ export function SettingsDropdown() {
 
         <div className="my-1.5 h-px bg-border" aria-hidden="true" />
 
-        <p className="px-2 pt-1 pb-1 text-xs text-foreground-muted">Art style</p>
+        <p className="px-2 pt-1 pb-1 text-xs text-foreground-muted">Home page art</p>
+        {([["shelf", "Shelf of things"], ["castle", "Castle"], ["pond", "Koi pond"]] as const).map(([v, label]) => (
+          <button key={v} type="button" className={row} aria-pressed={homeArt === v} onClick={() => setArt(artWidth, artStyle, v)}>
+            <span>{label}</span>
+            {homeArt === v && <span aria-hidden="true" className="size-1.5 bg-koi" />}
+          </button>
+        ))}
+        <p className="px-2 pt-2 pb-1 text-xs text-foreground-muted">Art style</p>
         {([["color", "Full colour"], ["ink", "Ink"]] as const).map(([v, label]) => (
-          <button key={v} type="button" className={row} aria-pressed={artStyle === v} onClick={() => setArt(artWidth, artEdge, v)}>
+          <button key={v} type="button" className={row} aria-pressed={artStyle === v} onClick={() => setArt(artWidth, v, homeArt)}>
             <span>{label}</span>
             {artStyle === v && <span aria-hidden="true" className="size-1.5 bg-koi" />}
           </button>
         ))}
         <p className="px-2 pt-2 pb-1 text-xs text-foreground-muted">Art width</p>
-        {([["column", "Text column"], ["full", "Full screen"]] as const).map(([v, label]) => (
-          <button key={v} type="button" className={row} aria-pressed={artWidth === v} onClick={() => setArt(v, artEdge, artStyle)}>
+        {([["full", "Full screen"], ["column", "Text column"]] as const).map(([v, label]) => (
+          <button key={v} type="button" className={row} aria-pressed={artWidth === v} onClick={() => setArt(v, artStyle, homeArt)}>
             <span>{label}</span>
             {artWidth === v && <span aria-hidden="true" className="size-1.5 bg-koi" />}
-          </button>
-        ))}
-        <p className="px-2 pt-2 pb-1 text-xs text-foreground-muted">Art edges</p>
-        {([["hard", "Crisp"], ["dissolve", "Crumbling"]] as const).map(([v, label]) => (
-          <button key={v} type="button" className={row} aria-pressed={artEdge === v} onClick={() => setArt(artWidth, v, artStyle)}>
-            <span>{label}</span>
-            {artEdge === v && <span aria-hidden="true" className="size-1.5 bg-koi" />}
           </button>
         ))}
       </DropdownMenuContent>

@@ -7,38 +7,38 @@ import { cn } from "@/lib/utils";
 type Props = {
   scene: string;
   interactive?: boolean;
-  /** Widest the scene itself gets when the art spans the screen. */
+  /** Widest the scene itself is drawn, in CSS px; anything beyond is more scenery. */
   maxPx?: number;
   className?: string;
-  /** Extra classes for the column-width version only. */
-  columnClassName?: string;
 };
 
 /**
  * A piece of pixel art laid out according to the menu's "Art" settings:
- * the width of the text column or the whole screen, with hard or crumbling edges.
+ * across the whole screen or just the text column, in colour or in ink.
  */
-export function Art({ scene, interactive, maxPx, className, columnClassName }: Props) {
-  const { artWidth, artEdge, artStyle } = useTheme();
-  const ink = artStyle === "ink";
-  const dissolving = artEdge === "dissolve";
-
-  if (artWidth === "full") {
-    return (
-      <div className={cn("w-screen ml-[calc(50%-50vw)]", className)}>
-        <PixelScene scene={scene} interactive={interactive} wide maxPx={maxPx} ink={ink} dissolve={dissolving ? "band" : undefined} />
-      </div>
-    );
-  }
+export function Art({ scene, interactive, maxPx, className }: Props) {
+  const { artWidth, artStyle } = useTheme();
   return (
-    <div className={cn(className, columnClassName)}>
-      <PixelScene scene={scene} interactive={interactive} ink={ink} dissolve={dissolving ? "all" : undefined} />
+    <div className={cn(artWidth === "full" && "w-screen ml-[calc(50%-50vw)]", className)}>
+      <PixelScene scene={scene} interactive={interactive} wide maxPx={maxPx} ink={artStyle === "ink"} />
     </div>
   );
 }
 
-/** Renders its children only for one of the two art widths. */
-export function WhenArt({ width, children }: { width: "column" | "full"; children: React.ReactNode }) {
-  const { artWidth } = useTheme();
-  return artWidth === width ? <>{children}</> : null;
+const HOME = {
+  shelf: { scene: "shelf", maxPx: 400, hint: "Tap something." },
+  castle: { scene: "castle", maxPx: 420, hint: "" },
+  pond: { scene: "koi-pond", maxPx: 380, hint: "The koi are hungry. Tap the water." },
+} as const;
+
+/** The home page's one piece of art; which one is chosen in the menu. */
+export function HomeArt({ className }: { className?: string }) {
+  const { homeArt } = useTheme();
+  const { scene, maxPx, hint } = HOME[homeArt];
+  return (
+    <aside className={className}>
+      <Art key={scene} scene={scene} maxPx={maxPx} interactive />
+      {hint && <p className="text-xs text-foreground-muted text-center mt-2">{hint}</p>}
+    </aside>
+  );
 }

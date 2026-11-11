@@ -5,7 +5,8 @@ import { DEFAULT_BODY, DEFAULT_DISPLAY, FONTS } from "@/lib/fonts-config";
 
 type Theme = "light" | "dark";
 export type ArtWidth = "column" | "full";
-export type ArtEdge = "hard" | "dissolve";
+export type HomeArt = "shelf" | "castle" | "pond";
+export const HOME_ART: HomeArt[] = ["shelf", "castle", "pond"];
 export type ArtStyle = "color" | "ink";
 
 interface Settings {
@@ -18,11 +19,11 @@ interface Settings {
   setFonts: (display: string, body: string) => void;
   /** How wide pixel art is drawn. */
   artWidth: ArtWidth;
-  /** Whether its edges are crisp or crumble into the page. */
-  artEdge: ArtEdge;
+  /** Which scene the home page shows. */
+  homeArt: HomeArt;
   /** Full colour, or a few dithered tones of the text colour. */
   artStyle: ArtStyle;
-  setArt: (width: ArtWidth, edge: ArtEdge, style: ArtStyle) => void;
+  setArt: (width: ArtWidth, style: ArtStyle, home: HomeArt) => void;
 }
 
 const ThemeContext = createContext<Settings | undefined>(undefined);
@@ -50,7 +51,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [display, setDisplay] = useState(DEFAULT_DISPLAY);
   const [body, setBody] = useState(DEFAULT_BODY);
   const [artWidth, setArtWidth] = useState<ArtWidth>("full");
-  const [artEdge, setArtEdge] = useState<ArtEdge>("dissolve");
+  const [homeArt, setHomeArt] = useState<HomeArt>("shelf");
   const [artStyle, setArtStyle] = useState<ArtStyle>("color");
 
   useEffect(() => {
@@ -61,7 +62,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (isFont(d)) setDisplay(d);
     if (isFont(b)) setBody(b);
     if (read("artWidth") === "column") setArtWidth("column");
-    if (read("artEdge") === "hard") setArtEdge("hard");
+    const h = read("homeArt") as HomeArt | null;
+    if (h && HOME_ART.includes(h)) setHomeArt(h);
     if (read("artStyle") === "ink") setArtStyle("ink");
   }, []);
 
@@ -80,17 +82,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     write("fontBody", nextBody);
   };
 
-  const setArt = (width: ArtWidth, edge: ArtEdge, style: ArtStyle) => {
+  const setArt = (width: ArtWidth, style: ArtStyle, home: HomeArt) => {
     setArtWidth(width);
-    setArtEdge(edge);
     setArtStyle(style);
+    setHomeArt(home);
     write("artWidth", width);
-    write("artEdge", edge);
     write("artStyle", style);
+    write("homeArt", home);
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, display, body, setFonts, artWidth, artEdge, artStyle, setArt }}>
+    <ThemeContext.Provider value={{ theme, setTheme, display, body, setFonts, artWidth, artStyle, homeArt, setArt }}>
       {children}
     </ThemeContext.Provider>
   );
