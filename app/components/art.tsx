@@ -34,6 +34,7 @@ const HOME = {
 /** The home page's one piece of art; which one is chosen in the menu. */
 export function HomeArt({ className }: { className?: string }) {
   const { homeArt } = useTheme();
+  if (homeArt === "scatter") return null; // the toys are spread around the page instead
   const { scene, maxPx, hint } = HOME[homeArt];
   return (
     <aside className={className}>

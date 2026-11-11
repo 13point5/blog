@@ -5,8 +5,8 @@ import { DEFAULT_BODY, DEFAULT_DISPLAY, FONTS } from "@/lib/fonts-config";
 
 type Theme = "light" | "dark";
 export type ArtWidth = "column" | "full";
-export type HomeArt = "shelf" | "castle" | "pond";
-export const HOME_ART: HomeArt[] = ["shelf", "castle", "pond"];
+export type HomeArt = "scatter" | "shelf" | "castle" | "pond";
+export const HOME_ART: HomeArt[] = ["scatter", "shelf", "castle", "pond"];
 export type ArtStyle = "color" | "ink";
 
 interface Settings {
@@ -51,7 +51,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [display, setDisplay] = useState(DEFAULT_DISPLAY);
   const [body, setBody] = useState(DEFAULT_BODY);
   const [artWidth, setArtWidth] = useState<ArtWidth>("full");
-  const [homeArt, setHomeArt] = useState<HomeArt>("shelf");
+  const [homeArt, setHomeArt] = useState<HomeArt>("scatter");
   const [artStyle, setArtStyle] = useState<ArtStyle>("color");
 
   useEffect(() => {

@@ -15,7 +15,7 @@ export default function BlogPage() {
       </div>
 
       <section className="animate-fade-blur">
-        <h1 className="d-xl mb-1">Blog</h1>
+        <h1 className="d-xl mb-1"><span data-perch="7">Blog</span></h1>
         <p className="text-foreground-muted mb-6">Notes on RL, LLMs, and benchmarks.</p>
         <BlogPosts />
       </section>

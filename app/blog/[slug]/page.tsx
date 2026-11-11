@@ -80,7 +80,7 @@ export default async function BlogPost({
         {metadata.cover && <Art scene={metadata.cover} className="-mt-4 mb-8" />}
 
         <header className="relative mb-10">
-          <h1 className="d-xl mb-4 text-balance">{metadata.title}</h1>
+          <h1 className="d-xl mb-4 text-balance"><span data-perch="7">{metadata.title}</span></h1>
           <p className="text-sm text-foreground-muted flex flex-wrap gap-x-2">
             <time dateTime={metadata.publishedAt}>{formatDate(metadata.publishedAt)}</time>
             <span aria-hidden="true">·</span>

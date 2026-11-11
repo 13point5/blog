@@ -10,6 +10,7 @@ import { bootScript, fontCss, DEFAULT_BODY, DEFAULT_DISPLAY } from "@/lib/fonts-
 import { ThemeProvider } from "./providers/theme-provider";
 import { Header } from "./components/header";
 import { Footer } from "./components/footer";
+import { SiteToys } from "./components/toys";
 
 const description =
   "Applied Researcher on the post-training team at Chakra Labs. Building RL environments for foundation labs.";
@@ -79,6 +80,7 @@ export default function RootLayout({
             <Header />
             <main className="flex-1">{children}</main>
             <Footer />
+            <SiteToys />
           </div>
         </ThemeProvider>
       </body>

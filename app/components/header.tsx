@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SettingsDropdown } from "./settings-dropdown";
+import { Wand } from "./toys";
 import { cn } from "@/lib/utils";
 
 export function Header() {
@@ -36,7 +37,7 @@ export function Header() {
         <Link href="/" className="font-display d-md hover:text-foreground-muted transition-colors">
           Sriraam
         </Link>
-        <div className="flex items-center gap-5 font-display d-md">
+        <div className="flex items-center gap-5 font-display d-md pr-6 sm:pr-8">
           <Link
             href="/blog"
             className={cn(
@@ -47,6 +48,7 @@ export function Header() {
             blog
           </Link>
           <SettingsDropdown />
+          <Wand />
         </div>
       </nav>
     </header>

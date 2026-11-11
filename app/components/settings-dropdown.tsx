@@ -49,8 +49,8 @@ export function SettingsDropdown() {
 
         <div className="my-1.5 h-px bg-border" aria-hidden="true" />
 
-        <p className="px-2 pt-1 pb-1 text-xs text-foreground-muted">Home page art</p>
-        {([["shelf", "Shelf of things"], ["castle", "Castle"], ["pond", "Koi pond"]] as const).map(([v, label]) => (
+        <p className="px-2 pt-1 pb-1 text-xs text-foreground-muted">Playfulness</p>
+        {([["scatter", "Toys everywhere"], ["shelf", "Shelf of things"], ["castle", "Castle"], ["pond", "Koi pond"]] as const).map(([v, label]) => (
           <button key={v} type="button" className={row} aria-pressed={homeArt === v} onClick={() => setArt(artWidth, artStyle, v)}>
             <span>{label}</span>
             {homeArt === v && <span aria-hidden="true" className="size-1.5 bg-koi" />}

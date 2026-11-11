@@ -7,7 +7,7 @@ export function BlogPosts({ limit }: { limit?: number }) {
   return (
     <ul className="divide-y divide-border not-prose">
       {posts.map((post) => (
-        <li key={post.slug}>
+        <li key={post.slug} data-perch="1">
           <BlogPostItem slug={post.slug} metadata={post.metadata} />
         </li>
       ))}

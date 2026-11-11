@@ -7,7 +7,7 @@ import { hash, type Gfx, type Scene } from "../engine";
 const H = 46;
 const BASE = 39; // the shelf line
 
-type Pal = {
+export type Pal = {
   ink: string; mid: string; light: string; paper: string;
   accent: string; green: string; gold: string; blue: string;
 };
@@ -21,12 +21,13 @@ const DARK: Pal = {
   accent: "#ff7a4d", green: "#6dbb8a", gold: "#f2c96a", blue: "#7fa8dc",
 };
 
-type Item = {
+export type Item = {
   id: string;
   w: number;
   /** Lower number = kept first when the screen is narrow. */
   priority: number;
-  draw: (g: Gfx, x: number, y: number, f: number, P: Pal) => void;
+  /** `active` is false when a toy that can be switched on is off. */
+  draw: (g: Gfx, x: number, y: number, f: number, P: Pal, active?: boolean) => void;
 };
 
 const OWL = [
@@ -106,24 +107,25 @@ const ITEMS: Item[] = [
   },
   {
     // a record player, record turning, a few notes drifting up
-    id: "record", w: 30, priority: 1,
-    draw(g, x, y, f, P) {
+id: "record", w: 30, priority: 1,
+    draw(g, x, y, f, P, active = true) {
       g.rect(x, y - 7, 30, 7, P.ink);
       g.rect(x + 1, y - 6, 28, 5, P.gold);
       g.rect(x + 1, y - 2, 28, 1, P.mid);
       g.px(x + 25, y - 4, P.paper);
-      g.px(x + 22, y - 4, P.accent);
+      g.px(x + 22, y - 4, active ? P.accent : P.mid);
       // the record, seen at an angle
       const rows = [12, 18, 20, 18, 12];
       rows.forEach((w, i) => g.rect(x + 12 - w / 2, y - 13 + i, w, 1, P.ink));
       g.rect(x + 10, y - 11, 4, 1, P.accent);
-      const a = f * 0.5;
+      const a = active ? f * 0.5 : 0.6;
       g.px(x + 12 + Math.cos(a) * 7, y - 11 + Math.sin(a) * 1.6, P.mid);
       g.px(x + 12 - Math.cos(a) * 5, y - 11 - Math.sin(a) * 1.2, P.mid);
-      // tonearm
+      // tonearm: on the record when playing, parked when not
       g.rect(x + 25, y - 15, 2, 2, P.mid);
-      g.line(x + 25, y - 14, x + 18, y - 11, P.mid);
-      // notes
+      if (active) g.line(x + 25, y - 14, x + 18, y - 11, P.mid);
+      else g.line(x + 26, y - 14, x + 27, y - 9, P.mid);
+      if (!active) return;
       for (let i = 0; i < 2; i++) {
         const p = (f * 0.35 + i * 9) % 18;
         const nx = x + 6 + i * 9 + Math.round(Math.sin(p * 0.6 + i) * 1.5), ny = y - 17 - p;
@@ -301,6 +303,25 @@ const ITEMS: Item[] = [
     },
   },
 ];
+
+/** A wand on its own; it only sparks while `active`. */
+const WAND: Item = {
+  id: "wand", w: 9, priority: 99,
+  draw(g, x, y, f, P, active = false) {
+    g.line(x, y - 1, x + 6, y - 8, P.gold);
+    g.px(x, y - 1, P.ink);
+    g.px(x + 1, y - 2, P.ink);
+    if (!active) return;
+    for (let i = 0; i < 5; i++) {
+      if (hash(i, f, 9) < 0.7) g.px(x + 4 + hash(i, f, 10) * 5, y - 12 + hash(i, f, 11) * 7, i % 2 ? P.gold : P.accent);
+    }
+  },
+};
+
+/** Every drawable object, by id, for use as a standalone sprite. */
+export const TOYS: Record<string, Item> = Object.fromEntries([...ITEMS, WAND].map((i) => [i.id, i]));
+export const TOY_PALETTE = { light: LIGHT, dark: DARK };
+export const OWL_ROWS = OWL;
 
 type Placed = { item: Item; x: number; hop: number };
 type State = { placed: Placed[] };
