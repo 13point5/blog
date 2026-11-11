@@ -8,18 +8,17 @@ export const metadata = {
 
 export default function BlogPage() {
   return (
-    <>
-      {/* A rainy skyline bleeding in from the corner, behind everything */}
-      <div className="hidden lg:block absolute top-6 right-0 w-[min(34vw,30rem)] -z-10 opacity-80" aria-hidden="true">
-        <PixelScene scene="rain-city" className="art-corner" />
-      </div>
-      <div className="max-w-2xl mx-auto px-5 pt-28 pb-8">
-        <section className="animate-fade-blur">
-          <h1 className="d-xl mb-1">Blog</h1>
-          <p className="text-foreground-muted mb-6">Notes on RL, LLMs, and benchmarks.</p>
-          <BlogPosts />
-        </section>
-      </div>
-    </>
+    <div className="relative max-w-2xl mx-auto px-5 pt-28 pb-8">
+      <section className="animate-fade-blur">
+        <h1 className="d-xl mb-1">Blog</h1>
+        <p className="text-foreground-muted mb-6">Notes on RL, LLMs, and benchmarks.</p>
+        <BlogPosts />
+      </section>
+
+      {/* A rainy skyline in the margin, on screens wide enough to have one */}
+      <aside className="hidden xl:block absolute left-full top-29 ml-10 w-64 animate-fade-blur animation-delay-100" aria-hidden="true">
+        <PixelScene scene="rain-city" />
+      </aside>
+    </div>
   );
 }

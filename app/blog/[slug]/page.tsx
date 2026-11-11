@@ -76,12 +76,8 @@ export default async function BlogPost({
             }),
           }}
         />
-        {/* One piece of pixel art per post, fading into the page above the title */}
-        {metadata.cover && (
-          <div className="-mx-5 sm:-mx-20 -mt-10 -mb-2 sm:-mb-6">
-            <PixelScene scene={metadata.cover} className="art-cover" />
-          </div>
-        )}
+        {/* One piece of pixel art per post, above the title */}
+        {metadata.cover && <PixelScene scene={metadata.cover} className="mb-8" />}
 
         <header className="relative mb-10">
           <h1 className="d-xl mb-4 text-balance">{metadata.title}</h1>

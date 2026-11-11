@@ -159,29 +159,10 @@ h4,
 .d-lg { font-size: calc(1.4rem * var(--ds)); }
 .d-xl { font-size: clamp(calc(1.9rem * var(--ds)), calc(4.6vw * var(--ds)), calc(2.7rem * var(--ds))); line-height: 1.08; letter-spacing: -0.015em; }
 
-/* Pixel art is drawn tiny and scaled up. It never sits in a box: each piece
-   is masked so it dissolves into the paper around it. */
+/* Pixel art is drawn tiny and scaled up with hard, crisp edges. */
 .pixelated {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
-}
-.art-round {
-  -webkit-mask-image: radial-gradient(closest-side, #000 58%, transparent 100%);
-  mask-image: radial-gradient(closest-side, #000 58%, transparent 100%);
-}
-.art-corner {
-  -webkit-mask-image: radial-gradient(ellipse 95% 58% at 100% 50%, #000 22%, transparent 76%);
-  mask-image: radial-gradient(ellipse 95% 58% at 100% 50%, #000 22%, transparent 76%);
-}
-.art-cover {
-  -webkit-mask-image:
-    linear-gradient(to bottom, transparent 0%, #000 22%, #000 52%, transparent 96%),
-    linear-gradient(to right, transparent 0%, #000 20%, #000 80%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-image:
-    linear-gradient(to bottom, transparent 0%, #000 22%, #000 52%, transparent 96%),
-    linear-gradient(to right, transparent 0%, #000 20%, #000 80%, transparent 100%);
-  mask-composite: intersect;
 }
 
 @keyframes fadeIn {
