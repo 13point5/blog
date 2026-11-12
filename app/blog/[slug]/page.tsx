@@ -60,7 +60,7 @@ export default async function BlogPost({
   const { metadata } = post;
 
   return (
-    <div className="max-w-2xl mx-auto px-5 pt-24 pb-8">
+    <div className="max-w-2xl mx-auto px-5 pt-32 pb-8">
       <article className="animate-fade-blur">
         <script
           type="application/ld+json"
@@ -77,7 +77,7 @@ export default async function BlogPost({
           }}
         />
         {/* One piece of pixel art per post, above the title */}
-        {metadata.cover && <Art scene={metadata.cover} className="-mt-6 mb-8" />}
+        {metadata.cover && <Art scene={metadata.cover} className="-mt-14 mb-12" />}
 
         <header className="relative mb-10">
           <h1 className="d-xl mb-4 text-balance"><span data-perch="">{metadata.title}</span></h1>

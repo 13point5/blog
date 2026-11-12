@@ -154,7 +154,7 @@ export function Wand() {
     <span className="relative flex items-center">
       <Sprite id="wand" scale={2} rows={22} active={sparks} onTap={cast} label={theme === "dark" ? "Lumos: switch to the light theme" : "Nox: switch to the dark theme"} />
       {sparks && (
-        <span className="absolute left-1/2 top-full -translate-x-1/2 text-xs italic font-display text-foreground-muted whitespace-nowrap animate-fade-blur">
+        <span className="absolute left-1/2 top-full mt-4 -translate-x-1/2 text-xs italic font-display text-foreground-muted whitespace-nowrap animate-fade-blur">
           {theme === "dark" ? "nox" : "lumos"}
         </span>
       )}
