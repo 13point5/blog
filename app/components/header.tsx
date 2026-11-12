@@ -27,21 +27,25 @@ export function Header() {
 
   return (
     <header
+      // the owl reads this to know whether the header is covering the top of the page
+      data-hidden={!isVisible}
       className={cn(
         "fixed top-0 left-0 right-0 z-50 h-[72px] px-header bg-background transition-transform duration-300",
         isVisible ? "translate-y-0" : "-translate-y-full"
       )}
     >
-      <nav className="max-w-2xl mx-auto px-5 h-full flex items-center justify-between gap-4">
-        <Link href="/" className="font-display d-md leading-none hover:text-foreground-muted transition-colors">
-          Sriraam
-        </Link>
-        <div className="flex items-center gap-4">
-          {/* where the owl waits when no heading on screen has room for it */}
-          <span data-owl-home="" aria-hidden="true" className="w-12 h-12" />
+      <nav className="max-w-2xl mx-auto px-5 h-full flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <Link href="/" className="font-display text-[calc(1.6rem*var(--ds))] leading-none hover:text-foreground-muted transition-colors">
+            Sriraam
+          </Link>
+          {/* the owl's home: it waits here, beside the name, when no heading is on screen */}
+          <span data-owl-home="" aria-hidden="true" className="w-[46px] h-[50px] shrink-0" />
+        </div>
+        <div className="flex items-center gap-3">
           <Link href="/blog" aria-label="Blog" title="Blog" className="relative flex items-center hover:opacity-70 transition-opacity">
-            <Sprite id="book" scale={2} rows={21} />
-            {isOnBlogPage && <span aria-hidden="true" className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 size-1 bg-koi" />}
+            <Sprite id="book" scale={2} rows={27} />
+            {isOnBlogPage && <span aria-hidden="true" className="absolute left-1/2 -bottom-1 -translate-x-1/2 size-1 bg-koi" />}
           </Link>
           {/*
             The settings menu (theme, type, playfulness, art style and width) is

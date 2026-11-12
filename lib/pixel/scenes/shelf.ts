@@ -337,9 +337,10 @@ const ITEMS: Item[] = [
 ];
 
 // After the Elder Wand: dark wood, a flared pommel, knobbly clusters of
-// "berries" spaced along its length, and a shaft that thins to a fine tip. It only sparks while `active`.
+// "berries" spaced along its length, and a shaft that thins to a fine tip.
+// It only sparks while `active`.
 const WAND: Item = {
-  id: "wand", w: 18, priority: 99,
+  id: "wand", w: 24, priority: 99,
   draw(g, x, y, f, P, active = false) {
     const DK = "#3b2a1e", WD = "#70502f", HI = "#a8855a";
     // point i along the wand, from the pommel (bottom left) to the tip (top right)
@@ -352,20 +353,16 @@ const WAND: Item = {
       if (r > 1.6) { g.px(cx + 1, cy, HI); g.px(cx, cy + 1, DK); }
     };
     // shaft: two pixels thick at the grip, one toward the tip
-    for (let i = 0; i < 16; i++) {
+    for (let i = 0; i < 22; i++) {
       const [px, py] = at(i);
-      if (i < 12) { g.rect(px, py, 2, 2, WD); g.px(px, py, HI); g.px(px + 1, py + 1, DK); }
-      else g.px(px, py, i === 15 ? HI : WD);
+      if (i < 15) { g.rect(px, py, 2, 2, WD); g.px(px, py, HI); g.px(px + 1, py + 1, DK); }
+      else g.px(px, py, i >= 20 ? HI : WD);
     }
-    // pommel
-    g.rect(x, y - 3, 3, 3, DK);
+    g.rect(x, y - 3, 3, 3, DK); // pommel
     g.px(x, y - 1, WD);
-    knot(3, 2.2);
-    knot(6, 1.7);
-    knot(11, 1.4);
-    knot(13, 1);
+    knot(3, 2.5); knot(7, 2); knot(11, 1.7); knot(15, 1.3); knot(18, 1);
     if (!active) return;
-    const [tx, ty] = at(15);
+    const [tx, ty] = at(21);
     for (let i = 0; i < 8; i++) {
       if (hash(i, f, 9) < 0.7) g.px(tx - 4 + hash(i, f, 10) * 9, ty - 5 + hash(i, f, 11) * 9, i % 2 ? P.gold : P.accent);
     }
@@ -373,56 +370,28 @@ const WAND: Item = {
   },
 };
 
-// A spellbook: oxblood leather, gilt corners and border, a gem set in the
-// cover, a clasp, cream page edges and a ribbon. Poke it and it falls open
-// for a moment, and something sparkles up off the pages.
-const BOOK_CLOSED = [
-  "..kkkkkkkkkkkk..",
-  ".ksgmmmmmmmmgkk.",
-  ".ksmmmmmmmmmmkpk",
-  ".ksmggggggggmkpk",
-  ".ksmgmmmmmmgmkpk",
-  ".ksmgmmyymmgmkpk",
-  ".ksmgmyccymgmkpk",
-  ".ksmgmyccymgggpk",
-  ".ksmgmmyymmgmkpk",
-  ".ksmgmmmmmmgmkpk",
-  ".ksmggggggggmkpk",
-  ".ksmmmmmmmmmmkpk",
-  ".ksgmmmmmmmmgkpk",
-  ".kkkkkkkkkkkkkpk",
-  "..kpppppppppppkk",
-  "...kkkkrkkkkkk..",
-  ".......r........",
-  ".......rr.......",
-];
-const BOOK_OPEN = [
-  ".kkkkkk..kkkkkk.",
-  "kppppppkkppppppk",
-  "kpllllpkkpllllpk",
-  "kppppppkkppppppk",
-  "kplllppkkpllllpk",
-  "kppppppkkppppppk",
-  "kpllllpkkplllppk",
-  "kppppppkkppppppk",
-  "kmmmmmmkkmmmmmmk",
-  ".kkkkkkkkkkkkkk.",
-];
-const BOOK_PAL = { k: "#2a1a22", s: "#4a1728", m: "#8a2f44", g: "#e0b050", y: "#f6dc8c", c: "#58c7d9", p: "#f3ead6", r: "#d9532b", l: "#a39c8c" };
+// A spellbook: oxblood leather with a darker spine, a gilt border, a gem set
+// in the cover, a clasp, cream page edges and a ribbon. Drawn to stand about
+// as tall as the owl, at the same pixel size.
 const BOOK: Item = {
-  id: "book", w: 16, priority: 99,
-  sound: () => chime(true),
-  draw(g, x, y, f, _P, _active, _taps, since = 99) {
-    if (since < 18) {
-      g.sprite(BOOK_OPEN, x, y - BOOK_OPEN.length, BOOK_PAL);
-      for (let i = 0; i < 7; i++) {
-        const p = (since * 0.9 + i * 2.3) % 14;
-        g.px(x + 2 + hash(i, 1, 7) * 12, y - 11 - p, i % 2 ? BOOK_PAL.y : BOOK_PAL.c, 1 - p / 14);
-      }
-      return;
-    }
-    g.sprite(BOOK_CLOSED, x, y - BOOK_CLOSED.length, BOOK_PAL);
-    if (f % 64 < 3) g.px(x + 7, y - BOOK_CLOSED.length + 6, "#ffffff"); // the gem catches the light
+  id: "book", w: 19, priority: 99,
+  draw(g, x, y, f) {
+    const K = "#2a1a22", S = "#4a1728", M = "#8a2f44", M2 = "#a8405a", G = "#e0b050", Y = "#f6dc8c", C = "#58c7d9", PG = "#f3ead6", PL = "#cfc4a8", R = "#d9532b";
+    const cw = 14, ch = 18, top = y - ch - 7; // the cover; pages and a ribbon show below it
+    g.rect(x, top, cw + 2, ch + 2, K);
+    g.rect(x + cw + 2, top + 2, 3, ch + 2, K); // page block, right edge
+    g.rect(x + 2, top + ch + 2, cw + 3, 3, K); // and along the bottom
+    g.rect(x + cw + 2, top + 3, 2, ch, PG); g.rect(x + cw + 3, top + 3, 1, ch, PL);
+    g.rect(x + 3, top + ch + 2, cw + 1, 2, PG); g.rect(x + 3, top + ch + 3, cw + 1, 1, PL);
+    g.rect(x + 1, top + 1, cw, ch, M);
+    g.rect(x + 1, top + 1, 2, ch, S); // spine
+    g.rect(x + 3, top + 1, cw - 2, 1, M2); // light along the top edge
+    g.box(x + 4, top + 3, cw - 4, ch - 4, G); // gilt border
+    const gx = x + 7, gy = top + 8; // the gem: a diamond in the middle of the cover
+    g.rect(gx + 1, gy, 2, 4, Y); g.rect(gx, gy + 1, 4, 2, Y); g.rect(gx + 1, gy + 1, 2, 2, C);
+    g.rect(x + cw - 1, top + 9, 5, 2, G); g.px(x + cw + 3, top + 9, Y); // clasp
+    g.rect(x + 6, top + ch + 5, 1, 2, R); g.px(x + 7, top + ch + 6, R); // ribbon
+    if (f % 64 < 3) g.px(gx + 1, gy + 1, "#ffffff"); // the gem catches the light
   },
 };
 

@@ -211,9 +211,9 @@ h4,
 .post-body h2,
 .post-body h3,
 .post-body h4 { scroll-margin-top: 5rem; }
-.post-body h1 { font-size: calc(1.55rem * var(--ds)); margin: 2.6rem 0 0.9rem; }
-.post-body h2 { font-size: calc(1.25rem * var(--ds)); margin: 2.1rem 0 0.7rem; }
-.post-body h3 { font-size: calc(1.08rem * var(--ds)); margin: 1.7rem 0 0.6rem; }
+.post-body h1 { font-size: calc(1.55rem * var(--ds)); margin: 3.1rem 0 0.9rem; }
+.post-body h2 { font-size: calc(1.25rem * var(--ds)); margin: 3rem 0 0.7rem; }
+.post-body h3 { font-size: calc(1.08rem * var(--ds)); margin: 3rem 0 0.6rem; }
 .post-body p { margin-bottom: 1.15rem; }
 .post-body ul, .post-body ol { margin: 0 0 1.15rem 1.4rem; }
 .post-body ul { list-style: disc; }

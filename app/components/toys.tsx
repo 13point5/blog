@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Gfx, hash } from "@/lib/pixel/engine";
-import { OWL_PAL, OWL_ROWS, OWL_SIZE, TOYS, TOY_PALETTE, owlBlink } from "@/lib/pixel/scenes/shelf";
+import { TOYS, TOY_PALETTE, owlBlink } from "@/lib/pixel/scenes/shelf";
+import { OWL_FLAP, OWL_FRAME, OWL_FRAMES, OWL_PAL } from "@/lib/pixel/owl-sheet";
+import { choosePerch, isVisible, type Layout, type Line, type Rect } from "@/lib/owl-perch";
 import { chime, hoot, midi, piano, playRecord } from "@/lib/audio";
 import { useTheme } from "../providers/theme-provider";
 import { cn } from "@/lib/utils";
@@ -152,7 +154,7 @@ export function Wand() {
   };
   return (
     <span className="relative flex items-center">
-      <Sprite id="wand" scale={2} rows={22} active={sparks} onTap={cast} label={theme === "dark" ? "Lumos: switch to the light theme" : "Nox: switch to the dark theme"} />
+      <Sprite id="wand" scale={2} rows={30} active={sparks} onTap={cast} label={theme === "dark" ? "Lumos: switch to the light theme" : "Nox: switch to the dark theme"} />
       {sparks && (
         <span className="absolute left-1/2 top-full mt-4 -translate-x-1/2 text-xs italic font-display text-foreground-muted whitespace-nowrap animate-fade-blur">
           {theme === "dark" ? "nox" : "lumos"}
@@ -360,8 +362,13 @@ function PianoCanvas({
 /* Site-wide: an owl that keeps your place                             */
 /* ------------------------------------------------------------------ */
 
-// the canvas leaves room either side of the owl for its wings
-const OWL_W = OWL_SIZE.w + 12, OWL_H = OWL_SIZE.h + 5, OWL_SCALE = 2, OWL_X = 6, OWL_Y = 3;
+const OWL_SCALE = 2;
+const F = OWL_FRAME;
+/** the owl's body on screen, without the room its wings need */
+const OWL_BODY = { w: F.bodyW * OWL_SCALE, h: F.bodyH * OWL_SCALE };
+const HEADINGS = "[data-perch], .post-body h1, .post-body h2, .post-body h3";
+/** things the owl treats as one solid block rather than looking inside */
+const SOLID = "canvas, img, svg, video, iframe, button, pre, table, hr, .katex-display";
 
 type TocEntry = { el: HTMLElement; label: string; level: number };
 
@@ -377,23 +384,84 @@ function tocEntries(): TocEntry[] {
 
 type Menu = { items: TocEntry[]; current: number; style: React.CSSProperties };
 
+/** The lines of a heading as they are laid out on screen right now. */
+function headingLines(el: HTMLElement): Line[] {
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  const lines: Rect[] = [];
+  for (const r of range.getClientRects()) {
+    if (r.width < 1 || r.height < 1) continue;
+    const l = lines.find((q) => Math.abs(q.bottom - r.bottom) < r.height * 0.4);
+    if (l) { l.left = Math.min(l.left, r.left); l.right = Math.max(l.right, r.right); l.top = Math.min(l.top, r.top); l.bottom = Math.max(l.bottom, r.bottom); }
+    else lines.push({ left: r.left, top: r.top, right: r.right, bottom: r.bottom });
+  }
+  return lines.sort((p, q) => p.top - q.top).map((l) => {
+    const h = l.bottom - l.top;
+    return { ...l, cap: l.top + h * 0.2, base: l.bottom - h * 0.2 };
+  });
+}
+
+/** Measure the page for lib/owl-perch: headings, everything that must stay uncovered, and the usable screen. */
+function readLayout(currentEl: HTMLElement | null): { layout: Layout; els: HTMLElement[] } {
+  const vw = document.documentElement.clientWidth, vh = window.innerHeight;
+  const header = document.querySelector<HTMLElement>("header");
+  const top = (header && header.dataset.hidden !== "true" ? header.offsetHeight : 0) + 4;
+  const els = [...document.querySelectorAll<HTMLElement>(HEADINGS)];
+  const obstacles: Rect[] = [];
+  const range = document.createRange();
+  for (const root of document.querySelectorAll("main, footer")) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        if (node.nodeType === Node.TEXT_NODE) return node.textContent?.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        const r = (node as Element).getBoundingClientRect();
+        if (r.bottom < -80 || r.top > vh + 80 || (r.width === 0 && r.height === 0)) return NodeFilter.FILTER_REJECT;
+        if ((node as Element).matches(SOLID)) {
+          obstacles.push({ left: r.left, top: r.top, right: r.right, bottom: r.bottom });
+          return NodeFilter.FILTER_REJECT;
+        }
+        return NodeFilter.FILTER_SKIP;
+      },
+    });
+    while (walker.nextNode()) {
+      range.selectNodeContents(walker.currentNode);
+      for (const r of range.getClientRects()) {
+        // a line box is taller than its letters: keep only the part the ink fills
+        if (r.width >= 1) obstacles.push({ left: r.left, right: r.right, top: r.top + r.height * 0.2, bottom: r.bottom - r.height * 0.05 });
+      }
+    }
+  }
+  const current = currentEl ? els.indexOf(currentEl) : -1;
+  return {
+    els,
+    layout: {
+      headings: els.map((el, id) => ({ id, lines: headingLines(el) })),
+      obstacles,
+      view: { left: 4, top, right: vw - 4, bottom: vh - 6 },
+      owl: OWL_BODY,
+      current: current < 0 ? null : current,
+    },
+  };
+}
+
 function Owl() {
-  const ref = useRef<HTMLCanvasElement>(null);
+  const wrap = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const btn = useRef<HTMLButtonElement>(null);
   const [menu, setMenu] = useState<Menu | null>(null);
   const pathname = usePathname();
 
   // Tapping the owl opens a small contents list, the way a page outline does.
   const openMenu = () => {
-    const canvas = ref.current;
-    if (!canvas) return;
+    const el = btn.current;
+    if (!el) return;
     if (menu) { setMenu(null); return; }
     hoot();
     const items = tocEntries();
     let current = -1;
     items.forEach((it, i) => { if (it.el.getBoundingClientRect().top < window.innerHeight * 0.4) current = i; });
-    const r = canvas.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
     const width = 248;
-    const left = Math.max(8, Math.min(r.right - width, window.innerWidth - width - 8));
+    const left = Math.max(8, Math.min(r.left, window.innerWidth - width - 8));
     const height = Math.min(window.innerHeight * 0.6, items.length * 32 + 110);
     const below = r.bottom + 6 + height < window.innerHeight;
     setMenu({
@@ -414,7 +482,7 @@ function Owl() {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
     const onDown = (e: PointerEvent) => {
       const t = e.target as Element;
-      if (t !== ref.current && !t.closest?.("[data-owl-menu]")) close();
+      if (t !== btn.current && !t.closest?.("[data-owl-menu]")) close();
     };
     window.addEventListener("keydown", onKey);
     window.addEventListener("scroll", close, { passive: true });
@@ -427,151 +495,100 @@ function Owl() {
   }, [menu]);
 
   useEffect(() => {
-    const canvas = ref.current;
+    const el = wrap.current, canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
-    if (!canvas || !ctx) return;
-    const g = new Gfx(ctx, OWL_W, OWL_H);
-    const bodyW = OWL_SIZE.w * OWL_SCALE, bodyH = OWL_SIZE.h * OWL_SCALE;
+    if (!el || !canvas || !ctx) return;
+    const g = new Gfx(ctx, F.w, F.h + 2);
     type Pt = { x: number; y: number };
-    const doc = (x: number, y: number): Pt => ({ x: x + window.scrollX, y: y + window.scrollY });
+    // Where it is headed: a spot at a heading (kept as an offset from the
+    // heading, so it follows the heading if the page reflows), or null = home.
+    let aim: { el: HTMLElement; id: number; kind: string; dx: number; dy: number } | null = null;
+    let pos: Pt | null = null, from: Pt = { x: 0, y: 0 };
+    let t = 1, dur = 1, arc = 0, f = 0, raf = 0, last = 0, lastPaint = 0, scrolled = false;
 
-    const headings = () => [...document.querySelectorAll<HTMLElement>("[data-perch], .post-body h1, .post-body h2, .post-body h3")];
-    // The header slides away and back as you scroll, so plan around its full
-    // height rather than wherever it happens to be mid-slide.
-    const headerBottom = () => document.querySelector<HTMLElement>("header")?.offsetHeight ?? 0;
-
-    /** The owl's home when no heading has room for it: a reserved slot in the header. */
+    /** Home is the slot beside the name in the header; it rides along with the header. */
     const home = (): Pt | null => {
       const slot = document.querySelector("[data-owl-home]");
       if (!slot) return null;
       const r = slot.getBoundingClientRect();
-      return doc(r.left + r.width / 2, r.bottom - 1);
+      return { x: r.left + r.width / 2 + window.scrollX, y: r.bottom + window.scrollY };
+    };
+    const target = (): Pt | null => {
+      if (!aim || !aim.el.isConnected) return home();
+      const r = aim.el.getBoundingClientRect();
+      return { x: r.left + aim.dx + window.scrollX, y: r.top + aim.dy + window.scrollY };
     };
 
-    /**
-     * Where the owl would stand beside a heading: on the baseline, just after
-     * the last word. Returns null unless that spot is completely free, so the
-     * owl never covers a letter.
-     */
-    const beside = (el: HTMLElement): Pt | null => {
-      const range = document.createRange();
-      range.selectNodeContents(el);
-      const rects = [...range.getClientRects()].filter((r) => r.width > 1 && r.height > 1);
-      if (!rects.length) return null;
-      const bottom = Math.max(...rects.map((r) => r.bottom));
-      const line = rects.filter((r) => r.bottom > bottom - 4);
-      const lineRight = Math.max(...line.map((r) => r.right));
-      const lineTop = Math.min(...line.map((r) => r.top));
-      const size = parseFloat(getComputedStyle(el).fontSize);
-      const left = lineRight + Math.max(6, size * 0.25);
-      const feet = bottom - (bottom - lineTop) * 0.2; // roughly the baseline
-      const top = feet - bodyH;
-      // room to the right: the edge of the text column, or whatever shares the line
-      const block = el.closest("h1, h2, h3") ?? el;
-      let limit = (block.parentElement ?? block).getBoundingClientRect().right;
-      const next = block.nextElementSibling?.getBoundingClientRect();
-      if (next && next.top < bottom && next.bottom > lineTop && next.left > lineRight) limit = next.left - 6;
-      if (left + bodyW > limit) return null;
-      // on a wrapped heading, an earlier line must not run underneath the owl
-      if (rects.some((r) => r.bottom <= lineTop + 4 && r.bottom > top && r.right > left - 2)) return null;
-      // nor may whatever sits above the heading reach down into it
-      const above = block.previousElementSibling?.getBoundingClientRect();
-      if (above && above.bottom > top + 2 && above.right > left - 2) return null;
-      // and it has to be in view, clear of the header
-      if (top < headerBottom() || feet > window.innerHeight - 12) return null;
-      return doc(left + bodyW / 2, feet);
-    };
-
-    // The owl aims at a heading while one has room for it, and at the header otherwise.
-    let perch: HTMLElement | null = null;
-    let pos: Pt = { x: 0, y: 0 };
-    let from = pos, t = 1, dur = 1, dir = 1, f = 0, raf = 0, last = 0, lastPaint = 0, ready = false;
-    const where = (): Pt | null => (perch && perch.isConnected ? beside(perch) : null) ?? home();
-
-    const choose = () => headings().find((el) => beside(el)) ?? null;
-
-    const retarget = () => {
-      const next = choose();
-      if (next === perch && t >= 1) return;
-      from = { ...pos };
-      perch = next;
-      const to = where();
-      if (!to || still()) { t = 1; return; }
-      const dist = Math.hypot(to.x - from.x, to.y - from.y);
-      if (dist < 6) { t = 1; return; }
-      dir = to.x < from.x ? -1 : 1;
-      dur = Math.min(1400, 420 + dist * 0.9);
+    /** Look at the page and decide where to be; fly there if that is somewhere new. */
+    const decide = (animate: boolean) => {
+      const { layout, els } = readLayout(aim?.el ?? null);
+      const p = choosePerch(layout);
+      el.dataset.visibleHeadings = String(layout.headings.filter((h) => isVisible(h, layout.view)).length);
+      const before = pos;
+      if (p) {
+        const r = els[p.heading].getBoundingClientRect();
+        aim = { el: els[p.heading], id: p.heading, kind: p.kind, dx: p.x - r.left, dy: p.y - r.top };
+      } else aim = null;
+      el.dataset.owlHeading = aim ? String(aim.id) : "";
+      const to = target();
+      if (!to) return;
+      const dist = before ? Math.hypot(to.x - before.x, to.y - before.y) : 0;
+      if (!before || !animate || still() || dist < 3) { pos = to; t = 1; return; }
+      from = { ...before };
+      dur = Math.min(1100, 320 + dist * 0.75);
+      arc = Math.min(26, dist * 0.1 + 6);
       t = 0;
     };
 
-    const land = () => {
-      perch = choose();
-      const to = where();
-      if (!to) { canvas.style.opacity = "0"; return; }
-      ready = true;
-      pos = to;
-      // arrive from off the top of the page
-      from = { x: to.x + 90, y: Math.max(0, window.scrollY - 40) };
-      t = still() ? 1 : 0;
-      dur = 800;
-      dir = -1;
-    };
-    const arrive = setTimeout(land, 350);
-
     const paint = (flying: boolean) => {
-      ctx.clearRect(0, 0, OWL_W, OWL_H);
-      if (flying) {
-        // wings first, so the body sits in front of them
-        const up = Math.floor(f / 2) % 2 === 0;
-        const wy = OWL_Y + (up ? 9 : 16);
-        for (const wx of [0, OWL_W - 7]) {
-          g.rect(wx, wy - 1, 7, 6, OWL_PAL.k);
-          g.rect(wx + 1, wy, 5, 4, OWL_PAL.d);
-          g.rect(wx + 2, wy + (up ? 0 : 2), 3, 2, OWL_PAL.b);
-        }
-      }
+      ctx.clearRect(0, 0, F.w, F.h + 2);
+      // push off with a downstroke, beat on the way, flare the wings up to land
+      const rows = !flying ? OWL_FRAMES.perched : t < 0.1 ? OWL_FRAMES.down : t > 0.86 ? OWL_FRAMES.up : OWL_FLAP[f % OWL_FLAP.length];
       if (!flying) {
         // a soft shadow on whatever it is standing on
-        g.rect(OWL_X + 5, OWL_Y + OWL_SIZE.h, 13, 1, "#3b2414", 0.22);
-        g.rect(OWL_X + 7, OWL_Y + OWL_SIZE.h + 1, 9, 1, "#3b2414", 0.12);
+        g.rect(F.bodyX + 5, F.bodyY + F.bodyH, 13, 1, "#3b2414", 0.22);
+        g.rect(F.bodyX + 7, F.bodyY + F.bodyH + 1, 9, 1, "#3b2414", 0.12);
       }
-      g.sprite(OWL_ROWS, OWL_X, OWL_Y, OWL_PAL, dir < 0);
-      if (!flying && f % 70 < 3) owlBlink(g, OWL_X, OWL_Y);
+      g.sprite(rows, 0, 0, OWL_PAL);
+      if (!flying && f % 70 < 3) owlBlink(g, F.bodyX, F.bodyY);
     };
 
     const tick = (now: number) => {
       raf = requestAnimationFrame(tick);
       const dt = Math.min(50, now - last);
       last = now;
-      if (!ready) return;
-      // Resting beside a heading, it stays put on the page (and so scrolls away
-      // with it). Resting in the header, it rides along with the header.
-      const to = t < 1 || !perch ? where() : perch.isConnected ? beside(perch) ?? pos : null;
-      if (!to) { land(); return; }
+      const to = target();
+      if (!pos || !to) return;
       if (t < 1) {
         t = Math.min(1, t + dt / dur);
         const e = t * t * (3 - 2 * t);
-        const lift = Math.sin(Math.PI * t) * Math.min(60, Math.hypot(to.x - from.x, to.y - from.y) * 0.25 + 12);
-        pos = { x: from.x + (to.x - from.x) * e, y: from.y + (to.y - from.y) * e - lift };
+        pos = { x: from.x + (to.x - from.x) * e, y: from.y + (to.y - from.y) * e - Math.sin(Math.PI * t) * arc };
       } else pos = to;
-      canvas.style.transform = `translate(${Math.round(pos.x - (OWL_W * OWL_SCALE) / 2)}px, ${Math.round(pos.y - (OWL_Y + OWL_SIZE.h) * OWL_SCALE)}px)`;
-      // never show through the header while the page slides underneath it
-      const screenTop = pos.y - window.scrollY - bodyH;
-      canvas.style.opacity = perch && t >= 1 && screenTop < headerBottom() ? "0" : "1";
-      if (now - lastPaint > 1000 / FPS) { lastPaint = now; f++; paint(t < 1); }
+      const flying = t < 1;
+      el.style.transform = `translate(${Math.round(pos.x - (F.bodyX + F.bodyW / 2) * OWL_SCALE)}px, ${Math.round(pos.y - (F.bodyY + F.bodyH) * OWL_SCALE)}px)`;
+      // standing at a heading that is sliding under the header: don't show through it
+      const header = document.querySelector("header")?.getBoundingClientRect();
+      const under = aim !== null && !flying && header !== undefined && pos.y - window.scrollY - OWL_BODY.h < header.bottom;
+      el.style.opacity = under ? "0" : "1";
+      el.dataset.owlState = flying ? "flying" : aim ? "perched" : "home";
+      if (now - lastPaint > 1000 / FPS) { lastPaint = now; f++; paint(flying); }
     };
     raf = requestAnimationFrame(tick);
 
-    // Whenever scrolling comes to rest, move to the heading now in view, or home.
+    // Take its place quietly while the page settles; after that, whenever
+    // scrolling comes to rest, look again and fly only if it has to move.
+    const timers = [80, 400, 1200].map((ms) => setTimeout(() => decide(scrolled), ms));
+    void document.fonts?.ready.then(() => decide(scrolled));
     let settle: ReturnType<typeof setTimeout>;
     const onScroll = () => {
+      scrolled = true;
       clearTimeout(settle);
-      settle = setTimeout(() => ready && retarget(), 170);
+      settle = setTimeout(() => decide(true), 160);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
     return () => {
-      clearTimeout(arrive);
+      timers.forEach(clearTimeout);
       clearTimeout(settle);
       cancelAnimationFrame(raf);
       window.removeEventListener("scroll", onScroll);
@@ -581,20 +598,32 @@ function Owl() {
 
   return (
     <>
-      <canvas
-        ref={ref}
-        width={OWL_W}
-        height={OWL_H}
-        onClick={openMenu}
-        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), openMenu())}
-        className="pixelated absolute top-0 left-0 pointer-events-auto cursor-pointer opacity-0 transition-opacity duration-150 outline-none focus-visible:ring-2 ring-koi"
-        style={{ width: OWL_W * OWL_SCALE, height: OWL_H * OWL_SCALE }}
-        role="button"
-        tabIndex={0}
-        aria-haspopup="menu"
-        aria-expanded={Boolean(menu)}
-        aria-label="An owl that keeps your place. Tap it for the page's contents."
-      />
+      <div
+        ref={wrap}
+        data-owl=""
+        className="absolute top-0 left-0 opacity-0 transition-opacity duration-150"
+        style={{ width: F.w * OWL_SCALE, height: (F.h + 2) * OWL_SCALE }}
+      >
+        <canvas
+          ref={canvasRef}
+          width={F.w}
+          height={F.h + 2}
+          aria-hidden="true"
+          className="pixelated block pointer-events-none"
+          style={{ width: F.w * OWL_SCALE, height: (F.h + 2) * OWL_SCALE }}
+        />
+        {/* only the owl's body takes taps; the room left for its wings lets them through */}
+        <button
+          ref={btn}
+          type="button"
+          onClick={openMenu}
+          aria-haspopup="menu"
+          aria-expanded={Boolean(menu)}
+          aria-label="An owl that keeps your place. Tap it for the page's contents."
+          className="absolute pointer-events-auto cursor-pointer outline-none focus-visible:ring-2 ring-koi"
+          style={{ left: F.bodyX * OWL_SCALE, top: F.bodyY * OWL_SCALE, width: OWL_BODY.w, height: OWL_BODY.h }}
+        />
+      </div>
       {menu && (
         // A game-style window: a stepped wooden frame round a parchment panel,
         // with a title plate and a cursor that marks where you are.
