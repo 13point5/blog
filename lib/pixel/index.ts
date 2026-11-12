@@ -5,6 +5,7 @@ import { shelf } from "./scenes/shelf";
 import { castle } from "./scenes/castle";
 import { library } from "./scenes/library";
 import { stairwell } from "./scenes/stairwell";
+import { hogwarts } from "./scenes/hogwarts";
 import { vibeRl, gdpx, grpo } from "./scenes/covers-a";
 import { dungeon, sycophant, bossFight } from "./scenes/covers-b";
 
@@ -16,6 +17,7 @@ export const SCENES: Record<string, Scene<any>> = {
   castle,
   library,
   stairwell,
+  hogwarts,
   "vibe-rl": vibeRl,
   gdpx,
   grpo,

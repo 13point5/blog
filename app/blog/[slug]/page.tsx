@@ -60,7 +60,7 @@ export default async function BlogPost({
   const { metadata } = post;
 
   return (
-    <div className="max-w-2xl mx-auto px-5 pt-20 pb-8">
+    <div className="max-w-2xl mx-auto px-5 pt-24 pb-8">
       <article className="animate-fade-blur">
         <script
           type="application/ld+json"

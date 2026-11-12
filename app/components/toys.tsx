@@ -399,7 +399,7 @@ function Owl() {
     const r = canvas.getBoundingClientRect();
     const width = 248;
     const left = Math.max(8, Math.min(r.right - width, window.innerWidth - width - 8));
-    const height = Math.min(window.innerHeight * 0.6, items.length * 34 + 96);
+    const height = Math.min(window.innerHeight * 0.6, items.length * 32 + 110);
     const below = r.bottom + 6 + height < window.innerHeight;
     setMenu({
       items,
@@ -601,40 +601,34 @@ function Owl() {
         aria-label="An owl that keeps your place. Tap it for the page's contents."
       />
       {menu && (
-        <nav
-          data-owl-menu=""
-          aria-label="On this page"
-          className="fixed z-[80] pointer-events-auto max-h-[60vh] overflow-y-auto rounded-md border bg-background-card shadow-lg p-1.5 text-sm animate-fade-blur"
-          style={menu.style}
-        >
-          <button
-            type="button"
-            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left hover:bg-accent cursor-pointer"
-            onClick={() => go(0)}
-          >
-            <span aria-hidden="true" className="text-foreground-muted">↑</span> Back to top
-          </button>
-          {menu.items.length > 0 && (
-            <>
-              <div className="my-1.5 h-px bg-border" aria-hidden="true" />
-              <p className="px-2 pt-0.5 pb-1 text-xs text-foreground-muted">On this page</p>
-              {menu.items.map((it, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  aria-current={i === menu.current ? "location" : undefined}
-                  className={cn(
-                    "block w-full rounded-sm py-1.5 pr-2 text-left leading-snug hover:bg-accent cursor-pointer",
-                    i === menu.current ? "text-foreground font-medium" : "text-foreground-muted"
-                  )}
-                  style={{ paddingLeft: 8 + it.level * 14 }}
-                  onClick={() => go(it.el.getBoundingClientRect().top + window.scrollY - 76)}
-                >
-                  {it.label}
+        // A game-style window: a stepped wooden frame round a parchment panel,
+        // with a title plate and a cursor that marks where you are.
+        <nav data-owl-menu="" aria-label="On this page" className="px-menu fixed z-[80] pointer-events-auto animate-fade-blur" style={menu.style}>
+          <div className="px-menu-frame">
+            <div className="px-menu-panel">
+              <p className="px-menu-title" aria-hidden="true">Where to?</p>
+              <div className="px-menu-list">
+                <button type="button" className="px-menu-item" onClick={() => go(0)}>
+                  <span className="px-menu-cursor" aria-hidden="true">▲</span>
+                  <span>Back to top</span>
                 </button>
-              ))}
-            </>
-          )}
+                {menu.items.length > 0 && <div className="px-menu-rule" aria-hidden="true" />}
+                {menu.items.map((it, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    aria-current={i === menu.current ? "location" : undefined}
+                    className="px-menu-item"
+                    style={{ paddingLeft: 6 + it.level * 12 }}
+                    onClick={() => go(it.el.getBoundingClientRect().top + window.scrollY - 92)}
+                  >
+                    <span className="px-menu-cursor" aria-hidden="true">▶</span>
+                    <span>{it.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
         </nav>
       )}
     </>

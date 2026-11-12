@@ -4,7 +4,7 @@ import { HomeArt } from "./components/art";
 
 export default function Home() {
   return (
-    <div className="max-w-2xl mx-auto px-5 pt-20 pb-8 flex flex-col gap-12">
+    <div className="max-w-2xl mx-auto px-5 pt-24 pb-8 flex flex-col gap-12">
       <section className="animate-fade-blur" data-toc="About">
         <h1 className="d-xl mb-6"><span data-perch="">Hey, I&apos;m Sriraam.</span></h1>
         <Bio />

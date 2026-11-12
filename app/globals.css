@@ -574,3 +574,74 @@ dd {
   margin-bottom: 0.5rem;
   color: var(--foreground-muted);
 }
+
+/* The owl's contents menu: a window from a pixel-art game. Each layer is
+   clipped to the same stepped corners; the hard shadow comes from the filter. */
+.px-menu {
+  --step: polygon(
+    0 6px, 3px 6px, 3px 3px, 6px 3px, 6px 0,
+    calc(100% - 6px) 0, calc(100% - 6px) 3px, calc(100% - 3px) 3px, calc(100% - 3px) 6px, 100% 6px,
+    100% calc(100% - 6px), calc(100% - 3px) calc(100% - 6px), calc(100% - 3px) calc(100% - 3px), calc(100% - 6px) calc(100% - 3px), calc(100% - 6px) 100%,
+    6px 100%, 6px calc(100% - 3px), 3px calc(100% - 3px), 3px calc(100% - 6px), 0 calc(100% - 6px)
+  );
+  filter: drop-shadow(4px 4px 0 rgb(0 0 0 / 0.28));
+  font-family: var(--f-pixelify), system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.25;
+  font-variant-ligatures: none;
+}
+.px-menu-frame {
+  clip-path: var(--step);
+  background: #3b2414; /* outline */
+  padding: 3px;
+}
+.px-menu-panel {
+  clip-path: var(--step);
+  /* the wooden frame: a lit top-left edge and a shaded bottom-right one */
+  background: linear-gradient(135deg, #d99a55 0 50%, #8a5230 50% 100%);
+  padding: 4px;
+}
+.px-menu-title {
+  background: #5a341d;
+  color: #fbe6c6;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  padding: 5px 10px 4px;
+  border-bottom: 3px solid #3b2414;
+}
+.px-menu-list {
+  background: #fbf1dc;
+  color: #3b2414;
+  max-height: min(56vh, 22rem);
+  overflow-y: auto;
+  padding: 5px 4px 6px;
+  box-shadow: inset 0 3px 0 rgb(59 36 20 / 0.12);
+}
+.dark .px-menu-list { background: #2a2622; color: #f3dfbd; }
+.px-menu-item {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  width: 100%;
+  padding: 5px 8px 5px 6px;
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+}
+.px-menu-cursor { width: 0.8em; flex: none; font-size: 0.7em; color: #d9532b; opacity: 0; }
+.px-menu-item:hover, .px-menu-item:focus-visible { background: rgb(217 154 85 / 0.3); }
+.px-menu-item:hover .px-menu-cursor,
+.px-menu-item:focus-visible .px-menu-cursor,
+.px-menu-item[aria-current] .px-menu-cursor { opacity: 1; }
+.px-menu-item[aria-current] { color: #b33d1c; }
+.dark .px-menu-item[aria-current] { color: #ff9166; }
+.px-menu-item[aria-current] .px-menu-cursor { animation: px-nudge 0.9s steps(2) infinite; }
+.px-menu-rule {
+  height: 3px;
+  margin: 5px 6px;
+  background: repeating-linear-gradient(90deg, #b98a56 0 6px, transparent 6px 9px);
+}
+@keyframes px-nudge { 50% { transform: translateX(2px); } }
+@media (prefers-reduced-motion: reduce) { .px-menu-item[aria-current] .px-menu-cursor { animation: none; } }
+
