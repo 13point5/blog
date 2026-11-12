@@ -8,7 +8,7 @@ export function BlogPosts({ limit, contents }: { limit?: number; contents?: bool
   return (
     <ul className="divide-y divide-border not-prose">
       {posts.map((post) => (
-        <li key={post.slug} data-perch="1" data-toc={contents ? post.metadata.title : undefined}>
+        <li key={post.slug} data-toc={contents ? post.metadata.title : undefined}>
           <BlogPostItem slug={post.slug} metadata={post.metadata} />
         </li>
       ))}

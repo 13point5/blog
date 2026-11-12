@@ -12,12 +12,10 @@ export default function BlogPage() {
       {/* A grand library, with a stairwell that won't sit still, across the top of the page */}
       <div className="animate-fade-blur -mt-6 mb-8" aria-hidden="true">
         <Art scene="library" maxPx={400} />
-        {/* the owl's first perch: the bottom edge of the picture */}
-        <div data-perch="0" />
       </div>
 
       <section className="animate-fade-blur">
-        <h1 className="d-xl mb-1">Blog</h1>
+        <h1 className="d-xl mb-1"><span data-perch="">Blog</span></h1>
         <p className="text-foreground-muted mb-6">Notes on RL, LLMs, and benchmarks.</p>
         <BlogPosts contents />
       </section>

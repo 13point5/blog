@@ -40,46 +40,38 @@ export type Item = {
   sound?: (taps: number) => void;
 };
 
-// A small brown owl: ear tufts, a cream face with big dark eyes that catch the
-// light, a little orange beak, rosy cheeks, darker wings folded at its sides
-// and a pale belly flecked with feathers.
+// A small, round brown owl: two little ear tufts on a ball of a body, a cream
+// face with dark eyes that catch the light, a tiny orange beak, rosy cheeks
+// and a pale flecked belly.
 const OWL = [
-  "...k.............k...",
-  "..kdk...........kdk..",
-  "..kbdkk.......kkdbk..",
-  "..kbbbdkkkkkkkdbbbk..",
-  ".kbbbbbbbbbbbbbbbbbk.",
-  ".kbcccccccbcccccccbk.",
-  "kbcccceeccccceeccccbk",
-  "kbccceweeccceweecccbk",
-  "kbccceeeeccceeeecccbk",
-  "kbcccceeccocceeccccbk",
-  "kbcpcccccooocccccpcbk",
-  "kbbcccccccocccccccbbk",
-  "kdbbcccccccccccccbbdk",
-  "kdbbbtttttttttttbbbdk",
-  "kddbbtvtttvtttvtbbddk",
-  "kddbbtttvtttvtttbbddk",
-  "kddbbtvtttvtttvtbbddk",
-  "kddbbtttttttttttbbddk",
-  ".kdbbbtttttttttbbbdk.",
-  "..kkbbbbtttttbbbbkk..",
-  "....kkkkkkkkkkkkk....",
-  ".....oo.......oo.....",
-  "....ooo......ooo.....",
+  "..kk.........kk..",
+  ".kbbk..kkk..kbbk.",
+  ".kbbbkkbbbkkbbbk.",
+  ".kbbbbbbbbbbbbbk.",
+  "kbbcccccbcccccbbk",
+  "kbccwecccccweccbk",
+  "kbcceeccocceeccbk",
+  "kbcpcccooocccpcbk",
+  "kbbcccccocccccbbk",
+  "kdbbtttttttttbbdk",
+  "kdbtvtttvtttvtbdk",
+  "kdbtttvtttvtttbdk",
+  ".kdbtttttttttbdk.",
+  "..kkbtttttttbkk..",
+  "....kkkkkkkkk....",
+  ".....oo...oo.....",
 ];
 export const OWL_ROWS = OWL;
-export const OWL_SIZE = { w: 21, h: OWL.length };
+export const OWL_SIZE = { w: 17, h: OWL.length };
 export const OWL_PAL = {
   k: "#3b2414", b: "#9a6436", d: "#6b4322", c: "#f3dfbd", e: "#2a1a12", w: "#ffffff",
   o: "#e8872c", p: "#eaa48e", t: "#ecd3a8", v: "#b98a56",
 };
-/** Close the owl's eyes into two happy arcs; (x, y) is the sprite's top-left corner. */
+/** Close the owl's eyes into two contented lines; (x, y) is the sprite's top-left corner. */
 export function owlBlink(g: Gfx, x: number, y: number) {
-  for (const ex of [5, 12]) {
-    g.rect(x + ex, y + 6, 4, 4, OWL_PAL.c);
-    g.px(x + ex, y + 8, OWL_PAL.k); g.px(x + ex + 1, y + 7, OWL_PAL.k);
-    g.px(x + ex + 2, y + 7, OWL_PAL.k); g.px(x + ex + 3, y + 8, OWL_PAL.k);
+  for (const ex of [4, 11]) {
+    g.rect(x + ex, y + 5, 2, 2, OWL_PAL.c);
+    g.rect(x + ex, y + 6, 2, 1, OWL_PAL.k);
   }
 }
 
@@ -127,8 +119,8 @@ const ITEMS: Item[] = [
       }
       g.rect(x, y - 1, 26, 1, P.ink);
       const bob = Math.floor(f / 18) % 2;
-      g.sprite(OWL, x + 2, top - OWL.length + bob, OWL_PAL);
-      if (f % 70 < 4) owlBlink(g, x + 2, top - OWL.length + bob);
+      g.sprite(OWL, x + 4, top - OWL.length + bob, OWL_PAL);
+      if (f % 70 < 4) owlBlink(g, x + 4, top - OWL.length + bob);
     },
   },
   {
