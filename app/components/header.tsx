@@ -40,7 +40,7 @@ export function Header() {
           {/* where the owl waits when no heading on screen has room for it */}
           <span data-owl-home="" aria-hidden="true" className="w-11 h-12" />
           <Link href="/blog" aria-label="Blog" title="Blog" className="relative flex items-center hover:opacity-70 transition-opacity">
-            <Sprite id="book" scale={2} rows={16} />
+            <Sprite id="book" scale={2} rows={20} />
             {isOnBlogPage && <span aria-hidden="true" className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 size-1 bg-koi" />}
           </Link>
           {/*

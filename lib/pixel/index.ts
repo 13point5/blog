@@ -4,6 +4,7 @@ import { koiPond } from "./scenes/koi-pond";
 import { shelf } from "./scenes/shelf";
 import { castle } from "./scenes/castle";
 import { library } from "./scenes/library";
+import { stairwell } from "./scenes/stairwell";
 import { vibeRl, gdpx, grpo } from "./scenes/covers-a";
 import { dungeon, sycophant, bossFight } from "./scenes/covers-b";
 
@@ -14,6 +15,7 @@ export const SCENES: Record<string, Scene<any>> = {
   shelf,
   castle,
   library,
+  stairwell,
   "vibe-rl": vibeRl,
   gdpx,
   grpo,

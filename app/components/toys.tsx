@@ -120,7 +120,7 @@ export function RecordPlayer({ className }: { className?: string }) {
   return (
     <Sprite
       id="record"
-      rows={50}
+      rows={49}
       active={playing}
       onTap={toggle}
       label={playing ? "Stop the record" : "Play the record (Bach, Prelude in C)"}
@@ -173,6 +173,7 @@ export function Wand() {
 
 const P_SCALE = 3;
 const P_H = 68;
+const P_D = 6; // depth of the case, drawn as a lid top and a side face
 const KEY_W = 8; // one white key plus the gap to its right
 const KEYS_Y = 31, KEYS_H = 17, BLACK_H = 11;
 const WHITE = [0, 2, 4, 5, 7, 9, 11];
@@ -196,8 +197,9 @@ export function Piano() {
   }, [on]);
 
   // how many keys fit, where they start, and which note the first one plays
-  const count = Math.floor((cols - 14) / KEY_W);
-  const x0 = Math.floor((cols - count * KEY_W) / 2);
+  const front = cols - P_D; // width of the front face
+  const count = Math.floor((front - 14) / KEY_W);
+  const x0 = Math.floor((front - count * KEY_W) / 2);
   const first = count > 18 ? 48 : 60;
   const whiteNote = (i: number) => first + Math.floor(i / 7) * 12 + WHITE[i % 7];
 
@@ -205,11 +207,13 @@ export function Piano() {
     const canvas = ref.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx) return;
-    const g = new Gfx(ctx, cols, P_H);
-    const W = cols;
+    const g = new Gfx(ctx, cols, P_H + P_D);
+    const W = cols - P_D;
 
     paintRef.current = () => {
-      ctx.clearRect(0, 0, W, P_H);
+      ctx.clearRect(0, 0, cols, P_H + P_D);
+      ctx.save();
+      ctx.translate(0, P_D);
       // lid
       g.rect(0, 0, W, 3, WOOD_LO);
       g.rect(1, 0, W - 2, 1, WOOD_HI);
@@ -280,6 +284,18 @@ export function Piano() {
       const c = Math.floor(W / 2);
       for (const dx of [-6, -1, 4]) { g.rect(c + dx, P_H - 4, 3, 2, BRASS); g.rect(c + dx, P_H - 2, 3, 1, "#8a6a1f"); }
       g.rect(0, P_H - 1, W, 1, WOOD_LO);
+      ctx.restore();
+      // the lid's top, lit from above, and the side of the case, in shade
+      for (let i = 1; i <= P_D; i++) {
+        g.rect(i, P_D - i, W, 1, i === P_D ? WOOD_LO : i === 1 ? "#d08a50" : "#b97240");
+        g.rect(W - 1 + i, P_D - i + 1, 1, P_H - 1, i === P_D ? "#3f2412" : "#5f3719");
+      }
+      // close the sliver between the inset case and its side
+      ctx.globalCompositeOperation = "destination-over";
+      g.rect(W - 2, P_D + 1, 3, P_H - 2, "#5f3719");
+      ctx.globalCompositeOperation = "source-over";
+      // and the shadow it casts on the floor
+      g.rect(P_D, P_H + P_D - 1, cols - P_D, 1, "#3b2414", 0.25);
     };
     paintRef.current();
     const mo = new MutationObserver(() => paintRef.current());
@@ -292,7 +308,7 @@ export function Piano() {
 
   const noteAt = (e: React.PointerEvent) => {
     const r = e.currentTarget.getBoundingClientRect();
-    const ax = ((e.clientX - r.left) / r.width) * cols, ay = ((e.clientY - r.top) / r.height) * P_H;
+    const ax = ((e.clientX - r.left) / r.width) * cols, ay = ((e.clientY - r.top) / r.height) * (P_H + P_D) - P_D;
     if (ay < KEYS_Y - 2 || ay > KEYS_Y + KEYS_H + 2) return null;
     const i = Math.floor((ax - x0) / KEY_W);
     if (i < 0 || i >= count) return null;
@@ -331,11 +347,11 @@ function PianoCanvas({
       <canvas
         ref={canvasRef}
         width={cols}
-        height={P_H}
+        height={P_H + P_D}
         role="img"
         aria-label="An upright piano. Tap or drag across the keys to play."
         className="pixelated block w-full cursor-pointer select-none touch-none"
-        style={{ height: P_H * P_SCALE }}
+        style={{ height: (P_H + P_D) * P_SCALE }}
         onPointerDown={(e) => { e.stopPropagation(); e.currentTarget.setPointerCapture(e.pointerId); held.current = true; last.current = null; strike(noteAt(e), last); }}
         onPointerMove={(e) => held.current && strike(noteAt(e), last)}
         onPointerUp={() => { held.current = false; last.current = null; }}
@@ -350,7 +366,7 @@ function PianoCanvas({
 /* ------------------------------------------------------------------ */
 
 // the canvas leaves room either side of the owl for its wings
-const OWL_W = OWL_SIZE.w + 12, OWL_H = OWL_SIZE.h + 3, OWL_SCALE = 2, OWL_X = 6, OWL_Y = 3;
+const OWL_W = OWL_SIZE.w + 12, OWL_H = OWL_SIZE.h + 5, OWL_SCALE = 2, OWL_X = 6, OWL_Y = 3;
 
 type TocEntry = { el: HTMLElement; label: string; level: number };
 
@@ -519,6 +535,11 @@ function Owl() {
           g.rect(wx + 2, wy + (up ? 0 : 2), 3, 2, OWL_PAL.b);
         }
       }
+      if (!flying) {
+        // a soft shadow on whatever it is standing on
+        g.rect(OWL_X + 3, OWL_Y + OWL_SIZE.h, 15, 1, "#3b2414", 0.22);
+        g.rect(OWL_X + 6, OWL_Y + OWL_SIZE.h + 1, 9, 1, "#3b2414", 0.12);
+      }
       g.sprite(OWL_ROWS, OWL_X, OWL_Y, OWL_PAL, dir < 0);
       if (!flying && f % 70 < 3) owlBlink(g, OWL_X, OWL_Y);
     };
@@ -538,7 +559,7 @@ function Owl() {
         const lift = Math.sin(Math.PI * t) * Math.min(60, Math.hypot(to.x - from.x, to.y - from.y) * 0.25 + 12);
         pos = { x: from.x + (to.x - from.x) * e, y: from.y + (to.y - from.y) * e - lift };
       } else pos = to;
-      canvas.style.transform = `translate(${Math.round(pos.x - (OWL_W * OWL_SCALE) / 2)}px, ${Math.round(pos.y - OWL_H * OWL_SCALE)}px)`;
+      canvas.style.transform = `translate(${Math.round(pos.x - (OWL_W * OWL_SCALE) / 2)}px, ${Math.round(pos.y - (OWL_Y + OWL_SIZE.h) * OWL_SCALE)}px)`;
       // never show through the header while the page slides underneath it
       const screenTop = pos.y - window.scrollY - bodyH;
       canvas.style.opacity = perch && t >= 1 && screenTop < headerBottom() ? "0" : "1";

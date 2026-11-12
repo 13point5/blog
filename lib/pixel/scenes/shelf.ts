@@ -1,4 +1,5 @@
 import { hash, type Gfx, type Scene } from "../engine";
+import { VOXEL_TOYS } from "../voxel-toys";
 import { chime, click, coin, driveSeek, fanfare, hoot, piano, midi, pluck, whoosh } from "@/lib/audio";
 
 // A single line across the page with a few favourite things standing on it.
@@ -50,15 +51,15 @@ const OWL = [
   "..kk.............kk..",
   "..kdk...kkkkk...kdk..",
   "..kddkkkdddddkkkddk..",
-  ".kbbbbbbbbbbbbbbbbbk.",
-  "kbbccccbbbbbbbccccbbk",
-  "kbccccccbbbbbccccccbk",
-  "kbcceecccbbbccceeccbk",
-  "kbceweecccbccceweecbk",
-  "kbceeeeccccccceeeecbk",
-  "kbcceeccccocccceeccbk",
-  "kbcppccccoooccccppcbk",
-  ".kbcccccccocccccccbk.",
+  ".khhhhbbbbbbbbbbbbdk.",
+  "khbccccbbbbbbbccccbdk",
+  "khccccccbbbbbccccccdk",
+  "khcceecccbbbccceeccdk",
+  "khceweecccbccceweecdk",
+  "khceeeeccccccceeeecdk",
+  "khcceeccccocccceeccdk",
+  "khcppccccoooccccppcdk",
+  ".khcccccccocccccccdk.",
   "..kkbcccccccccccbkk..",
   "..kddkbtttttttbkddk..",
   ".kddbtttttttttttbddk.",
@@ -72,7 +73,7 @@ const OWL = [
 export const OWL_ROWS = OWL;
 export const OWL_SIZE = { w: 21, h: OWL.length };
 export const OWL_PAL = {
-  k: "#4a2c17", b: "#8f5e36", d: "#6b4222", c: "#fbe6c6", e: "#3b2212", w: "#ffffff",
+  k: "#4a2c17", b: "#8f5e36", h: "#b07c4c", d: "#6b4222", c: "#fbe6c6", e: "#3b2212", w: "#ffffff",
   o: "#f0a03c", p: "#f4aaa0", t: "#fbe6c6", v: "#8f5e36",
 };
 /** Close the owl's eyes into two happy arcs; (x, y) is the sprite's top-left corner. */
@@ -397,7 +398,8 @@ const BOOK: Item = {
 };
 
 /** Every drawable object, by id, for use as a standalone sprite. */
-export const TOYS: Record<string, Item> = Object.fromEntries([...ITEMS, WAND, BOOK].map((i) => [i.id, i]));
+// The voxel versions replace their flat namesakes wherever a toy stands alone.
+export const TOYS: Record<string, Item> = { ...Object.fromEntries([...ITEMS, WAND, BOOK].map((i) => [i.id, i])), ...VOXEL_TOYS };
 export const TOY_PALETTE = { light: LIGHT, dark: DARK };
 
 type Placed = { item: Item; x: number; hop: number; taps: number };
