@@ -5,7 +5,8 @@
 //
 // Needs Playwright with a Chromium build (`npx playwright install chromium`).
 // At every scroll position, going down and coming back up, it asserts:
-//   - if a heading is fully on screen, the owl is at a heading, not in the header
+//   - if a heading is fully on screen (with an owl's height of room above it),
+//     the owl is at a heading, not in the header
 //   - if none is, the owl is in its slot beside the name
 //   - the owl never covers text, a picture or a button
 //   - it does not leave a heading that is still on screen
@@ -28,37 +29,50 @@ let checks = 0;
 
 /** Read the owl and the page independently of the site's own logic. */
 const probe = () => {
+  const OWL_H = 46;
   const owl = document.querySelector("[data-owl]");
   const body = owl.querySelector("button").getBoundingClientRect();
   const header = document.querySelector("header");
-  const headerShown = header.dataset.hidden !== "true";
-  const top = headerShown ? header.offsetHeight : 0;
+  const top = (header.dataset.hidden !== "true" ? header.offsetHeight : 0) + 4;
   const vh = innerHeight;
-  // headings fully on screen
   const range = document.createRange();
-  const visible = [...document.querySelectorAll("[data-perch], .post-body h1, .post-body h2, .post-body h3")].filter((el) => {
+  // the part of a box that actually shows, after scrolling or collapsed ancestors cut it off
+  const shown = (r, el) => {
+    const o = { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+    for (let p = el; p && p !== document.documentElement; p = p.parentElement) {
+      const cs = getComputedStyle(p);
+      if (cs.overflowX === "visible" && cs.overflowY === "visible") continue;
+      const c = p.getBoundingClientRect();
+      o.left = Math.max(o.left, c.left); o.top = Math.max(o.top, c.top); o.right = Math.min(o.right, c.right); o.bottom = Math.min(o.bottom, c.bottom);
+    }
+    return o.right - o.left >= 1 && o.bottom - o.top >= 1 ? o : null;
+  };
+  // headings fully on screen, with an owl's height of room above the first baseline
+  const headings = [...document.querySelectorAll("[data-perch], .post-body h1, .post-body h2, .post-body h3")];
+  const onScreen = (el) => {
     range.selectNodeContents(el);
-    const rects = [...range.getClientRects()].filter((r) => r.width > 1 && r.height > 1);
-    return rects.length > 0 && rects.every((r) => r.top >= top + 4 && r.bottom <= vh - 6);
-  }).length;
-  // anything under the owl's body
+    const rects = [...range.getClientRects()].filter((r) => r.width > 1 && r.height > 1).sort((p, q) => p.top - q.top);
+    if (!rects.length) return false;
+    const first = rects[0];
+    return first.bottom - first.height * 0.2 - OWL_H >= top && rects.every((r) => r.top >= top && r.bottom <= vh - 6);
+  };
+  const visible = headings.map((el, i) => (onScreen(el) ? i : -1)).filter((i) => i >= 0);
+  // anything showing under the owl's body
   const box = { left: body.left + 2, right: body.right - 2, top: body.top + 2, bottom: body.bottom - 3 };
+  const over = (r) => r && r.left < box.right && r.right > box.left && r.top < box.bottom && r.bottom > box.top;
   const hits = [];
-  const onScreen = box.bottom > 0 && box.top < vh;
-  if (onScreen && owl.dataset.owlState !== "home") {
+  if (box.bottom > 0 && box.top < vh && owl.dataset.owlState !== "home") {
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     while (walker.nextNode()) {
       const n = walker.currentNode;
       if (!n.textContent.trim() || n.parentElement.closest("header, [data-owl-menu]")) continue;
       range.selectNodeContents(n);
       for (const r of range.getClientRects()) {
-        const t = r.top + r.height * 0.22, b = r.bottom - r.height * 0.08;
-        if (r.left < box.right && r.right > box.left && t < box.bottom && b > box.top) hits.push("text: " + n.textContent.trim().slice(0, 28));
+        if (over(shown({ left: r.left, right: r.right, top: r.top + r.height * 0.22, bottom: r.bottom - r.height * 0.08 }, n.parentElement))) hits.push("text: " + n.textContent.trim().slice(0, 28));
       }
     }
     for (const el of document.querySelectorAll("main canvas, main img, main svg, main button, main pre, main table, footer canvas")) {
-      const r = el.getBoundingClientRect();
-      if (r.left < box.right && r.right > box.left && r.top < box.bottom && r.bottom > box.top) hits.push(el.tagName.toLowerCase());
+      if (over(shown(el.getBoundingClientRect(), el.parentElement))) hits.push(el.tagName.toLowerCase());
     }
   }
   const slot = document.querySelector("[data-owl-home]").getBoundingClientRect();
@@ -67,7 +81,8 @@ const probe = () => {
     state: owl.dataset.owlState, heading: owl.dataset.owlHeading, visible, hits: [...new Set(hits)],
     atSlot: Math.abs(body.left - slot.left) < 3 && Math.abs(body.bottom - slot.bottom) < 3,
     slotBesideName: slot.left - name.right >= 0 && slot.left - name.right < 24,
-    opacity: owl.style.opacity,
+    // where its body is on the page, to tell later whether it could have stayed
+    bodyTop: body.top + scrollY, bodyBottom: body.bottom + scrollY, viewTop: top, scrollY,
   };
 };
 
@@ -94,21 +109,15 @@ for (const viewport of VIEWPORTS) {
       const s = await page.evaluate(probe);
       checks++;
       if (!s.slotBesideName) fail(y, "the owl's home is not beside the name");
-      if (s.visible > 0 && s.state !== "perched") fail(y, `${s.visible} heading(s) on screen but the owl is ${s.state}`);
-      if (s.visible === 0 && s.state !== "home") fail(y, `no heading on screen but the owl is ${s.state}`);
+      if (s.visible.length > 0 && s.state !== "perched") fail(y, `${s.visible.length} heading(s) on screen but the owl is ${s.state}`);
+      if (s.visible.length === 0 && s.state !== "home") fail(y, `no heading on screen but the owl is ${s.state}`);
       if (s.state === "home" && !s.atSlot) fail(y, "home, but not in its slot beside the name");
       if (s.hits.length) fail(y, `covers ${s.hits.join(", ")}`);
-      // it must not leave a heading that is still on screen
-      if (prev && prev.state === "perched" && s.state === "perched" && prev.heading !== s.heading) {
-        const stillVisible = await page.evaluate((i) => {
-          const el = document.querySelectorAll("[data-perch], .post-body h1, .post-body h2, .post-body h3")[i];
-          const header = document.querySelector("header");
-          const top = header.dataset.hidden !== "true" ? header.offsetHeight : 0;
-          const range = document.createRange(); range.selectNodeContents(el);
-          const rects = [...range.getClientRects()].filter((r) => r.width > 1 && r.height > 1);
-          return rects.every((r) => r.top >= top + 4 && r.bottom <= innerHeight - 6);
-        }, Number(prev.heading));
-        if (stillVisible) fail(y, `left heading ${prev.heading} for ${s.heading} while it was still on screen`);
+      // It must not leave a heading that is still on screen, so long as the
+      // spot it had there is still inside the usable view.
+      if (prev && prev.state === "perched" && s.state === "perched" && prev.heading !== s.heading && s.visible.includes(Number(prev.heading))) {
+        const couldStay = prev.bodyTop - s.scrollY >= s.viewTop && prev.bodyBottom - s.scrollY <= viewport.height - 6;
+        if (couldStay) fail(y, `left heading ${prev.heading} for ${s.heading} while it was still on screen`);
       }
       prev = s;
     }

@@ -409,6 +409,29 @@ function readLayout(currentEl: HTMLElement | null): { layout: Layout; els: HTMLE
   const els = [...document.querySelectorAll<HTMLElement>(HEADINGS)];
   const obstacles: Rect[] = [];
   const range = document.createRange();
+  // Content can be cut off by a scrolling or collapsed box (a long code block,
+  // a wide table). Only the part that actually shows counts as in the way.
+  const clips = new Map<Element, Rect | null>();
+  const clipOf = (el: Element | null): Rect | null => {
+    if (!el || el === document.documentElement) return null;
+    const known = clips.get(el);
+    if (known !== undefined) return known;
+    let clip = clipOf(el.parentElement);
+    const cs = getComputedStyle(el);
+    if (cs.overflowX !== "visible" || cs.overflowY !== "visible") {
+      const r = el.getBoundingClientRect();
+      clip = clip
+        ? { left: Math.max(clip.left, r.left), top: Math.max(clip.top, r.top), right: Math.min(clip.right, r.right), bottom: Math.min(clip.bottom, r.bottom) }
+        : { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+    }
+    clips.set(el, clip);
+    return clip;
+  };
+  const add = (r: Rect, within: Element | null) => {
+    const c = clipOf(within);
+    const o = c ? { left: Math.max(r.left, c.left), top: Math.max(r.top, c.top), right: Math.min(r.right, c.right), bottom: Math.min(r.bottom, c.bottom) } : r;
+    if (o.right - o.left >= 1 && o.bottom - o.top >= 1) obstacles.push(o);
+  };
   for (const root of document.querySelectorAll("main, footer")) {
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
       acceptNode(node) {
@@ -416,7 +439,7 @@ function readLayout(currentEl: HTMLElement | null): { layout: Layout; els: HTMLE
         const r = (node as Element).getBoundingClientRect();
         if (r.bottom < -80 || r.top > vh + 80 || (r.width === 0 && r.height === 0)) return NodeFilter.FILTER_REJECT;
         if ((node as Element).matches(SOLID)) {
-          obstacles.push({ left: r.left, top: r.top, right: r.right, bottom: r.bottom });
+          add({ left: r.left, top: r.top, right: r.right, bottom: r.bottom }, (node as Element).parentElement);
           return NodeFilter.FILTER_REJECT;
         }
         return NodeFilter.FILTER_SKIP;
@@ -426,7 +449,7 @@ function readLayout(currentEl: HTMLElement | null): { layout: Layout; els: HTMLE
       range.selectNodeContents(walker.currentNode);
       for (const r of range.getClientRects()) {
         // a line box is taller than its letters: keep only the part the ink fills
-        if (r.width >= 1) obstacles.push({ left: r.left, right: r.right, top: r.top + r.height * 0.2, bottom: r.bottom - r.height * 0.05 });
+        if (r.width >= 1) add({ left: r.left, right: r.right, top: r.top + r.height * 0.2, bottom: r.bottom - r.height * 0.05 }, walker.currentNode.parentElement);
       }
     }
   }
@@ -523,7 +546,7 @@ function Owl() {
     const decide = (animate: boolean) => {
       const { layout, els } = readLayout(aim?.el ?? null);
       const p = choosePerch(layout);
-      el.dataset.visibleHeadings = String(layout.headings.filter((h) => isVisible(h, layout.view)).length);
+      el.dataset.visibleHeadings = String(layout.headings.filter((h) => isVisible(h, layout.view, layout.owl)).length);
       const before = pos;
       if (p) {
         const r = els[p.heading].getBoundingClientRect();
@@ -574,6 +597,8 @@ function Owl() {
       if (now - lastPaint > 1000 / FPS) { lastPaint = now; f++; paint(flying); }
     };
     raf = requestAnimationFrame(tick);
+    // for the end-to-end test and for debugging: what the owl sees right now
+    Object.assign(el, { owlLayout: () => readLayout(aim?.el ?? null).layout });
 
     // Take its place quietly while the page settles; after that, whenever
     // scrolling comes to rest, look again and fly only if it has to move.

@@ -1,7 +1,8 @@
 // Where the owl stands. This is pure geometry with no DOM in it, so the rules
 // can be tested on their own (see tests/owl-perch.test.mjs):
 //
-//   1. While any heading is fully on screen, the owl stands at a heading.
+//   1. While any heading is fully on screen (with room above it for an owl),
+//      the owl stands at a heading.
 //   2. It stays at the heading it is on for as long as that heading is on screen.
 //   3. It never covers anything: text, pictures, buttons.
 //   4. Only when no heading is on screen does it go home (the caller sends it
@@ -43,9 +44,16 @@ export const perchRect = (p: { x: number; y: number }, owl: { w: number; h: numb
 
 const overlaps = (a: Rect, b: Rect) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
 
-/** A heading counts as on screen only when every line of it is inside the usable view. */
-export function isVisible(h: Heading, view: Rect) {
-  return h.lines.length > 0 && h.lines.every((l) => l.top >= view.top && l.bottom <= view.bottom && l.right > view.left && l.left < view.right);
+/**
+ * A heading counts as on screen when every line of it is inside the usable
+ * view and there is an owl's height of room above its first baseline. Without
+ * that room (a heading tucked right under the header) the owl standing beside
+ * it would poke out of the view, so such a heading is treated as not yet here.
+ */
+export function isVisible(h: Heading, view: Rect, owl: { h: number } = { h: 0 }) {
+  if (!h.lines.length) return false;
+  if (h.lines[0].base - owl.h < view.top) return false;
+  return h.lines.every((l) => l.top >= view.top && l.bottom <= view.bottom && l.right > view.left && l.left < view.right);
 }
 
 /** Every place the owl could stand at a heading, best first. */
@@ -83,7 +91,7 @@ const firstFree = (h: Heading, layout: Layout) => candidates(h, layout).find((p)
  * is on screen, or (rarely) none of the visible ones has anywhere free to stand.
  */
 export function choosePerch(layout: Layout): Perch | null {
-  const visible = layout.headings.filter((h) => isVisible(h, layout.view));
+  const visible = layout.headings.filter((h) => isVisible(h, layout.view, layout.owl));
   // stay put while the heading it is on remains on screen
   const here = visible.find((h) => h.id === layout.current);
   if (here) {

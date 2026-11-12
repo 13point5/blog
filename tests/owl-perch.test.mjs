@@ -32,6 +32,17 @@ test("a heading hidden under the header does not count as on screen", () => {
   assert.equal(isVisible(h, { ...VIEW, top: 4 }), true);
 });
 
+test("a heading tucked right under the header is not yet on screen: no room for an owl beside it", () => {
+  const h = heading(0, line(20, 84, 165, 27)); // in view, but an owl beside it would poke under the header
+  assert.equal(isVisible(h, VIEW), true, "the letters themselves are in view");
+  assert.equal(isVisible(h, VIEW, OWL), false, "but not with an owl's height of room");
+  assert.equal(choosePerch(layout([h])), null);
+  // a few pixels further down the page it counts, and gets the owl
+  const lower = heading(0, line(20, 104, 165, 27));
+  assert.equal(isVisible(lower, VIEW, OWL), true);
+  assert.equal(choosePerch(layout([lower])).kind, "beside");
+});
+
 test("stands after the last word, feet on the baseline", () => {
   const l = line(20, 300, 150);
   const p = choosePerch(layout([heading(0, l)]));
@@ -109,13 +120,13 @@ test("every candidate it accepts is inside the view and clear of everything (ran
     }
     const lay = layout(headings, extra, { current: rnd() < 0.5 ? Math.floor(rnd() * 4) : null });
     const p = choosePerch(lay);
-    const anyVisible = headings.some((h) => isVisible(h, VIEW));
+    const anyVisible = headings.some((h) => isVisible(h, VIEW, OWL));
     if (!anyVisible) assert.equal(p, null);
     if (!p) continue;
     const r = perchRect(p, OWL);
     assert.ok(r.left >= VIEW.left && r.right <= VIEW.right && r.top >= VIEW.top && r.bottom <= VIEW.bottom, "inside the view");
     assert.ok(!lay.obstacles.some((o) => overlaps(r, o)), "covers nothing");
-    assert.ok(isVisible(headings[p.heading], VIEW), "only at a heading that is on screen");
+    assert.ok(isVisible(headings[p.heading], VIEW, OWL), "only at a heading that is on screen");
     assert.ok(candidates(headings[p.heading], lay).some((c) => c.x === p.x && c.y === p.y) && isFree(p, lay));
   }
 });
@@ -132,6 +143,6 @@ test("with clear space above every heading, a visible heading always gets the ow
       y += count * 36 + 60 + rnd() * 200; // at least an owl's height of air before the next
     }
     const lay = layout(headings);
-    if (headings.some((h) => isVisible(h, VIEW))) assert.ok(choosePerch(lay), "a heading is on screen, so the owl must be at one");
+    if (headings.some((h) => isVisible(h, VIEW, OWL))) assert.ok(choosePerch(lay), "a heading is on screen, so the owl must be at one");
   }
 });
