@@ -30,7 +30,7 @@ type SpriteProps = {
   rows?: number;
   /** for toys that can be switched on */
   active?: boolean;
-  /** how many times it has been poked; each poke makes it hop */
+  /** how many times it has been poked */
   taps?: number;
   className?: string;
   label?: string;
@@ -40,12 +40,11 @@ type SpriteProps = {
 export function Sprite({ id, scale = 3, rows = 30, active, taps = 0, className, label, onTap }: SpriteProps) {
   const ref = useRef<HTMLCanvasElement>(null);
   const item = TOYS[id];
-  const live = useRef({ active, taps, hop: 0 });
+  const live = useRef({ active, taps, f: 0, tapAt: -999 });
   const w = item.w + 6;
-  const tappable = Boolean(onTap);
 
   useEffect(() => {
-    if (live.current.taps !== taps) live.current.hop = 8;
+    if (live.current.taps !== taps) live.current.tapAt = live.current.f;
     live.current.active = active;
     live.current.taps = taps;
   }, [active, taps]);
@@ -56,22 +55,18 @@ export function Sprite({ id, scale = 3, rows = 30, active, taps = 0, className, 
     if (!canvas || !ctx) return;
     const g = new Gfx(ctx, w, rows);
     let f = 0, raf = 0, last = 0, visible = true;
-    const period = 90 + ((item.w * 37) % 60);
     const paint = () => {
       const s = live.current;
-      const lift = s.hop > 0 ? Math.round(Math.sin((s.hop / 8) * Math.PI) * 4) : 0;
-      if (s.hop > 0) s.hop--;
       ctx.clearRect(0, 0, w, rows);
-      item.draw(g, 3, rows - 2 - lift, f, isDark() ? TOY_PALETTE.dark : TOY_PALETTE.light, s.active, s.taps);
+      item.draw(g, 3, rows - 2, f, isDark() ? TOY_PALETTE.dark : TOY_PALETTE.light, s.active, s.taps, f - s.tapAt);
     };
     paint();
     const tick = (now: number) => {
       raf = requestAnimationFrame(tick);
       if (!visible || now - last < 1000 / FPS) return;
       last = now;
-      if (!still() || live.current.hop > 0) f++;
-      // tappable toys give a little hop now and then, so they read as tappable
-      if (tappable && !still() && f % period === period - 1) live.current.hop = 8;
+      // with motion off, time only moves to play out what a poke started
+      if (!still() || f - live.current.tapAt < 24) live.current.f = ++f;
       paint();
     };
     raf = requestAnimationFrame(tick);
@@ -81,7 +76,7 @@ export function Sprite({ id, scale = 3, rows = 30, active, taps = 0, className, 
       cancelAnimationFrame(raf);
       io.disconnect();
     };
-  }, [item, w, rows, tappable]);
+  }, [item, w, rows]);
 
   const canvas = (
     <canvas ref={ref} width={w} height={rows} aria-hidden="true" className="pixelated block" style={{ width: w * scale, height: rows * scale }} />
@@ -129,7 +124,7 @@ export function RecordPlayer({ className }: { className?: string }) {
   );
 }
 
-/** Any other object: poke it and it hops and makes its own sound. */
+/** Any other object: poke it and it does its own thing, with its own sound. */
 export function Toy({ id, scale, rows, className }: { id: string; scale?: number; rows?: number; className?: string }) {
   const [taps, setTaps] = useState(0);
   if (!useToys()) return null;

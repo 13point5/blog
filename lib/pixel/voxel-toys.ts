@@ -1,13 +1,12 @@
 import { hash } from "./engine";
 import { Voxels } from "./voxel";
-import { click, driveSeek, fanfare } from "@/lib/audio";
+import { click, fanfare } from "@/lib/audio";
 import type { Item } from "./scenes/shelf";
 
 // The small objects scattered around the site, built from voxels so they read
 // as little 3D game props rather than flat icons.
 
 const BLACK = "#1d1d1b";
-const STICKERS = ["#fdfbf7", "#f2c14e", "#c8321f", "#f08a2c", "#2f6fd6", "#2f9d5a"];
 
 const record: Item = {
   // a turntable: wooden plinth, pale deck, a spinning record and a tonearm
@@ -44,59 +43,64 @@ const record: Item = {
   },
 };
 
+// Colours of the four side faces, in the cube's own frame: +x, +y, -x, -y.
+const SIDES = ["#2f6fd6", "#c8321f", "#2f9d5a", "#f08a2c"];
+const TOP = "#fdfbf7";
+const TURN = 7; // frames a quarter turn takes
+
+/**
+ * The cube is three layers that each turn about the vertical axis. This gives
+ * each layer's quarter-turns (bottom, middle, top) after `n` pokes, and which
+ * layer the last poke turned. Every poke turns whichever layer is still out of
+ * line; once all three agree the cube is solved, and the next poke scrambles it.
+ */
+function cubeState(n: number) {
+  const o = [0, 3, 1];
+  let last = -1;
+  for (let i = 0; i < n; i++) {
+    last = (o[2] - o[0]) % 4 ? 2 : (o[1] - o[0]) % 4 ? 1 : 2;
+    o[last]++;
+  }
+  return { o, last, solved: (o[1] - o[0]) % 4 === 0 && (o[2] - o[0]) % 4 === 0 };
+}
+
 const cube: Item = {
-  // a puzzle cube: 3x3 stickers on each visible face. Each poke turns a layer;
-  // six pokes solve it, the seventh scrambles it again.
-  id: "cube", w: 44, priority: 2,
-  sound: (taps) => (taps % 7 === 6 ? fanfare() : click()),
-  draw(g, x, y, f, P, _active, taps = 0) {
-    const epoch = Math.floor(taps / 7), level = taps % 7;
-    const sticker = (face: number, i: number) => {
-      const k = face * 9 + i;
-      return hash(k, epoch, 61) < level / 6 ? STICKERS[(face * 2 + epoch) % 6] : STICKERS[Math.floor(hash(k, epoch * 31 + 7, 62) * 6)];
-    };
-    // 11 cubes a side: three stickers of three, with a one-cube gap between them
-    const S = 11, L = S - 1;
-    const m = new Voxels().box(0, 0, 0, S, S, S, BLACK);
-    for (let a = 0; a < 3; a++) for (let b = 0; b < 3; b++) for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
-      const u = a * 4 + i, v = b * 4 + j;
-      m.face(u, v, L, 0, sticker(1, b * 3 + a)); // top
-      m.face(u, L, L - v, 1, sticker(0, b * 3 + a)); // left
-      m.face(L, L - u, L - v, 2, sticker(2, b * 3 + a)); // right
+  id: "cube", w: 60, priority: 2,
+  sound: (taps) => (cubeState(taps).solved ? fanfare() : click()),
+  draw(g, x, y, f, P, _active, taps = 0, since = 99) {
+    const { o, last, solved } = cubeState(taps);
+    const m = new Voxels();
+    for (let layer = 0; layer < 3; layer++) {
+      // a layer that was just poked is caught part-way through its quarter turn
+      const q = o[layer] - (layer === last && since < TURN ? 1 - since / TURN : 0);
+      const a = (q * Math.PI) / 2, ca = Math.cos(a), sa = Math.sin(a);
+      const z0 = layer * 4, z1 = layer === 2 ? 10 : z0 + 3;
+      for (let tx = 0; tx < 15; tx++) for (let ty = 0; ty < 15; ty++) {
+        // which cell of the unturned 11x11 layer ends up here?
+        const dx = tx - 7, dy = ty - 7;
+        const u = Math.round(ca * dx + sa * dy) + 5, v = Math.round(-sa * dx + ca * dy) + 5;
+        if (u < 0 || v < 0 || u > 10 || v > 10) continue;
+        for (let z = z0; z <= z1; z++) {
+          m.set(tx, ty, z, BLACK);
+          if (z % 4 === 3) continue; // the seam between layers
+          if (z === 10 && u % 4 !== 3 && v % 4 !== 3) m.face(tx, ty, z, 0, TOP);
+          // stickers on the rim, painted on whichever visible faces they now point toward
+          const rim: [boolean, number, number][] = [[u === 10 && v % 4 !== 3, 1, 0], [v === 10 && u % 4 !== 3, 0, 1], [u === 0 && v % 4 !== 3, -1, 0], [v === 0 && u % 4 !== 3, 0, -1]];
+          rim.forEach(([on, nx, ny], side) => {
+            if (!on) return;
+            if (ca * nx - sa * ny > 0.38) m.face(tx, ty, z, 2, SIDES[side]);
+            if (sa * nx + ca * ny > 0.38) m.face(tx, ty, z, 1, SIDES[side]);
+          });
+        }
+      }
     }
+    m.w = m.d = 15; // keep the cube still on the page while a layer swings out
     m.draw(g, x, y);
-    if (level === 6) {
+    if (solved && since >= TURN) {
       const t = Math.floor(f / 2);
-      for (let i = 0; i < 6; i++) if (hash(i, t, 9) < 0.6) g.px(x - 2 + hash(i, t, 10) * 48, y - 48 + hash(i, t, 11) * 40, i % 2 ? P.gold : P.accent);
+      for (let i = 0; i < 6; i++) if (hash(i, t, 9) < 0.6) g.px(x + 6 + hash(i, t, 10) * 48, y - 52 + hash(i, t, 11) * 40, i % 2 ? P.gold : P.accent);
     }
   },
 };
 
-const floppy: Item = {
-  // two floppy disks, one lying across the other
-  id: "floppy", w: 34, priority: 5.5,
-  sound: driveSeek,
-  draw(g, x, y, _f, P) {
-    const m = new Voxels().box(2, 0, 0, 7, 7, 1, P.accent).box(0, 1, 1, 7, 7, 1, P.blue);
-    for (let i = 2; i <= 4; i++) for (let j = 1; j <= 2; j++) m.face(i, j, 1, 0, "#d8d1c2"); // metal shutter
-    m.face(3, 1, 1, 0, BLACK);
-    for (let i = 1; i <= 5; i++) for (let j = 5; j <= 7; j++) m.face(i, j, 1, 0, j === 6 && i > 1 && i < 5 ? "#8c877b" : "#fdfbf7"); // label
-    for (let j = 0; j <= 1; j++) m.face(8, j, 0, 0, "#d8d1c2");
-    m.draw(g, x, y);
-  },
-};
-
-const book: Item = {
-  // a thick closed book: the way to the blog
-  id: "book", w: 24, priority: 99,
-  draw(g, x, y, _f, P) {
-    const m = new Voxels().box(0, 0, 0, 5, 7, 1, P.blue).box(0, 0, 1, 5, 7, 2, "#f3ead6").box(0, 0, 3, 5, 7, 1, P.blue);
-    for (let j = 0; j < 7; j++) m.face(4, j, 1, 2, "#d9ceb4"); // page edges, alternating
-    for (let i = 1; i <= 3; i++) m.face(i, 3, 3, 0, P.gold); // a gilt band on the cover
-    m.face(2, 2, 3, 0, P.gold); m.face(2, 4, 3, 0, P.gold);
-    for (let k = 1; k <= 2; k++) m.face(1, 6, k, 1, P.accent); // ribbon
-    m.draw(g, x, y);
-  },
-};
-
-export const VOXEL_TOYS: Record<string, Item> = { record, cube, floppy, book };
+export const VOXEL_TOYS: Record<string, Item> = { record, cube };

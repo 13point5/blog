@@ -33,10 +33,11 @@ export type Item = {
   /** Lower number = kept first when the screen is narrow. */
   priority: number;
   /**
-   * `active` is false when a toy that can be switched on is off;
-   * `taps` counts how often it has been poked.
+   * `active` is false when a toy that can be switched on is off; `taps`
+   * counts how often it has been poked, and `since` is the number of frames
+   * since the last poke, for animating what the poke did.
    */
-  draw: (g: Gfx, x: number, y: number, f: number, P: Pal, active?: boolean, taps?: number) => void;
+  draw: (g: Gfx, x: number, y: number, f: number, P: Pal, active?: boolean, taps?: number, since?: number) => void;
   /** What it sounds like when poked. */
   sound?: (taps: number) => void;
 };
@@ -336,12 +337,11 @@ const ITEMS: Item[] = [
 ];
 
 // After the Elder Wand: dark wood, a flared pommel, knobbly clusters of
-// "berries" spaced along its length, a pale carved band above the grip, and a
-// shaft that thins to a fine tip. It only sparks while `active`.
+// "berries" spaced along its length, and a shaft that thins to a fine tip. It only sparks while `active`.
 const WAND: Item = {
   id: "wand", w: 18, priority: 99,
   draw(g, x, y, f, P, active = false) {
-    const DK = "#3b2a1e", WD = "#70502f", HI = "#a8855a", BONE = "#e9dfc4";
+    const DK = "#3b2a1e", WD = "#70502f", HI = "#a8855a";
     // point i along the wand, from the pommel (bottom left) to the tip (top right)
     const at = (i: number) => [x + 1 + i, y - 2 - i] as const;
     const knot = (i: number, r: number) => {
@@ -362,9 +362,6 @@ const WAND: Item = {
     g.px(x, y - 1, WD);
     knot(3, 2.2);
     knot(6, 1.7);
-    // the pale band
-    for (const i of [8, 9]) { const [px, py] = at(i); g.rect(px, py, 2, 2, BONE); }
-    g.px(at(8)[0] + 1, at(8)[1], DK);
     knot(11, 1.4);
     knot(13, 1);
     if (!active) return;
@@ -376,25 +373,56 @@ const WAND: Item = {
   },
 };
 
-/** An open book: the way to the blog. */
+// A spellbook: oxblood leather, gilt corners and border, a gem set in the
+// cover, a clasp, cream page edges and a ribbon. Poke it and it falls open
+// for a moment, and something sparkles up off the pages.
+const BOOK_CLOSED = [
+  "..kkkkkkkkkkkk..",
+  ".ksgmmmmmmmmgkk.",
+  ".ksmmmmmmmmmmkpk",
+  ".ksmggggggggmkpk",
+  ".ksmgmmmmmmgmkpk",
+  ".ksmgmmyymmgmkpk",
+  ".ksmgmyccymgmkpk",
+  ".ksmgmyccymgggpk",
+  ".ksmgmmyymmgmkpk",
+  ".ksmgmmmmmmgmkpk",
+  ".ksmggggggggmkpk",
+  ".ksmmmmmmmmmmkpk",
+  ".ksgmmmmmmmmgkpk",
+  ".kkkkkkkkkkkkkpk",
+  "..kpppppppppppkk",
+  "...kkkkrkkkkkk..",
+  ".......r........",
+  ".......rr.......",
+];
+const BOOK_OPEN = [
+  ".kkkkkk..kkkkkk.",
+  "kppppppkkppppppk",
+  "kpllllpkkpllllpk",
+  "kppppppkkppppppk",
+  "kplllppkkpllllpk",
+  "kppppppkkppppppk",
+  "kpllllpkkplllppk",
+  "kppppppkkppppppk",
+  "kmmmmmmkkmmmmmmk",
+  ".kkkkkkkkkkkkkk.",
+];
+const BOOK_PAL = { k: "#2a1a22", s: "#4a1728", m: "#8a2f44", g: "#e0b050", y: "#f6dc8c", c: "#58c7d9", p: "#f3ead6", r: "#d9532b", l: "#a39c8c" };
 const BOOK: Item = {
-  id: "book", w: 19, priority: 99,
-  draw(g, x, y, _f, P) {
-    const rows = [
-      ".kkkkkkk...kkkkkkk.",
-      "kpppppppk.kpppppppk",
-      "kpmmmmmppkppmmmmmpk",
-      "kpppppppkakpppppppk",
-      "kpmmmmmpkakpmmmmmpk",
-      "kpppppppkakpppppppk",
-      "kpmmmmppkakppmmmmpk",
-      "kpppppppkakpppppppk",
-      "kpmmmpppkakpppmmmpk",
-      "kkkkkkkkkakkkkkkkkk",
-      ".bbbbbbbbabbbbbbbb.",
-      ".........a.........",
-    ];
-    g.sprite(rows, x, y - 12, { k: P.ink, p: P.snow, m: P.mid, a: P.accent, b: P.wood });
+  id: "book", w: 16, priority: 99,
+  sound: () => chime(true),
+  draw(g, x, y, f, _P, _active, _taps, since = 99) {
+    if (since < 18) {
+      g.sprite(BOOK_OPEN, x, y - BOOK_OPEN.length, BOOK_PAL);
+      for (let i = 0; i < 7; i++) {
+        const p = (since * 0.9 + i * 2.3) % 14;
+        g.px(x + 2 + hash(i, 1, 7) * 12, y - 11 - p, i % 2 ? BOOK_PAL.y : BOOK_PAL.c, 1 - p / 14);
+      }
+      return;
+    }
+    g.sprite(BOOK_CLOSED, x, y - BOOK_CLOSED.length, BOOK_PAL);
+    if (f % 64 < 3) g.px(x + 7, y - BOOK_CLOSED.length + 6, "#ffffff"); // the gem catches the light
   },
 };
 
