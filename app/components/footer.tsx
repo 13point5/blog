@@ -4,7 +4,7 @@ import { Piano } from "./toys";
 export function Footer() {
   return (
     <footer className="max-w-2xl w-full mx-auto px-5 pt-10 pb-12">
-      <div className="mb-8" data-perch="0">
+      <div className="mb-8" data-perch="0" data-toc="The piano">
         <Piano />
         <div className="section-divider" />
       </div>

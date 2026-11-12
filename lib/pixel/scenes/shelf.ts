@@ -5,8 +5,8 @@ import { chime, click, coin, driveSeek, fanfare, hoot, piano, midi, pluck, whoos
 // There is no background: the objects sit directly on the paper. The same
 // objects are also used one at a time as toys scattered around the site.
 
-const H = 52;
-const BASE = 45; // the shelf line
+const H = 56;
+const BASE = 49; // the shelf line
 
 export type Pal = {
   ink: string; mid: string; light: string; paper: string;
@@ -40,38 +40,46 @@ export type Item = {
   sound?: (taps: number) => void;
 };
 
-// A small brown owl: ear tufts, big pale eye discs with yellow eyes, an orange
-// beak, darker wings folded at its sides and a tan, speckled belly.
+// A small brown owl: ear tufts, a cream face with big dark eyes that catch the
+// light, a little orange beak, rosy cheeks, darker wings folded at its sides
+// and a pale belly flecked with feathers.
 const OWL = [
-  "..k...........k..",
-  ".kdk.........kdk.",
-  ".kbdkkkkkkkkkdbk.",
-  ".kbbbbbbbbbbbbbk.",
-  "kbbwwwwwbwwwwwbbk",
-  "kbwwyyywwwyyywwbk",
-  "kbwwypywwwypywwbk",
-  "kbwwyyywowyyywwbk",
-  "kbbwwwwooowwwwbbk",
-  "kbbbwwbbobbwwbbbk",
-  "kdbbbbtttttbbbbdk",
-  "kdbbbtdtttdtbbbdk",
-  "kddbbtttdtttbbddk",
-  "kddbbtdtttdtbbddk",
-  "kddbbtttdtttbbddk",
-  ".kdbbtttttttbbdk.",
-  "..kkbbtttttbbkk..",
-  "....kkkkkkkkk....",
-  "....oo.....oo....",
+  "...k.............k...",
+  "..kdk...........kdk..",
+  "..kbdkk.......kkdbk..",
+  "..kbbbdkkkkkkkdbbbk..",
+  ".kbbbbbbbbbbbbbbbbbk.",
+  ".kbcccccccbcccccccbk.",
+  "kbcccceeccccceeccccbk",
+  "kbccceweeccceweecccbk",
+  "kbccceeeeccceeeecccbk",
+  "kbcccceeccocceeccccbk",
+  "kbcpcccccooocccccpcbk",
+  "kbbcccccccocccccccbbk",
+  "kdbbcccccccccccccbbdk",
+  "kdbbbtttttttttttbbbdk",
+  "kddbbtvtttvtttvtbbddk",
+  "kddbbtttvtttvtttbbddk",
+  "kddbbtvtttvtttvtbbddk",
+  "kddbbtttttttttttbbddk",
+  ".kdbbbtttttttttbbbdk.",
+  "..kkbbbbtttttbbbbkk..",
+  "....kkkkkkkkkkkkk....",
+  ".....oo.......oo.....",
+  "....ooo......ooo.....",
 ];
 export const OWL_ROWS = OWL;
+export const OWL_SIZE = { w: 21, h: OWL.length };
 export const OWL_PAL = {
-  k: "#3b2414", b: "#9a6436", d: "#6b4322", t: "#e3c79a", w: "#fdfbf7", y: "#f2c14e", p: "#1d1d1b", o: "#e8872c",
+  k: "#3b2414", b: "#9a6436", d: "#6b4322", c: "#f3dfbd", e: "#2a1a12", w: "#ffffff",
+  o: "#e8872c", p: "#eaa48e", t: "#ecd3a8", v: "#b98a56",
 };
-/** Close the owl's eyes; (x, y) is the sprite's top-left corner. */
+/** Close the owl's eyes into two happy arcs; (x, y) is the sprite's top-left corner. */
 export function owlBlink(g: Gfx, x: number, y: number) {
-  for (const ex of [4, 10]) {
-    g.rect(x + ex, y + 5, 3, 3, OWL_PAL.w);
-    g.rect(x + ex, y + 6, 3, 1, OWL_PAL.k);
+  for (const ex of [5, 12]) {
+    g.rect(x + ex, y + 6, 4, 4, OWL_PAL.c);
+    g.px(x + ex, y + 8, OWL_PAL.k); g.px(x + ex + 1, y + 7, OWL_PAL.k);
+    g.px(x + ex + 2, y + 7, OWL_PAL.k); g.px(x + ex + 3, y + 8, OWL_PAL.k);
   }
 }
 
@@ -119,8 +127,8 @@ const ITEMS: Item[] = [
       }
       g.rect(x, y - 1, 26, 1, P.ink);
       const bob = Math.floor(f / 18) % 2;
-      g.sprite(OWL, x + 5, top - 19 + bob, OWL_PAL);
-      if (f % 70 < 4) owlBlink(g, x + 5, top - 19 + bob);
+      g.sprite(OWL, x + 2, top - OWL.length + bob, OWL_PAL);
+      if (f % 70 < 4) owlBlink(g, x + 2, top - OWL.length + bob);
     },
   },
   {

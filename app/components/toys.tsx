@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Gfx, hash } from "@/lib/pixel/engine";
-import { OWL_PAL, OWL_ROWS, TOYS, TOY_PALETTE, owlBlink } from "@/lib/pixel/scenes/shelf";
+import { OWL_PAL, OWL_ROWS, OWL_SIZE, TOYS, TOY_PALETTE, owlBlink } from "@/lib/pixel/scenes/shelf";
 import { chime, hoot, midi, piano, playRecord } from "@/lib/audio";
 import { useTheme } from "../providers/theme-provider";
 import { cn } from "@/lib/utils";
@@ -349,12 +349,73 @@ function PianoCanvas({
 /* Site-wide: an owl that keeps your place                             */
 /* ------------------------------------------------------------------ */
 
-const OWL_W = 31, OWL_H = 23, OWL_SCALE = 3, OWL_X = 7, OWL_Y = OWL_H - 19;
+// the canvas leaves room either side of the owl for its wings
+const OWL_W = OWL_SIZE.w + 16, OWL_H = OWL_SIZE.h + 4, OWL_SCALE = 3, OWL_X = 8, OWL_Y = 4;
+
+type TocEntry = { el: HTMLElement; label: string; level: number };
+
+/** Everything on the page worth jumping to: marked sections, and a post's headings. */
+function tocEntries(): TocEntry[] {
+  const out: TocEntry[] = [];
+  document.querySelectorAll<HTMLElement>("[data-toc], .post-body h1, .post-body h2, .post-body h3").forEach((el) => {
+    const label = el.dataset.toc ?? el.textContent?.trim() ?? "";
+    if (label) out.push({ el, label, level: el.dataset.toc ? 0 : Number(el.tagName[1]) - 1 });
+  });
+  return out;
+}
+
+type Menu = { items: TocEntry[]; current: number; style: React.CSSProperties };
 
 function Owl() {
   const ref = useRef<HTMLCanvasElement>(null);
   const [hoots, setHoots] = useState(0);
+  const [menu, setMenu] = useState<Menu | null>(null);
   const pathname = usePathname();
+
+  // Tapping the owl opens a small contents list, the way a page outline does.
+  const openMenu = () => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    if (menu) { setMenu(null); return; }
+    hoot();
+    setHoots((h) => h + 1);
+    const items = tocEntries();
+    let current = -1;
+    items.forEach((it, i) => { if (it.el.getBoundingClientRect().top < window.innerHeight * 0.4) current = i; });
+    const r = canvas.getBoundingClientRect();
+    const width = 248;
+    const left = Math.max(8, Math.min(r.right - width, window.innerWidth - width - 8));
+    const height = Math.min(window.innerHeight * 0.6, items.length * 34 + 96);
+    const below = r.bottom + 6 + height < window.innerHeight;
+    setMenu({
+      items,
+      current,
+      style: below ? { left, top: r.bottom + 6, width } : { left, bottom: window.innerHeight - r.top + 6, width },
+    });
+  };
+  const go = (y: number) => {
+    setMenu(null);
+    window.scrollTo({ top: Math.max(0, y), behavior: still() ? "auto" : "smooth" });
+  };
+
+  // close on Escape, on a tap elsewhere, or when the page is scrolled by hand
+  useEffect(() => {
+    if (!menu) return;
+    const close = () => setMenu(null);
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
+    const onDown = (e: PointerEvent) => {
+      const t = e.target as Element;
+      if (t !== ref.current && !t.closest?.("[data-owl-menu]")) close();
+    };
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", close, { passive: true });
+    document.addEventListener("pointerdown", onDown);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", close);
+      document.removeEventListener("pointerdown", onDown);
+    };
+  }, [menu]);
 
   useEffect(() => {
     const canvas = ref.current;
@@ -367,7 +428,8 @@ function Owl() {
       const r = el.getBoundingClientRect();
       // page titles: stand on the baseline just after the last word
       if (el.dataset.perchSide !== undefined) {
-        return { x: Math.min(r.right + 42, window.innerWidth - 50) + window.scrollX, y: r.bottom + window.scrollY - 9 };
+        const half = (OWL_W * OWL_SCALE) / 2;
+        return { x: Math.min(r.right + half + 2, window.innerWidth - half) + window.scrollX, y: r.bottom + window.scrollY - 9 };
       }
       return { x: r.right + window.scrollX - 28, y: r.top + window.scrollY + Number(el.dataset.perch ?? 8) };
     };
@@ -423,7 +485,7 @@ function Owl() {
       if (flying) {
         // wings first, so the body sits in front of them
         const up = Math.floor(f / 2) % 2 === 0;
-        const wy = OWL_Y + (up ? 3 : 10);
+        const wy = OWL_Y + (up ? 4 : 12);
         for (const [wx, sx] of [[0, 1], [OWL_W - 8, -1]] as const) {
           g.rect(wx, wy - 1, 8, 6, OWL_PAL.k);
           g.rect(wx + 1, wy, 6, 4, OWL_PAL.d);
@@ -476,17 +538,54 @@ function Owl() {
         ref={ref}
         width={OWL_W}
         height={OWL_H}
-        onClick={() => {
-          setHoots((h) => h + 1);
-          hoot();
-          window.scrollTo({ top: 0, behavior: still() ? "auto" : "smooth" });
-        }}
-        className="pixelated absolute top-0 left-0 pointer-events-auto cursor-pointer opacity-0 transition-opacity"
+        onClick={openMenu}
+        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), openMenu())}
+        className="pixelated absolute top-0 left-0 pointer-events-auto cursor-pointer opacity-0 transition-opacity outline-none focus-visible:ring-2 ring-koi"
         style={{ width: OWL_W * OWL_SCALE, height: OWL_H * OWL_SCALE }}
-        role="img"
-        aria-label="An owl that follows the heading you are reading. Tap it to go back to the top."
+        role="button"
+        tabIndex={0}
+        aria-haspopup="menu"
+        aria-expanded={Boolean(menu)}
+        aria-label="An owl that follows the heading you are reading. Tap it for the page's contents."
       />
       {hoots > 0 && <span key={hoots} className="hoot" aria-hidden="true">hoo hoo</span>}
+      {menu && (
+        <nav
+          data-owl-menu=""
+          aria-label="On this page"
+          className="fixed z-[80] pointer-events-auto max-h-[60vh] overflow-y-auto rounded-md border bg-background-card shadow-lg p-1.5 text-sm animate-fade-blur"
+          style={menu.style}
+        >
+          <button
+            type="button"
+            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-left hover:bg-accent cursor-pointer"
+            onClick={() => go(0)}
+          >
+            <span aria-hidden="true" className="text-foreground-muted">↑</span> Back to top
+          </button>
+          {menu.items.length > 0 && (
+            <>
+              <div className="my-1.5 h-px bg-border" aria-hidden="true" />
+              <p className="px-2 pt-0.5 pb-1 text-xs text-foreground-muted">On this page</p>
+              {menu.items.map((it, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  aria-current={i === menu.current ? "location" : undefined}
+                  className={cn(
+                    "block w-full rounded-sm py-1.5 pr-2 text-left leading-snug hover:bg-accent cursor-pointer",
+                    i === menu.current ? "text-foreground font-medium" : "text-foreground-muted"
+                  )}
+                  style={{ paddingLeft: 8 + it.level * 14 }}
+                  onClick={() => go(it.el.getBoundingClientRect().top + window.scrollY - 76)}
+                >
+                  {it.label}
+                </button>
+              ))}
+            </>
+          )}
+        </nav>
+      )}
     </>
   );
 }
