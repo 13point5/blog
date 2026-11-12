@@ -4,9 +4,54 @@
 let ctx: AudioContext | null = null;
 let noiseBuffer: AudioBuffer | null = null;
 
+/** A second of silence as a WAV data URI. */
+function silentWav() {
+  const rate = 8000, n = rate;
+  const bytes = new Uint8Array(44 + n);
+  const v = new DataView(bytes.buffer);
+  const text = (o: number, t: string) => [...t].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+  text(0, "RIFF"); v.setUint32(4, 36 + n, true); text(8, "WAVEfmt ");
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, rate, true); v.setUint32(28, rate, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true);
+  text(36, "data"); v.setUint32(40, n, true);
+  bytes.fill(128, 44); // 8-bit PCM silence
+  let bin = "";
+  bytes.forEach((b) => (bin += String.fromCharCode(b)));
+  return "data:audio/wav;base64," + btoa(bin);
+}
+
+let unlocked = false;
+
+/**
+ * On iPhones the ring/silent switch mutes Web Audio, because the browser files
+ * it under "ambient" sound. Media playback is not muted by the switch, so on
+ * the first tap we ask for the playback category, and for browsers without
+ * that API we keep a silent <audio> element playing, which has the same effect.
+ */
+function unlock() {
+  if (unlocked) return;
+  unlocked = true;
+  const session = (navigator as Navigator & { audioSession?: { type: string } }).audioSession;
+  if (session) {
+    try { session.type = "playback"; return; } catch {}
+  }
+  try {
+    const el = new Audio(silentWav());
+    el.loop = true;
+    el.setAttribute("playsinline", "");
+    el.volume = 0.01;
+    void el.play().catch(() => {});
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) el.pause();
+      else void el.play().catch(() => {});
+    });
+  } catch {}
+}
+
 function audio() {
   if (typeof window === "undefined") return null;
   try {
+    unlock();
     ctx ??= new AudioContext();
     if (ctx.state === "suspended") void ctx.resume();
     return ctx;
@@ -157,7 +202,7 @@ export function playRecord() {
     step++;
   };
   tick();
-  const id = setInterval(tick, 165);
+  const id = setInterval(tick, 235); // an unhurried andante
   return () => {
     clearInterval(id);
     try { hiss?.stop(); } catch {}
