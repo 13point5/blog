@@ -463,8 +463,11 @@ function Owl() {
       if (left + bodyW > limit) return null;
       // on a wrapped heading, an earlier line must not run underneath the owl
       if (rects.some((r) => r.bottom <= lineTop + 4 && r.bottom > top && r.right > left - 2)) return null;
+      // nor may whatever sits above the heading reach down into it
+      const above = block.previousElementSibling?.getBoundingClientRect();
+      if (above && above.bottom > top + 2 && above.right > left - 2) return null;
       // and it has to be in view, clear of the header
-      if (top < headerBottom() + 6 || feet > window.innerHeight - 12) return null;
+      if (top < headerBottom() || feet > window.innerHeight - 12) return null;
       return doc(left + bodyW / 2, feet);
     };
 
@@ -509,11 +512,11 @@ function Owl() {
       if (flying) {
         // wings first, so the body sits in front of them
         const up = Math.floor(f / 2) % 2 === 0;
-        const wy = OWL_Y + (up ? 3 : 8);
+        const wy = OWL_Y + (up ? 9 : 16);
         for (const wx of [0, OWL_W - 7]) {
-          g.rect(wx, wy - 1, 7, 5, OWL_PAL.k);
-          g.rect(wx + 1, wy, 5, 3, OWL_PAL.d);
-          g.rect(wx + 2, wy + (up ? 0 : 1), 3, 2, OWL_PAL.b);
+          g.rect(wx, wy - 1, 7, 6, OWL_PAL.k);
+          g.rect(wx + 1, wy, 5, 4, OWL_PAL.d);
+          g.rect(wx + 2, wy + (up ? 0 : 2), 3, 2, OWL_PAL.b);
         }
       }
       g.sprite(OWL_ROWS, OWL_X, OWL_Y, OWL_PAL, dir < 0);
