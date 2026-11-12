@@ -324,23 +324,71 @@ const ITEMS: Item[] = [
   },
 ];
 
-/** A wand on its own; it only sparks while `active`. */
+// After the Elder Wand: dark wood, a flared pommel, knobbly clusters of
+// "berries" spaced along its length, a pale carved band above the grip, and a
+// shaft that thins to a fine tip. It only sparks while `active`.
 const WAND: Item = {
-  id: "wand", w: 14, priority: 99,
+  id: "wand", w: 18, priority: 99,
   draw(g, x, y, f, P, active = false) {
-    g.line(x, y - 1, x + 9, y - 11, P.wood);
-    g.line(x + 1, y - 1, x + 10, y - 11, P.woodHi);
-    g.rect(x, y - 3, 2, 3, P.woodLo);
-    g.px(x + 3, y - 4, P.woodLo);
-    if (!active) return;
-    for (let i = 0; i < 7; i++) {
-      if (hash(i, f, 9) < 0.7) g.px(x + 6 + hash(i, f, 10) * 8, y - 17 + hash(i, f, 11) * 9, i % 2 ? P.gold : P.accent);
+    const DK = "#3b2a1e", WD = "#70502f", HI = "#a8855a", BONE = "#e9dfc4";
+    // point i along the wand, from the pommel (bottom left) to the tip (top right)
+    const at = (i: number) => [x + 1 + i, y - 2 - i] as const;
+    const knot = (i: number, r: number) => {
+      const [cx, cy] = at(i);
+      g.disc(cx, cy, r, DK);
+      g.disc(cx, cy, r - 0.9, WD);
+      g.px(cx - 1, cy - 1, HI);
+      if (r > 1.6) { g.px(cx + 1, cy, HI); g.px(cx, cy + 1, DK); }
+    };
+    // shaft: two pixels thick at the grip, one toward the tip
+    for (let i = 0; i < 16; i++) {
+      const [px, py] = at(i);
+      if (i < 12) { g.rect(px, py, 2, 2, WD); g.px(px, py, HI); g.px(px + 1, py + 1, DK); }
+      else g.px(px, py, i === 15 ? HI : WD);
     }
+    // pommel
+    g.rect(x, y - 3, 3, 3, DK);
+    g.px(x, y - 1, WD);
+    knot(3, 2.2);
+    knot(6, 1.7);
+    // the pale band
+    for (const i of [8, 9]) { const [px, py] = at(i); g.rect(px, py, 2, 2, BONE); }
+    g.px(at(8)[0] + 1, at(8)[1], DK);
+    knot(11, 1.4);
+    knot(13, 1);
+    if (!active) return;
+    const [tx, ty] = at(15);
+    for (let i = 0; i < 8; i++) {
+      if (hash(i, f, 9) < 0.7) g.px(tx - 4 + hash(i, f, 10) * 9, ty - 5 + hash(i, f, 11) * 9, i % 2 ? P.gold : P.accent);
+    }
+    g.px(tx + 1, ty - 1, "#fff6c9");
+  },
+};
+
+/** An open book: the way to the blog. */
+const BOOK: Item = {
+  id: "book", w: 19, priority: 99,
+  draw(g, x, y, _f, P) {
+    const rows = [
+      ".kkkkkkk...kkkkkkk.",
+      "kpppppppk.kpppppppk",
+      "kpmmmmmppkppmmmmmpk",
+      "kpppppppkakpppppppk",
+      "kpmmmmmpkakpmmmmmpk",
+      "kpppppppkakpppppppk",
+      "kpmmmmppkakppmmmmpk",
+      "kpppppppkakpppppppk",
+      "kpmmmpppkakpppmmmpk",
+      "kkkkkkkkkakkkkkkkkk",
+      ".bbbbbbbbabbbbbbbb.",
+      ".........a.........",
+    ];
+    g.sprite(rows, x, y - 12, { k: P.ink, p: P.snow, m: P.mid, a: P.accent, b: P.wood });
   },
 };
 
 /** Every drawable object, by id, for use as a standalone sprite. */
-export const TOYS: Record<string, Item> = Object.fromEntries([...ITEMS, WAND].map((i) => [i.id, i]));
+export const TOYS: Record<string, Item> = Object.fromEntries([...ITEMS, WAND, BOOK].map((i) => [i.id, i]));
 export const TOY_PALETTE = { light: LIGHT, dark: DARK };
 
 type Placed = { item: Item; x: number; hop: number; taps: number };

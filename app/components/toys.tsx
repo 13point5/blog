@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Gfx, hash } from "@/lib/pixel/engine";
 import { OWL_PAL, OWL_ROWS, TOYS, TOY_PALETTE, owlBlink } from "@/lib/pixel/scenes/shelf";
-import { chime, hoot, midi, piano, playRecord, whoosh } from "@/lib/audio";
+import { chime, hoot, midi, piano, playRecord } from "@/lib/audio";
 import { useTheme } from "../providers/theme-provider";
 import { cn } from "@/lib/utils";
 
@@ -156,8 +156,8 @@ export function Wand() {
     timer.current = setTimeout(() => setSparks(false), 900);
   };
   return (
-    <span className="relative">
-      <Sprite id="wand" scale={2} rows={20} active={sparks} onTap={cast} label={theme === "dark" ? "Lumos: switch to the light theme" : "Nox: switch to the dark theme"} />
+    <span className="relative flex items-center">
+      <Sprite id="wand" scale={2} rows={22} active={sparks} onTap={cast} label={theme === "dark" ? "Lumos: switch to the light theme" : "Nox: switch to the dark theme"} />
       {sparks && (
         <span className="absolute left-1/2 top-full -translate-x-1/2 text-xs italic font-display text-foreground-muted whitespace-nowrap animate-fade-blur">
           {theme === "dark" ? "nox" : "lumos"}
@@ -346,7 +346,7 @@ function PianoCanvas({
 }
 
 /* ------------------------------------------------------------------ */
-/* Site-wide: an owl that follows you around, and a yoyo               */
+/* Site-wide: an owl that keeps your place                             */
 /* ------------------------------------------------------------------ */
 
 const OWL_W = 31, OWL_H = 23, OWL_SCALE = 3, OWL_X = 7, OWL_Y = OWL_H - 19;
@@ -365,31 +365,51 @@ function Owl() {
     const perches = () => [...document.querySelectorAll<HTMLElement>("[data-perch], .post-body h1")];
     const spot = (el: HTMLElement) => {
       const r = el.getBoundingClientRect();
+      // page titles: stand on the baseline just after the last word
+      if (el.dataset.perchSide !== undefined) {
+        return { x: Math.min(r.right + 42, window.innerWidth - 50) + window.scrollX, y: r.bottom + window.scrollY - 9 };
+      }
       return { x: r.right + window.scrollX - 28, y: r.top + window.scrollY + Number(el.dataset.perch ?? 8) };
     };
 
-    let cur: HTMLElement | null = null;
-    let pos = { x: 0, y: 0 };
+    type Pt = { x: number; y: number };
+    // The owl aims either at a heading, or at a spot in the corner of the screen
+    // when no heading is in view.
+    let aim: { el: HTMLElement | null; pt: Pt } | null = null;
+    let pos: Pt = { x: 0, y: 0 };
     let from = pos, t = 1, dur = 1, dir = 1, f = 0, raf = 0, last = 0, lastPaint = 0;
+    const where = () => (aim?.el ? spot(aim.el) : aim!.pt);
+    const owlHeight = OWL_H * OWL_SCALE;
 
-    const flyTo = (el: HTMLElement) => {
-      if (el === cur) return;
-      const to = spot(el);
+    /** The heading you are currently reading: the highest one with room for an owl above it. */
+    const pick = () => {
+      for (const el of perches()) {
+        const pt = spot(el), top = pt.y - window.scrollY;
+        if (top - owlHeight > 50 && top < window.innerHeight * 0.8) return { el, pt };
+      }
+      // nothing to sit on: wait in the top corner of the text column
+      const x = Math.min(window.innerWidth - 44, window.innerWidth / 2 + 300) + window.scrollX;
+      return { el: null, pt: { x, y: window.scrollY + 76 + owlHeight } };
+    };
+
+    const flyTo = (next: { el: HTMLElement | null; pt: Pt }) => {
+      if (aim && next.el && next.el === aim.el) return;
       from = { ...pos };
-      cur = el;
+      aim = next;
+      const to = where();
       if (still()) { t = 1; return; }
       const dist = Math.hypot(to.x - from.x, to.y - from.y);
+      if (dist < 4) return;
       dir = to.x < from.x ? -1 : 1;
       dur = Math.min(1500, 450 + dist * 0.9);
       t = 0;
     };
 
     const land = () => {
-      const all = perches();
-      if (!all.length) { cur = null; canvas.style.opacity = "0"; return; }
+      if (!perches().length) { aim = null; canvas.style.opacity = "0"; return; }
       canvas.style.opacity = "1";
-      cur = all[0];
-      pos = spot(cur);
+      aim = pick();
+      pos = where();
       // arrive from off the top of the page
       from = { x: pos.x + 120, y: Math.max(0, window.scrollY - 60) };
       t = still() ? 1 : 0;
@@ -419,9 +439,9 @@ function Owl() {
       raf = requestAnimationFrame(tick);
       const dt = Math.min(50, now - last);
       last = now;
-      if (!cur) return;
-      if (!cur.isConnected) { land(); return; }
-      const to = spot(cur);
+      if (!aim) return;
+      if (aim.el && !aim.el.isConnected) { land(); return; }
+      const to = where();
       if (t < 1) {
         t = Math.min(1, t + dt / dur);
         const e = t * t * (3 - 2 * t);
@@ -433,31 +453,20 @@ function Owl() {
     };
     raf = requestAnimationFrame(tick);
 
-    const nearest = (x: number, y: number) => {
-      let best: HTMLElement | null = null, bd = Infinity;
-      for (const el of perches()) {
-        const s = spot(el), d = Math.hypot(s.x - x, (s.y - y) * 1.6);
-        if (d < bd) { bd = d; best = el; }
-      }
-      return best;
+    // Whenever scrolling comes to rest, fly to the heading now being read.
+    let settle: ReturnType<typeof setTimeout>;
+    const onScroll = () => {
+      clearTimeout(settle);
+      settle = setTimeout(() => aim && flyTo(pick()), 170);
     };
-    const onDown = (e: PointerEvent) => {
-      if (e.target === canvas) return;
-      const el = nearest(e.clientX + window.scrollX, e.clientY + window.scrollY);
-      if (el) flyTo(el);
-    };
-    const onOver = (e: PointerEvent) => {
-      if (e.pointerType !== "mouse" || t < 1) return;
-      const el = (e.target as Element).closest?.<HTMLElement>("[data-perch], .post-body h1");
-      if (el) flyTo(el);
-    };
-    document.addEventListener("pointerdown", onDown);
-    document.addEventListener("pointerover", onOver);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
     return () => {
       clearTimeout(arrive);
+      clearTimeout(settle);
       cancelAnimationFrame(raf);
-      document.removeEventListener("pointerdown", onDown);
-      document.removeEventListener("pointerover", onOver);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
     };
   }, [pathname]);
 
@@ -467,75 +476,18 @@ function Owl() {
         ref={ref}
         width={OWL_W}
         height={OWL_H}
-        onClick={() => { setHoots((h) => h + 1); hoot(); }}
+        onClick={() => {
+          setHoots((h) => h + 1);
+          hoot();
+          window.scrollTo({ top: 0, behavior: still() ? "auto" : "smooth" });
+        }}
         className="pixelated absolute top-0 left-0 pointer-events-auto cursor-pointer opacity-0 transition-opacity"
         style={{ width: OWL_W * OWL_SCALE, height: OWL_H * OWL_SCALE }}
         role="img"
-        aria-label="An owl. It flies to wherever you tap."
+        aria-label="An owl that follows the heading you are reading. Tap it to go back to the top."
       />
       {hoots > 0 && <span key={hoots} className="hoot" aria-hidden="true">hoo hoo</span>}
     </>
-  );
-}
-
-const YO = 13; // the yoyo's size in art pixels
-
-function Yoyo() {
-  const root = useRef<HTMLDivElement>(null);
-  const str = useRef<HTMLDivElement>(null);
-  const disc = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const el = root.current, s = str.current, canvas = disc.current;
-    const ctx = canvas?.getContext("2d");
-    if (!el || !s || !canvas || !ctx) return;
-    const g = new Gfx(ctx, YO, YO);
-    const c = (YO - 1) / 2;
-    let len = 0, v = 0, ang = 0, av = 0, spin = 0, lastY = window.scrollY, raf = 0;
-
-    const tick = () => {
-      raf = requestAnimationFrame(tick);
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      const p = max > 0 ? window.scrollY / max : 0;
-      const target = 26 + p * Math.min(window.innerHeight * 0.55, 380);
-      const dy = window.scrollY - lastY;
-      lastY = window.scrollY;
-      if (still()) { len = target; ang = 0; }
-      else {
-        // the string is a spring, and the yoyo a pendulum that scrolling nudges
-        v += (target - len) * 0.035 - v * 0.14;
-        len += v;
-        av += -ang * 0.03 - av * 0.05 + Math.max(-0.02, Math.min(0.02, dy * 0.0008));
-        ang += av;
-        spin += 0.25 + Math.abs(v) * 0.12;
-      }
-      s.style.height = `${Math.max(4, len)}px`;
-      el.style.transform = `rotate(${ang}rad)`;
-      const P = isDark() ? TOY_PALETTE.dark : TOY_PALETTE.light;
-      ctx.clearRect(0, 0, YO, YO);
-      g.disc(c, c, 6, "#1d1d1b");
-      g.disc(c, c, 5, P.accent);
-      g.disc(c, c, 2, "#f2c14e");
-      g.px(c, c, "#1d1d1b");
-      // a rim highlight and two marks that show it spinning
-      g.px(c - 3, c - 3, "#ffffff"); g.px(c - 4, c - 2, "#ffffff");
-      g.px(c + Math.round(Math.cos(spin) * 4), c + Math.round(Math.sin(spin) * 4), "#fdfbf7");
-      g.px(c - Math.round(Math.cos(spin) * 4), c - Math.round(Math.sin(spin) * 4), "#1d1d1b");
-    };
-    raf = requestAnimationFrame(tick);
-    const yank = () => { v -= 16; av += 0.03; whoosh(); };
-    canvas.addEventListener("pointerdown", yank);
-    return () => {
-      cancelAnimationFrame(raf);
-      canvas.removeEventListener("pointerdown", yank);
-    };
-  }, []);
-
-  return (
-    <div ref={root} className="fixed top-0 right-0.5 sm:right-6 z-[60] flex flex-col items-center pointer-events-none origin-top" aria-hidden="true">
-      <div ref={str} className="w-px bg-foreground-muted" />
-      <canvas ref={disc} width={YO} height={YO} className="pixelated pointer-events-auto cursor-grab -mt-px size-[26px] sm:size-[39px]" />
-    </div>
   );
 }
 
@@ -543,11 +495,8 @@ function Yoyo() {
 export function SiteToys() {
   if (!useToys()) return null;
   return (
-    <>
-      <div className="absolute inset-0 z-40 pointer-events-none overflow-hidden">
-        <Owl />
-      </div>
-      <Yoyo />
-    </>
+    <div className="absolute inset-0 z-40 pointer-events-none overflow-hidden">
+      <Owl />
+    </div>
   );
 }

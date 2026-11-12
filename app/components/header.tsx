@@ -3,8 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SettingsDropdown } from "./settings-dropdown";
-import { Wand } from "./toys";
+import { Sprite, Wand } from "./toys";
 import { cn } from "@/lib/utils";
 
 export function Header() {
@@ -34,20 +33,24 @@ export function Header() {
       )}
     >
       <nav className="max-w-2xl mx-auto px-5 h-full flex items-center justify-between gap-4">
-        <Link href="/" className="font-display d-md hover:text-foreground-muted transition-colors">
+        <Link href="/" className="font-display d-md leading-none hover:text-foreground-muted transition-colors">
           Sriraam
         </Link>
-        <div className="flex items-center gap-5 font-display d-md pr-6 sm:pr-8">
-          <Link
-            href="/blog"
-            className={cn(
-              "hover:text-foreground transition-colors",
-              isOnBlogPage ? "text-foreground" : "text-foreground-muted"
-            )}
-          >
-            blog
+        <div className="flex items-center gap-4">
+          <Link href="/blog" aria-label="Blog" title="Blog" className="relative flex items-center hover:opacity-70 transition-opacity">
+            <Sprite id="book" scale={2} rows={16} />
+            {isOnBlogPage && <span aria-hidden="true" className="absolute left-1/2 -bottom-1.5 -translate-x-1/2 size-1 bg-koi" />}
           </Link>
-          <SettingsDropdown />
+          {/*
+            The settings menu (theme, type, playfulness, art style and width) is
+            hidden from the header for now. To bring it back during development,
+            render it here:
+
+              <SettingsDropdown />
+
+            and import it: import { SettingsDropdown } from "./settings-dropdown";
+            The component itself is untouched in settings-dropdown.tsx.
+          */}
           <Wand />
         </div>
       </nav>

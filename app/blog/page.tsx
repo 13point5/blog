@@ -8,9 +8,9 @@ export const metadata = {
 
 export default function BlogPage() {
   return (
-    <div className="max-w-2xl mx-auto px-5 pt-28 pb-8">
+    <div className="max-w-2xl mx-auto px-5 pt-20 pb-8">
       {/* A grand library, with a stairwell that won't sit still, across the top of the page */}
-      <div className="animate-fade-blur -mt-10 mb-8" aria-hidden="true">
+      <div className="animate-fade-blur -mt-6 mb-8" aria-hidden="true">
         <Art scene="library" maxPx={400} />
         {/* the owl's first perch: the bottom edge of the picture */}
         <div data-perch="0" />
