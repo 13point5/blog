@@ -41,47 +41,48 @@ export type Item = {
   sound?: (taps: number) => void;
 };
 
-// A little brown owl, built the way cute pixel owls usually are: a head a bit
-// wider than the body with two pointed ear tufts, a dark widow's peak coming
-// down between big round eyes that each catch a highlight, a cream face with
-// rosy cheeks and a small orange beak, a pinched neck, darker wings folded at
-// the sides of a cream belly with three little feather marks, and orange feet.
+// A little brown owl. Its proportions come from laying out simple shapes: a
+// big round head (a little over half its height, and wider than the body),
+// small ear tufts, a dark cap with a widow's peak, two cream eye discs holding
+// large dark eyes, a small beak and rosy cheeks, then a rounder, narrower body
+// with darker wings either side of a cream belly, and orange feet.
 const OWL = [
-  "..k...............k..",
-  "..kk.............kk..",
-  "..kdk...kkkkk...kdk..",
-  "..kddkkkdddddkkkddk..",
-  ".khhhhbbbbbbbbbbbbdk.",
-  "khbccccbbbbbbbccccbdk",
-  "khccccccbbbbbccccccdk",
-  "khcceecccbbbccceeccdk",
-  "khceweecccbccceweecdk",
-  "khceeeeccccccceeeecdk",
-  "khcceeccccocccceeccdk",
-  "khcppccccoooccccppcdk",
-  ".khcccccccocccccccdk.",
-  "..kkbcccccccccccbkk..",
-  "..kddkbtttttttbkddk..",
-  ".kddbtttttttttttbddk.",
-  ".kddbtttvtttvtttbddk.",
-  ".kddbtttttvtttttbddk.",
-  "..kdbbtttttttttbbdk..",
-  "...kkbbbtttttbbbkk...",
-  ".....kkkkkkkkkkk.....",
-  ".....ooo.....ooo.....",
+  "..k.................k..",
+  ".kdk.....kkkkk.....kdk.",
+  ".kddk.kkkdddddkkk.kddk.",
+  "..kddkdddddddddddkddk..",
+  "...kbbbbbdddddbbbbbk...",
+  "..kbbbccbbdddbbccbbbk..",
+  ".kbbccccccbdbccccccbbk.",
+  ".kbccceecccdccceecccbk.",
+  ".kbccweeeccbcceweeccbk.",
+  ".kbcceeeeccbcceeeeccbk.",
+  ".kbcceeeeccccceeeeccbk.",
+  "..kbceeeccooocceeecbk..",
+  "...kppcccccocccccppk...",
+  "....kbbcccccccccbbk....",
+  "....kdbbbbbbbbbbbdk....",
+  "....kdbbtttttttbbdk....",
+  "...kddbtttttttttbddk...",
+  "...kddbttvtttvttbddk...",
+  "...kddbtttttttttbddk...",
+  "....kdbttttvttttbdk....",
+  ".....kbbtttttttbbk.....",
+  "......kkbbtttbbkk......",
+  ".......oookkkooo.......",
 ];
 export const OWL_ROWS = OWL;
-export const OWL_SIZE = { w: 21, h: OWL.length };
+export const OWL_SIZE = { w: 23, h: OWL.length };
 export const OWL_PAL = {
-  k: "#4a2c17", b: "#8f5e36", h: "#b07c4c", d: "#6b4222", c: "#fbe6c6", e: "#3b2212", w: "#ffffff",
+  k: "#4a2c17", b: "#8f5e36", d: "#6b4222", c: "#fbe6c6", e: "#3b2212", w: "#ffffff",
   o: "#f0a03c", p: "#f4aaa0", t: "#fbe6c6", v: "#8f5e36",
 };
 /** Close the owl's eyes into two happy arcs; (x, y) is the sprite's top-left corner. */
 export function owlBlink(g: Gfx, x: number, y: number) {
-  for (const ex of [3, 14]) {
-    g.rect(x + ex, y + 7, 4, 4, OWL_PAL.c);
-    g.px(x + ex, y + 9, OWL_PAL.e); g.px(x + ex + 1, y + 8, OWL_PAL.e);
-    g.px(x + ex + 2, y + 8, OWL_PAL.e); g.px(x + ex + 3, y + 9, OWL_PAL.e);
+  for (const ex of [5, 14]) {
+    g.rect(x + ex, y + 7, 4, 5, OWL_PAL.c);
+    g.px(x + ex, y + 10, OWL_PAL.e); g.px(x + ex + 1, y + 9, OWL_PAL.e);
+    g.px(x + ex + 2, y + 9, OWL_PAL.e); g.px(x + ex + 3, y + 10, OWL_PAL.e);
   }
 }
 

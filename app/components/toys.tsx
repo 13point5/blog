@@ -537,8 +537,8 @@ function Owl() {
       }
       if (!flying) {
         // a soft shadow on whatever it is standing on
-        g.rect(OWL_X + 3, OWL_Y + OWL_SIZE.h, 15, 1, "#3b2414", 0.22);
-        g.rect(OWL_X + 6, OWL_Y + OWL_SIZE.h + 1, 9, 1, "#3b2414", 0.12);
+        g.rect(OWL_X + 5, OWL_Y + OWL_SIZE.h, 13, 1, "#3b2414", 0.22);
+        g.rect(OWL_X + 7, OWL_Y + OWL_SIZE.h + 1, 9, 1, "#3b2414", 0.12);
       }
       g.sprite(OWL_ROWS, OWL_X, OWL_Y, OWL_PAL, dir < 0);
       if (!flying && f % 70 < 3) owlBlink(g, OWL_X, OWL_Y);
