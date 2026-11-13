@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Gfx, hash } from "@/lib/pixel/engine";
 import { TOYS, TOY_PALETTE, owlBlink } from "@/lib/pixel/scenes/shelf";
-import { OWL_FLAP, OWL_FRAME, OWL_FRAMES, OWL_PAL } from "@/lib/pixel/owl-sheet";
+import { OWL_FLAP, OWL_FRAME, OWL_PAL, OWL_PERCHED } from "@/lib/pixel/owl-sheet";
 import { choosePerch, isVisible, type Layout, type Line, type Rect } from "@/lib/owl-perch";
 import { signRoost } from "@/lib/pixel/scenes/hogwarts";
 import { hoot, midi, piano, playRecord, reactor } from "@/lib/audio";
@@ -549,7 +549,7 @@ function Owl() {
     // heading, so it follows the heading if the page reflows), or null = home.
     let aim: { el: HTMLElement; id: number; kind: string; dx: number; dy: number } | null = null;
     let pos: Pt | null = null, from: Pt = { x: 0, y: 0 };
-    let t = 1, dur = 1, arc = 0, f = 0, raf = 0, last = 0, lastPaint = 0, scrolled = false;
+    let t = 1, dur = 1, f = 0, raf = 0, last = 0, lastPaint = 0, scrolled = false;
     // a longer, wandering flight: waypoints between where it was and where it is going
     let route: Pt[] | null = null;
     let landed: (() => void) | null = null;
@@ -587,15 +587,47 @@ function Owl() {
       const dist = before ? Math.hypot(to.x - before.x, to.y - before.y) : 0;
       if (!before || !animate || still() || dist < 3) { pos = to; t = 1; return; }
       from = { ...before };
-      dur = Math.min(1100, 320 + dist * 0.75);
-      arc = Math.min(26, dist * 0.1 + 6);
+      route = wander(before, to);
+      dur = Math.min(1700, 420 + dist * 0.9 + route.length * 160);
       t = 0;
+    };
+
+    /**
+     * No two flights are the same. Between where it is and where it is going
+     * it picks one or two points off to the side (now to one side, now the
+     * other, usually a little upward), sometimes overshoots and doubles back,
+     * and the curve is drawn smoothly through them.
+     */
+    const wander = (a: Pt, b: Pt): Pt[] => {
+      const dx = b.x - a.x, dy = b.y - a.y, dist = Math.hypot(dx, dy);
+      const nx = -dy / dist, ny = dx / dist; // across the line of flight
+      const vw = document.documentElement.clientWidth;
+      const keep = (p: Pt): Pt => ({ x: Math.max(30, Math.min(vw - 30, p.x)), y: Math.max(window.scrollY + 24, p.y) });
+      const sway = Math.min(130, 18 + dist * 0.4);
+      const side = Math.random() < 0.5 ? -1 : 1;
+      const pts: Pt[] = [];
+      const stops = dist > 220 && Math.random() < 0.7 ? 2 : 1;
+      for (let i = 1; i <= stops; i++) {
+        const u = i / (stops + 1) + (Math.random() - 0.5) * 0.2;
+        // the second point swings to the other side, for an S-shaped path
+        let off = sway * (0.45 + Math.random() * 0.55) * (i === 1 ? side : -side * (0.3 + Math.random() * 0.7));
+        // if that would carry it off the edge of the screen, swing the other way instead of flattening out
+        const x = a.x + dx * u + nx * off;
+        if (x < 30 || x > vw - 30) off = -off;
+        pts.push(keep({ x: a.x + dx * u + nx * off, y: a.y + dy * u + ny * off - Math.random() * sway * 0.35 }));
+      }
+      // now and then it sails past and comes back round to land
+      if (dist > 90 && Math.random() < 0.35) {
+        const past = 24 + Math.random() * 46;
+        pts.push(keep({ x: b.x + (dx / dist) * past + nx * side * 22, y: b.y + (dy / dist) * past - 26 - Math.random() * 30 }));
+      }
+      return pts;
     };
 
     const paint = (flying: boolean) => {
       ctx.clearRect(0, 0, F.w, F.h + 2);
       // push off with a downstroke, beat on the way, flare the wings up to land
-      const rows = !flying ? OWL_FRAMES.perched : t < 0.1 ? OWL_FRAMES.down : t > 0.86 ? OWL_FRAMES.up : OWL_FLAP[f % OWL_FLAP.length];
+      const rows = !flying ? OWL_PERCHED : t < 0.07 ? OWL_FLAP[4] : t > 0.9 ? OWL_FLAP[0] : OWL_FLAP[f % OWL_FLAP.length];
       if (!flying && aim) {
         // a soft shadow on the heading it is standing at (none in the header, where it would sit off-centre)
         g.rect(F.bodyX + 5, F.bodyY + F.bodyH, 13, 1, "#3b2414", 0.22);
@@ -614,9 +646,7 @@ function Owl() {
       if (t < 1) {
         t = Math.min(1, t + dt / dur);
         const e = t * t * (3 - 2 * t);
-        pos = route
-          ? along([from, ...route, to], e)
-          : { x: from.x + (to.x - from.x) * e, y: from.y + (to.y - from.y) * e - Math.sin(Math.PI * t) * arc };
+        pos = along([from, ...(route ?? []), to], e);
         if (t >= 1) { pos = to; route = null; const done = landed; landed = null; done?.(); }
       } else pos = to;
       const flying = t < 1;
@@ -633,7 +663,7 @@ function Owl() {
       el.style.opacity = under ? "0" : "1";
       el.dataset.owlState = flying ? "flying" : !aim ? "home" : aim.kind === "roost" ? "roost" : "perched";
       // wings beat faster than anything else on the page moves
-      if (now - lastPaint > 1000 / (flying ? 22 : FPS)) { lastPaint = now; f++; paint(flying); }
+      if (now - lastPaint > 1000 / (flying ? 28 : FPS)) { lastPaint = now; f++; paint(flying); }
     };
     raf = requestAnimationFrame(tick);
     // for the end-to-end test and for debugging: what the owl sees right now
