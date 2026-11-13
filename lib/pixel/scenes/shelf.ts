@@ -56,7 +56,7 @@ const OWL = [
   "..kbbbccbbdddbbccbbbk..",
   ".kbbccccccbdbccccccbbk.",
   ".kbccceecccdccceecccbk.",
-  ".kbccweeeccbcceweeccbk.",
+  ".kbcceweeccbcceweeccbk.",
   ".kbcceeeeccbcceeeeccbk.",
   ".kbcceeeeccccceeeeccbk.",
   "..kbceeeccooocceeecbk..",
