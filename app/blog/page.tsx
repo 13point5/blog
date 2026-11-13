@@ -9,9 +9,9 @@ export const metadata = {
 export default function BlogPage() {
   return (
     <div className="max-w-2xl mx-auto px-5 pt-32 pb-8">
-      {/* The grand staircase, right across the page. Tap it and a flight swings round. */}
+      {/* The grand staircase, right across the page. Stairs, portraits and ghosts all answer a tap. */}
       <div className="animate-fade-blur -mt-6 mb-12" aria-hidden="true">
-        <Art scene="stairwell" maxPx={588} interactive />
+        <Art scene="stairwell" maxPx={520} interactive />
       </div>
 
       <section className="animate-fade-blur">

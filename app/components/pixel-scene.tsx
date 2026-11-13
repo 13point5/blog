@@ -4,13 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { Gfx, mulberry32 } from "@/lib/pixel/engine";
 import { SCENES, DEFAULT_COVER } from "@/lib/pixel";
 import { cn } from "@/lib/utils";
-import { bell, boing, coin, hit, keys, knock, pageFlip, plop, rain, rumble, yes } from "@/lib/audio";
+import { bell, boing, coin, hit, keys, knock, pageFlip, plop, rain, yes } from "@/lib/audio";
 
-/** What each scene sounds like when tapped. (The shelf's objects each have their own.) */
+/** What each scene sounds like when tapped. (The shelf and the stairwell answer each tap with a sound of their own.) */
 export const SCENE_SOUNDS: Record<string, (() => void) | undefined> = {
   "koi-pond": plop,
   "rain-city": rain,
-  stairwell: rumble,
   hogwarts: bell,
   castle: bell,
   library: pageFlip,
