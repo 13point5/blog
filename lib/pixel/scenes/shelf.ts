@@ -336,48 +336,32 @@ const ITEMS: Item[] = [
   },
 ];
 
-// After Harry's wand: the handle is a piece of branch with the bark left on,
-// rough and grey-brown with a knobbly end, and above it a smooth, warm,
-// reddish-brown shaft that tapers to the tip. It only sparks while `active`.
+// After Harry's wand, kept simple: one even stick. The lower third is the
+// bark handle, grey-brown; the rest is smooth reddish-brown wood. Both parts
+// are the same width. It only sparks while `active`.
 const WAND: Item = {
   id: "wand", w: 24, priority: 99,
   draw(g, x, y, f, P, active = false) {
-    const BARK = "#8f7c68", BARK_DK = "#4a3d32", BARK_HI = "#b9a892";
+    const BARK = "#8f7c68", BARK_DK = "#5a4a3c", BARK_HI = "#b9a892";
     const WOOD = "#9a5230", WOOD_HI = "#c47a4a", WOOD_DK = "#6e3519";
-    // point i along the wand, from the butt of the handle (bottom left) to the tip (top right)
-    const at = (i: number) => [x + 1 + i, y - 2 - i] as const;
-    // the smooth shaft: two pixels thick, then one toward the tip
-    for (let i = 8; i < 22; i++) {
+    // point i along the wand, from the end of the handle (bottom left) to the tip (top right)
+    const at = (i: number) => [x + 1 + i, y - 3 - i] as const;
+    for (let i = 0; i < 22; i++) {
       const [px, py] = at(i);
-      if (i < 16) { g.rect(px, py, 2, 2, WOOD); g.px(px, py, WOOD_HI); g.px(px + 1, py + 1, WOOD_DK); }
-      else g.px(px, py, i >= 20 ? WOOD_HI : WOOD);
+      const handle = i < 8;
+      g.rect(px, py, 2, 2, handle ? BARK : WOOD);
+      g.px(px, py, handle ? BARK_HI : WOOD_HI); // lit along the top edge
+      g.px(px + 1, py + 1, handle ? BARK_DK : WOOD_DK); // shaded underneath
     }
-    // the bark handle: a dark edge first, then the bark laid over it so its
-    // grey-brown shows, with lumps where twigs were cut off
-    const lump = (i: number) => i === 2 || i === 5;
-    for (let i = 0; i < 9; i++) {
-      const [px, py] = at(i);
-      g.rect(px - 1, py - 1, 4, 4, BARK_DK);
-      if (lump(i)) { g.rect(px - 2, py - 2, 3, 3, BARK_DK); g.rect(px + 1, py + 1, 3, 3, BARK_DK); }
-    }
-    g.rect(x - 1, y - 4, 4, 4, BARK_DK); // a knobbly butt
-    for (let i = 0; i < 9; i++) {
-      const [px, py] = at(i);
-      g.rect(px, py, 2, 2, BARK);
-      if (lump(i)) { g.px(px - 1, py - 1, BARK); g.px(px + 2, py + 2, BARK); }
-      g.px(px, py, hash(i, 1, 41) < 0.55 ? BARK_HI : BARK);
-      if (hash(i, 2, 41) < 0.35) g.px(px + 1, py + 1, BARK_DK);
-    }
-    g.rect(x, y - 3, 2, 2, BARK); g.px(x, y - 3, BARK_HI);
-    // a ridge where the bark ends and the shaft begins
-    const [jx, jy] = at(9);
-    g.rect(jx - 1, jy, 3, 2, BARK_DK); g.px(jx, jy, WOOD_HI);
+    // a dark ring where the bark ends
+    const [jx, jy] = at(8);
+    g.rect(jx, jy, 2, 2, BARK_DK);
     if (!active) return;
     const [tx, ty] = at(21);
     for (let i = 0; i < 8; i++) {
-      if (hash(i, f, 9) < 0.7) g.px(tx - 4 + hash(i, f, 10) * 9, ty - 5 + hash(i, f, 11) * 9, i % 2 ? P.gold : P.accent);
+      if (hash(i, f, 9) < 0.7) g.px(tx - 3 + hash(i, f, 10) * 9, ty - 5 + hash(i, f, 11) * 9, i % 2 ? P.gold : P.accent);
     }
-    g.px(tx + 1, ty - 1, "#fff6c9");
+    g.px(tx + 2, ty - 1, "#fff6c9");
   },
 };
 
