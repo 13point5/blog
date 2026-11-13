@@ -149,7 +149,7 @@ export function Reactor() {
     setTaps(taps + 1);
   };
   return (
-    <Sprite id="reactor" scale={2} rows={27} active={dark} taps={taps} onTap={flip} label={dark ? "Switch to the light theme" : "Switch to the dark theme"} />
+    <Sprite id="reactor" scale={3} rows={19} active={dark} taps={taps} onTap={flip} label={dark ? "Switch to the light theme" : "Switch to the dark theme"} />
   );
 }
 

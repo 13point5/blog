@@ -336,41 +336,54 @@ const ITEMS: Item[] = [
   },
 ];
 
-// An arc reactor: a dark metal housing, a ring of copper coils, a glowing
-// ring and a bright core. It is the light switch for the site: `active` means
-// the dark theme is on, when it burns brighter and throws a halo. `since`
-// counts frames from the last tap, for the surge when it is switched.
+// An arc reactor, drawn the way a Minecraft item is: sixteen chunky pixels
+// across, a dark outline, a steel ring lit from the top left, glowing
+// segments between four copper spokes, and a bright core. It is the light
+// switch for the site: `active` means the dark theme is on, when it burns
+// brighter. `since` counts frames from the last tap: the segments light up
+// one after another round the ring as it switches.
+const REACTOR_ROWS = [
+  ".....kkkkkk.....",
+  "...kkkhhhhkkk...",
+  "..kkhhcoochskk..",
+  ".kkhcccoocccskk.",
+  ".khckCCooCCkcsk.",
+  "kkhcCknnnnkCcskk",
+  "khccCnnCCnnCccdk",
+  "khooonCwwCnooodk",
+  "khooonCwwCnooodk",
+  "khccCnnCCnnCccdk",
+  "kkhcCknnnnkCcdkk",
+  ".ksckCCooCCkcdk.",
+  ".kkscccoocccdkk.",
+  "..kksscoocddkk..",
+  "...kkkddddkkk...",
+  ".....kkkkkk.....",
+];
 const REACTOR: Item = {
-  id: "reactor", w: 21, priority: 99,
+  id: "reactor", w: 16, priority: 99,
   draw(g, x, y, f, _P, active = false, _taps, since = 99) {
-    const cx = x + 10, cy = y - 11;
-    const GLOW = "#7fe9ff", CORE = "#eafcff", STEEL = "#59606e", STEEL_DK = "#2a2f3a", STEEL_HI = "#8d95a3", COPPER = "#c98a45", COPPER_DK = "#7a4a20";
-    const surge = since < 14 ? 1 - since / 14 : 0;
-    const breathe = 0.5 + 0.5 * Math.sin(f * 0.18);
-    if (active || surge > 0) g.disc(cx, cy, 12, GLOW, (active ? 0.1 + breathe * 0.08 : 0) + surge * 0.25);
-    g.disc(cx, cy, 10, STEEL_DK);
-    g.disc(cx, cy, 9, STEEL);
-    g.ring(cx, cy, 9, STEEL_HI, 0.5);
-    g.disc(cx, cy, 7.4, STEEL_DK);
-    // ten copper coils round the rim
-    for (let k = 0; k < 10; k++) {
-      const a = (k / 10) * Math.PI * 2 + 0.3;
-      const px = Math.round(cx + Math.cos(a) * 7.6 - 0.5), py = Math.round(cy + Math.sin(a) * 7.6 - 0.5);
-      g.rect(px, py, 2, 2, COPPER);
-      g.px(px + 1, py + 1, COPPER_DK);
-    }
-    // the glowing ring, the dark well inside it, and the core
-    g.disc(cx, cy, 5.6, active ? CORE : GLOW);
-    g.disc(cx, cy, 5.6, GLOW, active ? 0.45 - breathe * 0.2 : 0);
-    g.disc(cx, cy, 3.9, "#16303f");
-    g.disc(cx, cy, 2.4, active ? CORE : GLOW, active ? 1 : 0.75 + breathe * 0.25);
-    g.px(cx, cy, CORE);
-    // three struts holding the core
-    for (let k = 0; k < 3; k++) {
-      const a = (k / 3) * Math.PI * 2 - Math.PI / 2;
-      g.px(cx + Math.round(Math.cos(a) * 3.2), cy + Math.round(Math.sin(a) * 3.2), STEEL_HI);
-    }
-    if (surge > 0) g.ring(cx, cy, 6 + (1 - surge) * 6, CORE, surge);
+    const pal: Record<string, string> = {
+      k: "#12161d", s: "#7b8494", h: "#aab3c2", d: "#4d5565", o: "#b9722f", n: "#0f2a3d", w: "#f2fdff",
+      c: active ? "#7fdcff" : "#27a9e3", C: active ? "#d6f6ff" : "#7fdcff",
+    };
+    const top = y - REACTOR_ROWS.length;
+    const sweep = since < 20 ? since / 1.6 : -1; // how many of the eight segments the surge has reached
+    const beat = active && Math.floor(f / 9) % 2 === 0; // the core's slow pulse in the dark
+    REACTOR_ROWS.forEach((row, j) => {
+      for (let i = 0; i < row.length; i++) {
+        const ch = row[i];
+        if (ch === ".") continue;
+        let color = pal[ch];
+        const dx = i - 7.5, dy = j - 7.5, d = Math.hypot(dx, dy);
+        if (ch === "c" || (ch === "C" && d > 3.3)) {
+          // a segment: lit white for a moment as the surge passes it, starting from the top
+          const seg = Math.floor((((Math.atan2(dy, dx) + Math.PI * 2.5) % (Math.PI * 2)) / (Math.PI * 2)) * 8);
+          if (sweep >= 0 && seg <= sweep && seg > sweep - 3) color = pal.w;
+        } else if (ch === "C" && beat) color = pal.w;
+        g.px(x + i, top + j, color);
+      }
+    });
   },
 };
 
