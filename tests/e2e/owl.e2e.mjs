@@ -8,7 +8,7 @@
 // Then, at every scroll position, going down and coming back up, it asserts:
 //   - if a heading is fully on screen (with an owl's height of room above it),
 //     the owl is at a heading, not in the header
-//   - if none is, the owl is in its slot beside the name
+//   - if none is, the owl is in its slot beside the name, pinned to the screen
 //   - the owl never covers text, a picture or a button
 //   - it does not leave a heading that is still on screen
 
@@ -84,6 +84,7 @@ const probe = () => {
     slotBesideName: slot.left - name.right >= 0 && slot.left - name.right < 24,
     // where its body is on the page, to tell later whether it could have stayed
     bodyTop: body.top + scrollY, bodyBottom: body.bottom + scrollY, viewTop: top, scrollY,
+    pinned: getComputedStyle(owl).position === "fixed",
   };
 };
 
@@ -137,6 +138,9 @@ for (const viewport of VIEWPORTS) {
       if (s.visible.length > 0 && s.state !== "perched") fail(y, `${s.visible.length} heading(s) on screen but the owl is ${s.state}`);
       if (s.visible.length === 0 && s.state !== "home") fail(y, `no heading on screen but the owl is ${s.state}`);
       if (s.state === "home" && !s.atSlot) fail(y, "home, but not in its slot beside the name");
+      // at home it must be fixed to the screen, or it shudders as the page scrolls under it
+      if (s.state === "home" && !s.pinned) fail(y, "home, but not pinned to the screen");
+      if (s.state === "perched" && s.pinned) fail(y, "at a heading, but pinned to the screen instead of the page");
       if (s.hits.length) fail(y, `covers ${s.hits.join(", ")}`);
       // It must not leave a heading that is still on screen, so long as the
       // spot it had there is still inside the usable view.

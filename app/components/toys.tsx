@@ -605,7 +605,13 @@ function Owl() {
         if (t >= 1) { pos = to; route = null; const done = landed; landed = null; done?.(); }
       } else pos = to;
       const flying = t < 1;
-      el.style.transform = `translate(${Math.round(pos.x - (F.bodyX + F.bodyW / 2) * OWL_SCALE)}px, ${Math.round(pos.y - (F.bodyY + F.bodyH) * OWL_SCALE)}px)`;
+      // At home it is pinned to the screen like the header itself. Left in the
+      // page, it would have to be moved back every frame as the page scrolled
+      // under it, and it would shudder whenever a frame came late.
+      const pinned = aim === null && !flying;
+      el.style.position = pinned ? "fixed" : "absolute";
+      const sx = pinned ? window.scrollX : 0, sy = pinned ? window.scrollY : 0;
+      el.style.transform = `translate(${Math.round(pos.x - sx - (F.bodyX + F.bodyW / 2) * OWL_SCALE)}px, ${Math.round(pos.y - sy - (F.bodyY + F.bodyH) * OWL_SCALE)}px)`;
       // standing at a heading that is sliding under the header: don't show through it
       const header = document.querySelector("header")?.getBoundingClientRect();
       const under = aim !== null && !flying && header !== undefined && pos.y - window.scrollY - OWL_BODY.h < header.bottom;

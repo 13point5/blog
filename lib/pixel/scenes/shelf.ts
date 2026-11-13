@@ -425,58 +425,106 @@ const BOOK_ROWS = [
   ".kkkkkkkkkkkkkkkkk.",
 ];
 const BOOK_PAL = { k: "#1c1030", m: "#4a2a80", g: "#e3b34d", y: "#f8e08c", w: "#ffffff", c: "#58c7d9", C: "#bff2fa" };
-const PAGE = "#fbf1dc", PAGE_EDGE = "#d9cdb0", INK_LINE = "#a39a86";
+const PAGE = "#fbf1dc", PAGE_EDGE = "#d9cdb0", INK = "#6b46a8", INK_PALE = "#b9a3dc";
+const BOOK_W = BOOK_ROWS[0].length;
 /** frames the cover takes to swing open after a tap */
 export const BOOK_OPENING = 4;
 
-/** The book lying open, in the same footprint: two cream pages inside the purple cover. */
+/**
+ * The book lying open: twice the width of the closed book, as a real one is.
+ * On the left page a magic circle turns; on the right, runes write themselves
+ * line by line and start again; sparks drift up out of the gutter.
+ */
 function drawOpenBook(g: Gfx, x: number, top: number, f: number) {
-  const h = BOOK_ROWS.length;
-  BOOK_ROWS.forEach((row, j) => {
-    for (let i = 0; i < row.length; i++) if (row[i] !== ".") g.px(x + i, top + j, row[i] === "k" ? BOOK_PAL.k : BOOK_PAL.m);
-  });
-  for (const px of [2, 10]) {
-    g.rect(x + px, top + 2, 7, h - 4, PAGE);
-    g.rect(x + px, top + h - 3, 7, 1, PAGE_EDGE);
-    // lines of writing, some shorter than others
-    for (let j = 6; j < h - 4; j += 3) g.rect(x + px + 1, top + j, j % 2 ? 5 : 4, 1, INK_LINE);
+  const h = BOOK_ROWS.length, w = BOOK_W * 2;
+  g.rect(x + 1, top, w - 2, h, BOOK_PAL.k);
+  g.rect(x, top + 1, w, h - 2, BOOK_PAL.k);
+  g.rect(x + 1, top + 1, w - 2, h - 2, BOOK_PAL.m);
+  for (const px of [2, BOOK_W + 1]) {
+    g.rect(x + px, top + 2, BOOK_W - 3, h - 4, PAGE);
+    g.rect(x + px, top + h - 3, BOOK_W - 3, 1, PAGE_EDGE);
   }
-  g.rect(x + 9, top + 2, 1, h - 4, BOOK_PAL.k); // the gutter
-  // an illuminated capital on the left page and a little gem drawn on the right
-  g.rect(x + 3, top + 3, 2, 2, BOOK_PAL.g);
-  g.rect(x + 13, top + 3, 1, 3, BOOK_PAL.c);
-  g.rect(x + 12, top + 4, 3, 1, f % 40 < 20 ? BOOK_PAL.c : BOOK_PAL.C);
+  g.rect(x + BOOK_W - 2, top + 2, 1, h - 5, PAGE_EDGE); // the pages curve down into the gutter
+  g.rect(x + BOOK_W + 1, top + 2, 1, h - 5, PAGE_EDGE);
+  g.rect(x + BOOK_W - 1, top + 2, 2, h - 4, BOOK_PAL.k);
+
+  // left page: a circle with three lights going round it and a star at its heart
+  const cx = x + 9, cy = top + 11;
+  g.ring(cx, cy, 6, INK);
+  g.ring(cx, cy, 3.4, INK_PALE);
+  for (let k = 0; k < 3; k++) {
+    const a = f * 0.14 + (k * Math.PI * 2) / 3;
+    g.px(cx + Math.round(Math.cos(a) * 6), cy + Math.round(Math.sin(a) * 6), BOOK_PAL.c);
+    g.px(cx + Math.round(Math.cos(a - 0.35) * 6), cy + Math.round(Math.sin(a - 0.35) * 6), BOOK_PAL.C);
+  }
+  const pulse = Math.floor(f / 6) % 2 === 0;
+  g.px(cx, cy, pulse ? BOOK_PAL.w : BOOK_PAL.y);
+  for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) g.px(cx + dx, cy + dy, pulse ? BOOK_PAL.y : BOOK_PAL.g);
+  if (pulse) for (const [dx, dy] of [[2, 0], [-2, 0], [0, 2], [0, -2]]) g.px(cx + dx, cy + dy, BOOK_PAL.g);
+
+  // right page: six lines of runes, written one mark at a time by a gold point
+  const LINES = 6, LEN = 13;
+  const written = Math.floor(f * 1.3) % (LINES * LEN + 30);
+  for (let n = 0; n < Math.min(written, LINES * LEN); n++) {
+    const line = Math.floor(n / LEN), i = n % LEN;
+    if (hash(i, line, 23) < 0.28 || i >= 9 + hash(line, 1, 23) * 4) continue; // gaps between runes, ragged line ends
+    g.px(x + BOOK_W + 3 + i, top + 4 + line * 3 + (hash(i, line, 24) < 0.25 ? -1 : 0), n === written - 1 ? BOOK_PAL.g : INK);
+  }
+  if (written < LINES * LEN) {
+    const line = Math.floor(written / LEN), i = written % LEN;
+    g.px(x + BOOK_W + 3 + i, top + 4 + line * 3, BOOK_PAL.y);
+  }
+
+  // sparks rising out of the gutter
+  for (let k = 0; k < 5; k++) {
+    const p = (f * 0.45 + k * 4.3) % 19;
+    const sx = x + BOOK_W + Math.round(Math.sin(k * 2.1 + p * 0.35) * (3 + k * 1.8));
+    g.px(sx, top + 20 - p, k % 2 ? BOOK_PAL.y : BOOK_PAL.c, 1 - p / 19);
+  }
 }
 
 const BOOK: Item = {
-  id: "book", w: 19, priority: 99,
+  // Twice the closed book's width: closed, it sits in the right half, and the
+  // cover swings out to the left when it opens.
+  id: "book", w: BOOK_W * 2, priority: 99,
   // `active` means it is lying open (you are in the blog); `since` counts
   // frames from the last tap, while the cover swings open.
   draw(g, x, y, f, _P, active = false, _taps, since = 99) {
-    const top = y - BOOK_ROWS.length;
+    const h = BOOK_ROWS.length, top = y - h;
     const opening = since < BOOK_OPENING;
     if (!active && !opening && since > BOOK_OPENING + 10) {
-      g.sprite(BOOK_ROWS, x, top, BOOK_PAL);
+      g.sprite(BOOK_ROWS, x + BOOK_W, top, BOOK_PAL);
       // a glint travelling down the gem's left facet
       const t = f % 60;
       if (t < 8) {
         const j = 8 + Math.floor(t / 2) * 2;
         const i = BOOK_ROWS[j]?.indexOf("c") ?? -1;
-        if (i >= 0) g.px(x + i + (j < 12 ? 1 : 0), top + j, BOOK_PAL.w);
+        if (i >= 0) g.px(x + BOOK_W + i + (j < 12 ? 1 : 0), top + j, BOOK_PAL.w);
       }
       return;
     }
     drawOpenBook(g, x, top, f);
     if (!opening) return;
-    // the cover swinging open on its left edge: drawn narrower each frame
-    const width = [14, 10, 6, 3][since] ?? 0;
-    BOOK_ROWS.forEach((row, j) => {
-      for (let i = 0; i < width; i++) {
-        const ch = row[Math.floor((i * row.length) / width)];
-        if (ch !== ".") g.px(x + i, top + j, BOOK_PAL[ch as keyof typeof BOOK_PAL]);
-      }
-      if (row[0] !== "." || j > 0) g.px(x + width, top + j, BOOK_PAL.k); // its leading edge
-    });
+    // Mid-swing: the left half is not there yet.
+    g.ctx.clearRect(x - 1, top - 1, BOOK_W, h + 2);
+    g.rect(x + BOOK_W - 1, top, 1, h, BOOK_PAL.k);
+    if (since < 2) {
+      // the cover still over the right page, turning on its left edge and seen ever narrower
+      const width = since === 0 ? 13 : 6;
+      BOOK_ROWS.forEach((row, j) => {
+        for (let i = 0; i < width; i++) {
+          const ch = row[Math.floor((i * row.length) / width)];
+          if (ch !== ".") g.px(x + BOOK_W + i, top + j, BOOK_PAL[ch as keyof typeof BOOK_PAL]);
+        }
+        g.px(x + BOOK_W + width, top + j, BOOK_PAL.k);
+      });
+    } else {
+      // past upright: now it comes down on the left, showing its inside and the first page
+      const width = since === 2 ? 7 : 14;
+      g.rect(x + BOOK_W - width, top, width, h, BOOK_PAL.k);
+      g.rect(x + BOOK_W - width + 1, top + 1, width - 1, h - 2, BOOK_PAL.m);
+      g.rect(x + BOOK_W - width + 2, top + 2, width - 3, h - 4, PAGE);
+    }
   },
 };
 
