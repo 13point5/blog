@@ -336,26 +336,26 @@ const ITEMS: Item[] = [
   },
 ];
 
-// After Harry's wand, kept simple: one even stick. The lower third is the
-// bark handle, grey-brown; the rest is smooth reddish-brown wood. Both parts
-// are the same width. It only sparks while `active`.
+// After Harry's wand, kept simple: a smooth bark handle, a little thicker
+// than the rest and with no lumps, then reddish-brown wood of one even width
+// all the way to the tip. It only sparks while `active`.
 const WAND: Item = {
   id: "wand", w: 24, priority: 99,
   draw(g, x, y, f, P, active = false) {
-    const BARK = "#8f7c68", BARK_DK = "#5a4a3c", BARK_HI = "#b9a892";
+    const BARK = "#8f7c68", BARK_DK = "#4a3d32", BARK_HI = "#b9a892";
     const WOOD = "#9a5230", WOOD_HI = "#c47a4a", WOOD_DK = "#6e3519";
     // point i along the wand, from the end of the handle (bottom left) to the tip (top right)
-    const at = (i: number) => [x + 1 + i, y - 3 - i] as const;
+    const at = (i: number) => [x + 2 + i, y - 4 - i] as const;
+    const HANDLE = 8;
+    // the handle's dark edge first, so the bark sits inside it
+    for (let i = 0; i < HANDLE; i++) { const [px, py] = at(i); g.rect(px - 1, py - 1, 4, 4, BARK_DK); }
     for (let i = 0; i < 22; i++) {
       const [px, py] = at(i);
-      const handle = i < 8;
+      const handle = i < HANDLE;
       g.rect(px, py, 2, 2, handle ? BARK : WOOD);
       g.px(px, py, handle ? BARK_HI : WOOD_HI); // lit along the top edge
-      g.px(px + 1, py + 1, handle ? BARK_DK : WOOD_DK); // shaded underneath
+      if (!handle) g.px(px + 1, py + 1, WOOD_DK); // shaded underneath
     }
-    // a dark ring where the bark ends
-    const [jx, jy] = at(8);
-    g.rect(jx, jy, 2, 2, BARK_DK);
     if (!active) return;
     const [tx, ty] = at(21);
     for (let i = 0; i < 8; i++) {
