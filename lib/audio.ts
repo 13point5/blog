@@ -125,10 +125,17 @@ export function hoot() {
   note(390, 0.42, 0.09, { attack: 0.05, glideTo: 320, delay: 0.3 });
 }
 
-/** Wand: a glittering run, rising for Lumos and falling for Nox. */
+/** A glittering run of notes, rising or falling. */
 export function chime(rising: boolean) {
   const notes = [84, 88, 91, 96, 100];
   (rising ? notes : [...notes].reverse()).forEach((n, i) => note(midi(n), 0.5, 0.035, { delay: i * 0.055 }));
+}
+
+/** Arc reactor: a hum that winds up when it comes on, and down when it goes off. */
+export function reactor(on: boolean) {
+  note(on ? 90 : 360, 0.55, 0.05, { type: "sawtooth", attack: 0.05, glideTo: on ? 360 : 80 });
+  note(on ? 180 : 720, 0.55, 0.03, { attack: 0.05, glideTo: on ? 720 : 160 });
+  if (on) note(midi(96), 0.6, 0.03, { delay: 0.42 });
 }
 
 /** Cube: the click of one layer turning. */

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sprite, Wand } from "./toys";
+import { Reactor, Sprite } from "./toys";
 import { cn } from "@/lib/utils";
 
 export function Header() {
@@ -57,7 +57,7 @@ export function Header() {
             and import it: import { SettingsDropdown } from "./settings-dropdown";
             The component itself is untouched in settings-dropdown.tsx.
           */}
-          <Wand />
+          <Reactor />
         </div>
       </nav>
     </header>

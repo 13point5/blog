@@ -6,7 +6,7 @@ import { Gfx, hash } from "@/lib/pixel/engine";
 import { TOYS, TOY_PALETTE, owlBlink } from "@/lib/pixel/scenes/shelf";
 import { OWL_FLAP, OWL_FRAME, OWL_FRAMES, OWL_PAL } from "@/lib/pixel/owl-sheet";
 import { choosePerch, isVisible, type Layout, type Line, type Rect } from "@/lib/owl-perch";
-import { chime, hoot, midi, piano, playRecord } from "@/lib/audio";
+import { hoot, midi, piano, playRecord, reactor } from "@/lib/audio";
 import { useTheme } from "../providers/theme-provider";
 import { cn } from "@/lib/utils";
 
@@ -137,30 +137,19 @@ export function Toy({ id, scale, rows, className }: { id: string; scale?: number
   return <Sprite id={id} scale={scale} rows={rows} taps={taps} onTap={poke} label={`Poke the ${id}`} className={className} />;
 }
 
-/** Lumos / Nox: a wand that switches between the light and dark themes. */
-export function Wand() {
+/** The light switch: an arc reactor. Tap it to go between the light and dark themes. */
+export function Reactor() {
   const { theme, setTheme } = useTheme();
-  const [sparks, setSparks] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  useEffect(() => () => clearTimeout(timer.current), []);
+  const [taps, setTaps] = useState(0);
   if (!useToys()) return null;
-
-  const cast = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
-    chime(theme === "dark");
-    setSparks(true);
-    clearTimeout(timer.current);
-    timer.current = setTimeout(() => setSparks(false), 900);
+  const dark = theme === "dark";
+  const flip = () => {
+    setTheme(dark ? "light" : "dark");
+    reactor(!dark);
+    setTaps(taps + 1);
   };
   return (
-    <span className="relative flex items-center">
-      <Sprite id="wand" scale={2} rows={30} active={sparks} onTap={cast} label={theme === "dark" ? "Lumos: switch to the light theme" : "Nox: switch to the dark theme"} />
-      {sparks && (
-        <span className="absolute left-1/2 top-full mt-4 -translate-x-1/2 text-xs italic font-display text-foreground-muted whitespace-nowrap animate-fade-blur">
-          {theme === "dark" ? "nox" : "lumos"}
-        </span>
-      )}
-    </span>
+    <Sprite id="reactor" scale={2} rows={27} active={dark} taps={taps} onTap={flip} label={dark ? "Switch to the light theme" : "Switch to the dark theme"} />
   );
 }
 

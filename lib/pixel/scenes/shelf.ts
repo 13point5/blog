@@ -336,32 +336,41 @@ const ITEMS: Item[] = [
   },
 ];
 
-// After Harry's wand, kept simple: a smooth bark handle, a little thicker
-// than the rest and with no lumps, then reddish-brown wood of one even width
-// all the way to the tip. It only sparks while `active`.
-const WAND: Item = {
-  id: "wand", w: 24, priority: 99,
-  draw(g, x, y, f, P, active = false) {
-    const BARK = "#8f7c68", BARK_DK = "#4a3d32", BARK_HI = "#b9a892";
-    const WOOD = "#9a5230", WOOD_HI = "#c47a4a", WOOD_DK = "#6e3519";
-    // point i along the wand, from the end of the handle (bottom left) to the tip (top right)
-    const at = (i: number) => [x + 2 + i, y - 4 - i] as const;
-    const HANDLE = 8;
-    // the handle's dark edge first, so the bark sits inside it
-    for (let i = 0; i < HANDLE; i++) { const [px, py] = at(i); g.rect(px - 1, py - 1, 4, 4, BARK_DK); }
-    for (let i = 0; i < 22; i++) {
-      const [px, py] = at(i);
-      const handle = i < HANDLE;
-      g.rect(px, py, 2, 2, handle ? BARK : WOOD);
-      g.px(px, py, handle ? BARK_HI : WOOD_HI); // lit along the top edge
-      if (!handle) g.px(px + 1, py + 1, WOOD_DK); // shaded underneath
+// An arc reactor: a dark metal housing, a ring of copper coils, a glowing
+// ring and a bright core. It is the light switch for the site: `active` means
+// the dark theme is on, when it burns brighter and throws a halo. `since`
+// counts frames from the last tap, for the surge when it is switched.
+const REACTOR: Item = {
+  id: "reactor", w: 21, priority: 99,
+  draw(g, x, y, f, _P, active = false, _taps, since = 99) {
+    const cx = x + 10, cy = y - 11;
+    const GLOW = "#7fe9ff", CORE = "#eafcff", STEEL = "#59606e", STEEL_DK = "#2a2f3a", STEEL_HI = "#8d95a3", COPPER = "#c98a45", COPPER_DK = "#7a4a20";
+    const surge = since < 14 ? 1 - since / 14 : 0;
+    const breathe = 0.5 + 0.5 * Math.sin(f * 0.18);
+    if (active || surge > 0) g.disc(cx, cy, 12, GLOW, (active ? 0.1 + breathe * 0.08 : 0) + surge * 0.25);
+    g.disc(cx, cy, 10, STEEL_DK);
+    g.disc(cx, cy, 9, STEEL);
+    g.ring(cx, cy, 9, STEEL_HI, 0.5);
+    g.disc(cx, cy, 7.4, STEEL_DK);
+    // ten copper coils round the rim
+    for (let k = 0; k < 10; k++) {
+      const a = (k / 10) * Math.PI * 2 + 0.3;
+      const px = Math.round(cx + Math.cos(a) * 7.6 - 0.5), py = Math.round(cy + Math.sin(a) * 7.6 - 0.5);
+      g.rect(px, py, 2, 2, COPPER);
+      g.px(px + 1, py + 1, COPPER_DK);
     }
-    if (!active) return;
-    const [tx, ty] = at(21);
-    for (let i = 0; i < 8; i++) {
-      if (hash(i, f, 9) < 0.7) g.px(tx - 3 + hash(i, f, 10) * 9, ty - 5 + hash(i, f, 11) * 9, i % 2 ? P.gold : P.accent);
+    // the glowing ring, the dark well inside it, and the core
+    g.disc(cx, cy, 5.6, active ? CORE : GLOW);
+    g.disc(cx, cy, 5.6, GLOW, active ? 0.45 - breathe * 0.2 : 0);
+    g.disc(cx, cy, 3.9, "#16303f");
+    g.disc(cx, cy, 2.4, active ? CORE : GLOW, active ? 1 : 0.75 + breathe * 0.25);
+    g.px(cx, cy, CORE);
+    // three struts holding the core
+    for (let k = 0; k < 3; k++) {
+      const a = (k / 3) * Math.PI * 2 - Math.PI / 2;
+      g.px(cx + Math.round(Math.cos(a) * 3.2), cy + Math.round(Math.sin(a) * 3.2), STEEL_HI);
     }
-    g.px(tx + 2, ty - 1, "#fff6c9");
+    if (surge > 0) g.ring(cx, cy, 6 + (1 - surge) * 6, CORE, surge);
   },
 };
 
@@ -392,7 +401,7 @@ const BOOK: Item = {
 
 /** Every drawable object, by id, for use as a standalone sprite. */
 // The voxel versions replace their flat namesakes wherever a toy stands alone.
-export const TOYS: Record<string, Item> = { ...Object.fromEntries([...ITEMS, WAND, BOOK].map((i) => [i.id, i])), ...VOXEL_TOYS };
+export const TOYS: Record<string, Item> = { ...Object.fromEntries([...ITEMS, REACTOR, BOOK].map((i) => [i.id, i])), ...VOXEL_TOYS };
 export const TOY_PALETTE = { light: LIGHT, dark: DARK };
 
 type Placed = { item: Item; x: number; hop: number; taps: number };
