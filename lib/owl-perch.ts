@@ -5,7 +5,9 @@
 //      the owl stands at a heading.
 //   2. It stays at the heading it is on for as long as that heading is on screen.
 //   3. It never covers anything: text, pictures, buttons.
-//   4. Only when no heading is on screen does it go home (the caller sends it
+//   4. A roost (the signpost at the foot of the page) beats any heading: when
+//      there is room for it there, that is where it sits.
+//   5. Only when no heading is on screen does it go home (the caller sends it
 //      to its place beside the name in the header).
 
 export type Rect = { left: number; top: number; right: number; bottom: number };
@@ -22,6 +24,8 @@ export type Layout = {
   /** the part of the screen the owl may use: below the header if it is showing */
   view: Rect;
   owl: { w: number; h: number };
+  /** a favourite spot that wins whenever the owl fits there (centre x, feet y) */
+  roost?: { x: number; y: number } | null;
   /** the heading the owl is on now, if any */
   current?: number | null;
   /** space kept between a line's last letter and the owl */
@@ -30,8 +34,8 @@ export type Layout = {
 
 export type Perch = {
   heading: number;
-  /** beside the end of a line, or standing on top of the heading */
-  kind: "beside" | "above";
+  /** beside the end of a line, standing on top of the heading, or on the roost (heading is then -1) */
+  kind: "beside" | "above" | "roost";
   /** centre of the owl */
   x: number;
   /** its feet */
@@ -91,6 +95,12 @@ const firstFree = (h: Heading, layout: Layout) => candidates(h, layout).find((p)
  * is on screen, or (rarely) none of the visible ones has anywhere free to stand.
  */
 export function choosePerch(layout: Layout): Perch | null {
+  // the roost first: it is somewhere to stand, not something to avoid, so only the view matters
+  if (layout.roost) {
+    const r = perchRect(layout.roost, layout.owl);
+    const v = layout.view;
+    if (r.left >= v.left && r.right <= v.right && r.top >= v.top && r.bottom <= v.bottom) return { heading: -1, kind: "roost", x: layout.roost.x, y: layout.roost.y };
+  }
   const visible = layout.headings.filter((h) => isVisible(h, layout.view, layout.owl));
   // stay put while the heading it is on remains on screen
   const here = visible.find((h) => h.id === layout.current);

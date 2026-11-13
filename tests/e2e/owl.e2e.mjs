@@ -9,6 +9,7 @@
 //   - if a heading is fully on screen (with an owl's height of room above it),
 //     the owl is at a heading, not in the header
 //   - if none is, the owl is in its slot beside the name, pinned to the screen
+//   - whenever the signpost at the foot of the page has room for it, it sits there
 //   - the owl never covers text, a picture or a button
 //   - it does not leave a heading that is still on screen
 
@@ -62,7 +63,7 @@ const probe = () => {
   const box = { left: body.left + 2, right: body.right - 2, top: body.top + 2, bottom: body.bottom - 3 };
   const over = (r) => r && r.left < box.right && r.right > box.left && r.top < box.bottom && r.bottom > box.top;
   const hits = [];
-  if (box.bottom > 0 && box.top < vh && owl.dataset.owlState !== "home") {
+  if (box.bottom > 0 && box.top < vh && owl.dataset.owlState === "perched") {
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     while (walker.nextNode()) {
       const n = walker.currentNode;
@@ -76,10 +77,19 @@ const probe = () => {
       if (over(shown(el.getBoundingClientRect(), el.parentElement))) hits.push(el.tagName.toLowerCase());
     }
   }
+  // the signpost in the castle scene: is there room for the owl on it right now?
+  let roost = false;
+  const scene = document.querySelector('canvas[data-scene="hogwarts"]');
+  if (scene) {
+    const r = scene.getBoundingClientRect();
+    const k = r.width / scene.width;
+    const signTop = r.top + 62 * k, signX = r.left + (Math.floor(scene.width / 2) - 61.5) * k;
+    roost = signTop - OWL_H >= top && signTop + 9 * k <= vh - 6 && signX - 23 >= 4 && signX + 23 <= innerWidth - 4;
+  }
   const slot = document.querySelector("[data-owl-home]").getBoundingClientRect();
   const name = header.querySelector("a").getBoundingClientRect();
   return {
-    state: owl.dataset.owlState, heading: owl.dataset.owlHeading, visible, hits: [...new Set(hits)],
+    state: owl.dataset.owlState, heading: owl.dataset.owlHeading, visible, roost, hits: [...new Set(hits)],
     atSlot: Math.abs(body.left - slot.left) < 3 && Math.abs(body.bottom - slot.bottom) < 3,
     slotBesideName: slot.left - name.right >= 0 && slot.left - name.right < 24,
     // where its body is on the page, to tell later whether it could have stayed
@@ -135,12 +145,17 @@ for (const viewport of VIEWPORTS) {
       const s = await page.evaluate(probe);
       checks++;
       if (!s.slotBesideName) fail(y, "the owl's home is not beside the name");
-      if (s.visible.length > 0 && s.state !== "perched") fail(y, `${s.visible.length} heading(s) on screen but the owl is ${s.state}`);
-      if (s.visible.length === 0 && s.state !== "home") fail(y, `no heading on screen but the owl is ${s.state}`);
+      if (s.roost) {
+        if (s.state !== "roost") fail(y, `the signpost is on screen with room for the owl, but it is ${s.state}`);
+      } else {
+        if (s.state === "roost") fail(y, "on the signpost although it is not fully on screen");
+        if (s.visible.length > 0 && s.state !== "perched") fail(y, `${s.visible.length} heading(s) on screen but the owl is ${s.state}`);
+        if (s.visible.length === 0 && s.state !== "home") fail(y, `no heading on screen but the owl is ${s.state}`);
+      }
       if (s.state === "home" && !s.atSlot) fail(y, "home, but not in its slot beside the name");
       // at home it must be fixed to the screen, or it shudders as the page scrolls under it
       if (s.state === "home" && !s.pinned) fail(y, "home, but not pinned to the screen");
-      if (s.state === "perched" && s.pinned) fail(y, "at a heading, but pinned to the screen instead of the page");
+      if (s.state !== "home" && s.pinned) fail(y, "away from home, but pinned to the screen instead of the page");
       if (s.hits.length) fail(y, `covers ${s.hits.join(", ")}`);
       // It must not leave a heading that is still on screen, so long as the
       // spot it had there is still inside the usable view.

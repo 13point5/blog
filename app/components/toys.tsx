@@ -6,6 +6,7 @@ import { Gfx, hash } from "@/lib/pixel/engine";
 import { TOYS, TOY_PALETTE, owlBlink } from "@/lib/pixel/scenes/shelf";
 import { OWL_FLAP, OWL_FRAME, OWL_FRAMES, OWL_PAL } from "@/lib/pixel/owl-sheet";
 import { choosePerch, isVisible, type Layout, type Line, type Rect } from "@/lib/owl-perch";
+import { signRoost } from "@/lib/pixel/scenes/hogwarts";
 import { hoot, midi, piano, playRecord, reactor } from "@/lib/audio";
 import { useTheme } from "../providers/theme-provider";
 import { cn } from "@/lib/utils";
@@ -407,7 +408,7 @@ function headingLines(el: HTMLElement): Line[] {
 }
 
 /** Measure the page for lib/owl-perch: headings, everything that must stay uncovered, and the usable screen. */
-function readLayout(currentEl: HTMLElement | null): { layout: Layout; els: HTMLElement[] } {
+function readLayout(currentEl: HTMLElement | null): { layout: Layout; els: HTMLElement[]; roostEl: HTMLElement | null } {
   const vw = document.documentElement.clientWidth, vh = window.innerHeight;
   const header = document.querySelector<HTMLElement>("header");
   const top = (header && header.dataset.hidden !== "true" ? header.offsetHeight : 0) + 4;
@@ -458,14 +459,27 @@ function readLayout(currentEl: HTMLElement | null): { layout: Layout; els: HTMLE
       }
     }
   }
+  // the signpost in the castle scene at the foot of the page: its favourite spot,
+  // once the whole plank is on screen
+  const roostEl = document.querySelector<HTMLCanvasElement>('canvas[data-scene="hogwarts"]');
+  let roost: { x: number; y: number } | null = null;
+  if (roostEl) {
+    const r = roostEl.getBoundingClientRect();
+    const scale = r.width / roostEl.width;
+    const spot = signRoost(roostEl.width);
+    const y = r.top + spot.y * scale;
+    if (r.width > 0 && y + spot.plank * scale <= vh - 6) roost = { x: r.left + spot.x * scale, y };
+  }
   const current = currentEl ? els.indexOf(currentEl) : -1;
   return {
     els,
+    roostEl,
     layout: {
       headings: els.map((el, id) => ({ id, lines: headingLines(el) })),
       obstacles,
       view: { left: 4, top, right: vw - 4, bottom: vh - 6 },
       owl: OWL_BODY,
+      roost,
       current: current < 0 ? null : current,
     },
   };
@@ -556,17 +570,18 @@ function Owl() {
 
     /** Look at the page and decide where to be; fly there if that is somewhere new. */
     const decide = (animate: boolean) => {
-      const { layout, els } = readLayout(aim?.el ?? null);
+      const { layout, els, roostEl } = readLayout(aim?.el ?? null);
       const p = choosePerch(layout);
       el.dataset.visibleHeadings = String(layout.headings.filter((h) => isVisible(h, layout.view, layout.owl)).length);
       const before = pos;
       route = null;
       landed = null;
-      if (p) {
-        const r = els[p.heading].getBoundingClientRect();
-        aim = { el: els[p.heading], id: p.heading, kind: p.kind, dx: p.x - r.left, dy: p.y - r.top };
+      const anchor = p ? (p.kind === "roost" ? roostEl : els[p.heading]) : null;
+      if (p && anchor) {
+        const r = anchor.getBoundingClientRect();
+        aim = { el: anchor, id: p.heading, kind: p.kind, dx: p.x - r.left, dy: p.y - r.top };
       } else aim = null;
-      el.dataset.owlHeading = aim ? String(aim.id) : "";
+      el.dataset.owlHeading = aim && aim.id >= 0 ? String(aim.id) : "";
       const to = target();
       if (!to) return;
       const dist = before ? Math.hypot(to.x - before.x, to.y - before.y) : 0;
@@ -616,8 +631,9 @@ function Owl() {
       const header = document.querySelector("header")?.getBoundingClientRect();
       const under = aim !== null && !flying && header !== undefined && pos.y - window.scrollY - OWL_BODY.h < header.bottom;
       el.style.opacity = under ? "0" : "1";
-      el.dataset.owlState = flying ? "flying" : aim ? "perched" : "home";
-      if (now - lastPaint > 1000 / FPS) { lastPaint = now; f++; paint(flying); }
+      el.dataset.owlState = flying ? "flying" : !aim ? "home" : aim.kind === "roost" ? "roost" : "perched";
+      // wings beat faster than anything else on the page moves
+      if (now - lastPaint > 1000 / (flying ? 22 : FPS)) { lastPaint = now; f++; paint(flying); }
     };
     raf = requestAnimationFrame(tick);
     // for the end-to-end test and for debugging: what the owl sees right now

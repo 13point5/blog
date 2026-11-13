@@ -87,6 +87,20 @@ test("moves on once its heading leaves the screen", () => {
   assert.equal(choosePerch(layout([gone, next], [], { current: 0 })).heading, 1);
 });
 
+test("the roost wins over a heading whenever the owl fits there", () => {
+  const h = heading(0, line(20, 300, 150));
+  const picture = { left: 0, top: 560, right: 390, bottom: 838 }; // the roost is inside a picture: that must not stop it
+  const p = choosePerch(layout([h], [picture], { roost: { x: 60, y: 700 }, current: 0 }));
+  assert.deepEqual(p, { heading: -1, kind: "roost", x: 60, y: 700 });
+});
+
+test("a roost that is off screen, or too close to the edge for an owl, is ignored", () => {
+  const h = heading(0, line(20, 300, 150));
+  assert.equal(choosePerch(layout([h], [], { roost: { x: 60, y: 1200 } })).kind, "beside");
+  assert.equal(choosePerch(layout([h], [], { roost: { x: 60, y: 100 } })).kind, "beside", "its head would be under the header");
+  assert.equal(choosePerch(layout([], [], { roost: { x: 60, y: 1200 } })), null);
+});
+
 test("never stands on a picture or a button that sits beside the heading", () => {
   const l = line(20, 300, 150);
   const button = { left: 180, top: 290, right: 380, bottom: 340 };

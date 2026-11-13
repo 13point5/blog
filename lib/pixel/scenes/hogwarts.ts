@@ -8,6 +8,14 @@ import { hash, type Gfx, type Scene } from "../engine";
 
 const W = 176, H = 112;
 
+// The signpost by the path. The owl likes to sit on it.
+const SIGN = { left: -80, top: 62, w: 37, h: 9 }; // measured from the castle's centre line
+
+/** Where the owl stands on the sign, in the scene's own pixels, for a canvas `cols` wide. */
+export function signRoost(cols: number) {
+  return { x: Math.floor(cols / 2) + SIGN.left + SIGN.w / 2, y: SIGN.top, plank: SIGN.h };
+}
+
 type Pal = {
   stone: string; lit: string; shade: string; roof: string; roofLit: string; rock: string; rockLit: string; rockDk: string;
   fir: string; firLit: string; slit: string; cloud: string; cloudLo: string; sign: string; ink: string;
@@ -114,7 +122,7 @@ function paintFront(l: Gfx, w: number, P: Pal, night: boolean) {
   l.rect(sx, 58, 2, H - 58, P.ink);
   l.rect(sx - 2, 50, 6, 8, P.ink); l.rect(sx - 1, 52, 4, 5, night ? "#ffcf6b" : "#c9d2d6");
   l.rect(sx - 1, 48, 4, 2, P.ink); l.px(sx, 47, P.ink);
-  l.rect(sx + 2, 62, 37, 9, P.ink); l.rect(sx + 3, 63, 35, 7, P.sign);
+  l.rect(cx + SIGN.left, SIGN.top, SIGN.w, SIGN.h, P.ink); l.rect(cx + SIGN.left + 1, SIGN.top + 1, SIGN.w - 2, SIGN.h - 2, P.sign);
   l.rect(sx + 38, 64, 2, 5, P.ink); l.px(sx + 40, 66, P.ink); // a pointed end
   l.text("HOGWARTS", sx + 5, 64, P.ink);
 }

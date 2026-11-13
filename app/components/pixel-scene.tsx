@@ -209,6 +209,7 @@ export function PixelScene({ scene, className, interactive, wide, maxPx = 640, i
       ref={ref}
       width={cols}
       height={rows}
+      data-scene={scene}
       role="img"
       aria-label={def.alt}
       className={cn("pixelated block w-full select-none", (interactive || SCENE_SOUNDS[scene]) && "cursor-pointer touch-manipulation", className)}
