@@ -1,74 +1,37 @@
 import { Gfx, hash, type Rng, type Scene } from "../engine";
-import { chime, pluck, rumble, whoosh } from "@/lib/audio";
+import { rumble } from "@/lib/audio";
 
-// The grand staircase, seen from the front like a stage set, with the library
-// along its lower floors. Stone towers stand along the hall, each with arched
-// doors and balconies; pale flights of stairs cross the gaps between them, and
-// above the ground floor every one of them swings round to the other side when
-// it feels like it, carrying whoever is on it. The walls are two tiers of
-// bookcases below and portraits above, and the portraits are alive: they look
-// about, visit each other's frames and pass remarks. One of them, a lady in a
-// white gown, is a door, and wants the password. Ghosts drift through, books
-// fly themselves back to their shelves, and the people on the balconies send
-// spells across the hall.
+// A library with moving stairs, seen from the front like a stage set, in one
+// fixed view. Stone towers stand along the hall with arched doors and
+// balconies; three tiers of bookcases line the wall behind, with a tall window
+// in every gap. Pale flights of stairs cross between the towers, and above the
+// ground floor each one swings round to the other side when it feels like it.
 //
-// The hall is much bigger than the picture. It is eight storeys tall, under a
-// vault open to the night sky, and it goes on sideways for ever, the same pair
-// of towers over and over. The picture is a window that travels: it rests on
-// the ground floor, climbs, slides along, rises to the vault and comes down
-// again further along the hall.
+// Nothing here is scripted. People are made up as they are needed: someone
+// comes in through a door, decides where they are going, finds stairs that
+// lead there (waiting for a flight to come round if they must), and leaves by
+// another door. Some stop to browse, and the book they want flies down to
+// them. Books also shelve themselves and visit the readers at the desks.
+//
+// The hall repeats sideways for ever, the same pair of towers over and over,
+// so the picture can be any width.
 
-const W = 390, H = 250; // the window at zoom 1, in pixels
+const W = 390, H = 260; // the picture, in pixels
 const F = 2; // the hall is laid out in units and drawn twice as fine: two pixels to a unit
 const T = 2; // the world is redrawn twice per beat (a beat is a twelfth of a second)
-const HW = 360; // the hall, floor to vault, in units
+const HW = H / F; // the hall is exactly as tall as the picture, in units
 const BAY = 110; // tower to tower
 const PERIOD = 2 * BAY; // the hall repeats every two towers
 const PIER = 13; // half the width of a tower
 const RUN = BAY - 2 * PIER; // how far a flight travels
 const STEPS = 21, GOING = 4, RISE = 2; // each step: 4 along, 2 up
 const STOREY = STEPS * RISE;
-const TOP_STOREY = 7; // the highest balconies
 const FLOOR = HW - 10; // row of the floor at the towers' front face
-const G = FLOOR - 156; // rows of the ground-floor furniture are written as G + something
+const G = FLOOR - 156; // rows of the furniture are written as G + something
 const K = 0.25; // one unit of depth toward the viewer moves a point this far down the picture
 const DEEP = 20; // stairs and balconies are this deep
 const WALL_BASE = FLOOR - 10; // the back wall stands 40 units behind the towers
 const RAIL = 9; // height of a handrail
-const VAULT = 36; // the towers end here; above is the vault
-
-// The camera's lap, as a game would cut it: a wide shot of the ground floor,
-// in close on the lady while she lets her caller in, back out and up the
-// stairs, along the hall, up to the vault, and down to the next lady's door.
-// Times are milliseconds into the lap; positions are units, with the lap's
-// own starting column as zero. A shot is clamped so it never looks outside
-// the hall, which is how "as low as it goes" and "as high" are written.
-const LAP_MS = 30000;
-const LADY_Y = FLOOR - STOREY - 13;
-const SHOTS = [
-  { ms: 0, x: 0, y: Infinity, zoom: 0.8 },
-  { ms: 2500, x: 0, y: Infinity, zoom: 0.8 },
-  { ms: 4500, x: 11, y: LADY_Y, zoom: 1.6 },
-  { ms: 11500, x: 11, y: LADY_Y, zoom: 1.6 },
-  { ms: 14000, x: 0, y: FLOOR - 3 * STOREY - 10, zoom: 0.9 },
-  { ms: 15500, x: 0, y: FLOOR - 3 * STOREY - 10, zoom: 0.9 },
-  { ms: 19500, x: PERIOD, y: FLOOR - 3.5 * STOREY, zoom: 1.1 },
-  { ms: 20500, x: PERIOD, y: FLOOR - 3.5 * STOREY, zoom: 1.1 },
-  { ms: 23500, x: PERIOD, y: -Infinity, zoom: 0.9 },
-  { ms: 25500, x: PERIOD, y: -Infinity, zoom: 0.9 },
-  { ms: LAP_MS, x: 2 * PERIOD, y: Infinity, zoom: 0.8 },
-];
-/** Where the camera is at a given moment: the middle of its view (in pixels) and its zoom. */
-function camera(ms: number, _cols: number, rows: number) {
-  const lap = Math.floor(ms / LAP_MS), t = ms - lap * LAP_MS;
-  let i = 0;
-  while (i < SHOTS.length - 2 && t >= SHOTS[i + 1].ms) i++;
-  const a = SHOTS[i], b = SHOTS[i + 1], p = Math.min(1, Math.max(0, (t - a.ms) / (b.ms - a.ms)));
-  const e = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; // ease in and out
-  const inside = (y: number, zoom: number) => { const half = rows / zoom / F / 2; return Math.max(half, Math.min(HW - half, y)); };
-  const zoom = a.zoom + (b.zoom - a.zoom) * e, ya = inside(a.y, a.zoom), yb = inside(b.y, b.zoom);
-  return { x: (lap * 2 * PERIOD + a.x + (b.x - a.x) * e) * F, y: inside(ya + (yb - ya) * e, zoom) * F, zoom };
-}
 const SWING = 44; // frames a flight takes to swing round
 
 const C = {
@@ -81,11 +44,6 @@ const C = {
   tile: "#75604a", tile2: "#665240", dark: "#17100b", glow: "#ffcf6a", ink: "#1a120e", paper: "#fdf8ea",
 };
 const SPINES = ["#a8402f", "#c9973a", "#4a6a44", "#3a5a82", "#d8c08a", "#7a4468", "#b5622f", "#8a9a62", "#2f2a26"];
-const CANVAS = ["#2e2a3a", "#33402f", "#4a2a26", "#27333f", "#3d3020"];
-// old paint: what the sitters in the portraits wear is duller than what the living wear
-const PAINT = ["#7a3432", "#2c5a48", "#3f4482", "#96783a", "#5c3560", "#b9b2a4", "#3a3a40"];
-const MAGIC = ["#ff7a6b", "#6fe394", "#74baff", "#ffd96a", "#c996ff", "#7ff0e6"];
-
 // --- people ----------------------------------------------------------------
 const SKINS = ["#f7dcc0", "#eac09a", "#d19a6c", "#a9714a", "#7b4a2d", "#56331f"];
 const HAIRS = ["#17110d", "#2e1d12", "#6b4423", "#b5622f", "#e6c66f", "#a9a9a4"];
@@ -313,7 +271,7 @@ function flight(g: Gfx, cx: number, level: number, a: number, walkers: Walker[] 
 // handrail in front of them. Only a flight in mid-swing is drawn step by step.
 const KEPT = new Map<number, [HTMLCanvasElement, HTMLCanvasElement]>();
 const KEPT_W = F * RUN + 12, KEPT_H = F * (STOREY + RISE + RAIL + 10) + 16;
-function docked(g: Gfx, cx: number, level: number, dir: 1 | -1, walkers: Walker[]) {
+function still(g: Gfx, cx: number, level: number, dir: 1 | -1, walkers: Walker[]) {
   const ox = dir > 0 ? F * PIER - 6 : -F * (PIER + RUN) - 6, oy = F * (FLOOR - STOREY - RISE - RAIL) - 12;
   let kept = KEPT.get(dir);
   if (!kept) {
@@ -329,6 +287,12 @@ function docked(g: Gfx, cx: number, level: number, dir: 1 | -1, walkers: Walker[
     }
   });
   g.ctx.drawImage(kept[1], x, y, KEPT_W / F, KEPT_H / F);
+}
+
+/** A flight at whatever angle it is at: from the kept pictures if it is at rest, step by step if it is swinging. */
+function stairs(g: Gfx, cx: number, level: number, a: number, walkers: Walker[]) {
+  if (a === 0 || a === Math.PI) still(g, cx, level, a === 0 ? 1 : -1, walkers);
+  else flight(g, cx, level, a, walkers);
 }
 
 /** A pointed opening: `wd` wide (odd), `ht` tall, standing on `base`, centred on `mx`. */
@@ -371,179 +335,28 @@ function windowAt(g: Gfx, mx: number, base: number, ht: number, night: boolean, 
 }
 
 type Tower = { k: number; x: number; even: boolean };
+const tower = (k: number): Tower => ({ k, x: k * BAY, even: k % 2 === 0 });
 /** The towers whose stairs could show between two columns of the hall. */
 function towersIn(x0: number, x1: number): Tower[] {
   const out: Tower[] = [];
-  for (let k = Math.floor(x0 / BAY) - 1; k <= Math.ceil(x1 / BAY) + 1; k++) out.push({ k, x: k * BAY, even: k % 2 === 0 });
+  for (let k = Math.floor(x0 / BAY) - 1; k <= Math.ceil(x1 / BAY) + 1; k++) out.push(tower(k));
   return out;
 }
-/** Which storeys a tower has a balcony on: the odd ones for even towers, the even ones for the towers between. */
-const storeys = (t: { even: boolean }) => (t.even ? [1, 3, 5, 7] : [2, 4, 6]);
+/** The storey a tower has its balcony on: the first for even towers, the second for the towers between. */
+const balcony = (t: { even: boolean }) => (t.even ? 1 : 2);
 const DESK = 7; // where the reading desk stands, measured from the even tower
 /** A way of placing things in a gap, measured outward from its even tower at `x`, so that left mirrors right. */
 const across = (x: number, dir: number) => (u: number, wd = 0) => (dir > 0 ? x + PIER + u : x - PIER - u - wd);
-// floating candles in each gap, all the way up: [distance from the even tower, row]
-const CANDLES: [number, number][] = [];
-for (let row = 46, i = 0; row < FLOOR - 26; row += 14, i++) CANDLES.push([6 + Math.floor(hash(i, 1, 60) * 72), row + Math.floor(hash(i, 2, 60) * 9)]);
-// tall windows in the back wall: the rows their sills are on
-const WINDOWS = [WALL_BASE - 88, WALL_BASE - 88 - 3 * STOREY];
-const WINDOW_H = 54;
-/** The row where the vault's stone meets the sky, above column `x` of the hall. Its arches spring from tower to tower. */
-function vaultRow(x: number) {
-  const m = ((x % BAY) + BAY) % BAY, d = Math.min(m, BAY - m);
-  return d <= PIER ? VAULT - 14 : Math.round(VAULT - 30 * Math.sin(((d - PIER) / (BAY / 2 - PIER)) * (Math.PI / 2)));
-}
+// the tall window in each gap: the row its sill is on, and its height
+const SILL = WALL_BASE - 48, WINDOW_H = 54;
+// rows of shelf a book can leave from or go back to
+const SHELF_ROWS = [G + 69, G + 75, G + 81, G + 87, G + 109, G + 115, G + 121, G + 127];
 
-// --- the portraits ---------------------------------------------------------
-type Portrait = { x: number; y: number; w: number; h: number; frame: number; bg: number; look: number; seed: number; mate: number; caller: number };
-
-/**
- * Hang portraits edge to edge over the upper walls of one stretch of hall (it
- * repeats), and pair some off as neighbours who visit.
- */
-function hang(): Portrait[] {
-  const out: Portrait[] = [];
-  for (const [ox, dir] of [[0, 1], [PERIOD, -1]]) {
-    const X = across(ox, dir);
-    // either side of the windows all the way up, and between the windows where there is room
-    const fields = [[1, 32, 42, G + 60], [52, 83, 42, G + 60], [34, 50, 42, WINDOWS[1] - WINDOW_H - 4], [34, 50, WINDOWS[1] + 5, WINDOWS[0] - WINDOW_H - 4]];
-    fields.forEach(([u0, u1, top, end], fi) => {
-      const seed = 40 + fi * 5;
-      let y = top, row = 0;
-      while (y + 9 <= end) {
-        const rowH = Math.min(end - y, 10 + Math.floor(hash(row, seed, 11) * 6));
-        let u = u0 + Math.floor(hash(row, seed, 12) * 2), n = 0, prev = -1;
-        while (u + 7 <= u1) {
-          const id = row * 9 + n + fi * 500;
-          const fw = Math.min(u1 - u, 7 + Math.floor(hash(id, seed, 13) * 6));
-          const fh = Math.max(9, rowH - Math.floor(hash(id, seed, 14) * 3));
-          out.push({
-            x: X(u, fw), y: y + Math.floor((rowH - fh) / 2), w: fw, h: fh, mate: -1, caller: -1,
-            frame: hash(id, seed, 15) < 0.7 ? 0 : hash(id, seed, 15) < 0.88 ? 1 : 2,
-            bg: Math.floor(hash(id, seed, 16) * (CANVAS.length + 2)), look: Math.floor(hash(id, seed, 17) * 9973) + (dir > 0 ? 0 : 5000), seed: id * 31 + seed * 7 + (dir > 0 ? 0 : 3),
-          });
-          if (prev >= 0 && hash(id, seed, 19) < 0.45) out[prev].mate = out.length - 1;
-          prev = out.length - 1;
-          u += fw + 1 + Math.floor(hash(id, seed, 18) * 2);
-          n++;
-        }
-        y += rowH + 1;
-        row++;
-      }
-    });
-  }
-  out.forEach((p, i) => { if (p.mate >= 0) out[p.mate].caller = i; });
-  return out;
-}
-
-/** The painted part of a portrait, inside its frame, in pixels. */
-const canvasOf = (p: Portrait, px: number) => ({ x: F * px + 4, y: F * p.y + 4, w: F * p.w - 8, h: F * p.h - 8 });
-
-type Patch = { x: number; y: number; w: number; h: number };
-/** Whoever lives in a portrait, painted into the patch `a`, `dx` pixels to one side of its middle and cut off at its edges. */
-function paintSitter(g: Gfx, a: Patch, look: number, dx: number, blink: boolean) {
-  const x1 = a.x + a.w, y1 = a.y + a.h;
-  const R = (x: number, y: number, rw: number, rh: number, c: string) => {
-    const l = Math.max(a.x, x), r = Math.min(x1, x + rw), t = Math.max(a.y, y), b = Math.min(y1, y + rh);
-    if (r > l && b > t) g.rect(l, t, r - l, b - t, c);
-  };
-  const mx = a.x + Math.floor(a.w / 2) + dx, top = a.y + (a.h > 16 ? 3 : 1);
-  const robe = pick(PAINT, look, 3), robeDk = tint(robe, 0.75), kind = Math.floor(hash(look, 0, 50) * 5);
-  const hair = pick(HAIRS, look, 1), skin = pick(SKINS, look, 2), skinDk = tint(skin, 0.8);
-  // shoulders first, then the head on top of them
-  R(mx - 3, top + 8, 7, 2, robe); R(mx - 5, top + 9, 11, a.h, robe); R(mx - 7, top + 12, 15, a.h, robe);
-  R(mx + 3, top + 9, 3, a.h, robeDk); R(mx + 5, top + 12, 3, a.h, robeDk);
-  R(mx - 1, top + 8, 3, 3, "#d8cfb8"); R(mx, top + 11, 1, a.h, tint(robe, 1.25));
-  R(mx - 1, top + 7, 3, 1, skinDk);
-  R(mx - 2, top + 1, 5, 6, skin); R(mx + 2, top + 2, 1, 4, skinDk);
-  if (!blink) { R(mx - 1, top + 3, 1, 1, C.ink); R(mx + 1, top + 3, 1, 1, C.ink); }
-  R(mx, top + 5, 1, 1, skinDk);
-  if (kind === 0) { R(mx - 3, top, 7, 1, robeDk); R(mx - 1, top - 2, 3, 2, robeDk); R(mx, top - 3, 1, 1, robeDk); } // a hat
-  else {
-    R(mx - 2, top, 5, 2, hair); R(mx - 3, top + 1, 1, kind === 2 ? 7 : 3, hair); R(mx + 3, top + 1, 1, kind === 2 ? 7 : 3, hair);
-    if (kind === 3) { R(mx - 2, top + 5, 5, 2, hair); R(mx - 1, top + 7, 3, 2, hair); } // a beard
-    if (kind === 4) { R(mx - 3, top - 1, 7, 2, "#e9e2d0"); R(mx - 3, top + 1, 1, 6, "#e9e2d0"); R(mx + 3, top + 1, 1, 6, "#cfc7b2"); } // a white cap or wig
-  }
-}
-const SITTER_KEPT = new Map<string, HTMLCanvasElement>();
-/**
- * Whoever lives in a portrait, `dx` units to one side of its middle. Sitting
- * still (which is most of the time) they are painted once and kept.
- */
-function sitter(g: Gfx, p: Portrait, px: number, look: number, dx: number, blink: boolean) {
-  fine(g, () => {
-    const a = canvasOf(p, px);
-    if (dx !== 0) return paintSitter(g, a, look, Math.round(dx * F), blink);
-    const key = a.w + "x" + a.h + ":" + look + (blink ? "b" : "");
-    let kept = SITTER_KEPT.get(key);
-    if (!kept) {
-      if (SITTER_KEPT.size > 900) SITTER_KEPT.clear();
-      SITTER_KEPT.set(key, (kept = canvas(a.w, a.h, (l) => paintSitter(l, { x: 0, y: 0, w: a.w, h: a.h }, look, 0, blink))));
-    }
-    g.ctx.drawImage(kept, a.x, a.y);
-  });
-}
-
-/**
- * The portrait that is a door, shut: an arched gilt frame; sky, leaves
- * overhead, cypresses and a little temple on a hill; and on the steps a lady
- * in a white gown with a wreath in her dark hair. Placed in units, drawn in
- * pixels, about 35 by 58.
- */
-function ladyPortrait(g: Gfx, x: number, y: number, singing: boolean, f: number) {
-  fine(g, () => {
-    const X = F * x + 1, Y = F * y, skin = "#e6b990", skinDk = "#c9966b", hair = "#2a1c14", white = "#f3eee2", fold = "#cfc6b4", foldDk = "#b3a994";
-    arch(g, X, Y, 35, 58, C.giltDk); arch(g, X, Y, 33, 57, C.gilt); arch(g, X - 1, Y, 31, 56, C.giltHi); arch(g, X, Y, 31, 55, C.gilt);
-    arch(g, X, Y - 2, 27, 53, C.giltDk);
-    // sky, clouds, and leaves hanging in at the top
-    arch(g, X, Y - 3, 25, 51, "#8fb9d6");
-    g.rect(X - 12, Y - 40, 25, 8, "#a9cfe3"); g.rect(X - 12, Y - 34, 25, 6, "#cfe6ee");
-    g.rect(X - 4, Y - 44, 7, 2, "#f2f8fa"); g.rect(X - 2, Y - 45, 4, 1, "#f2f8fa"); g.rect(X + 5, Y - 39, 5, 1, "#f2f8fa");
-    for (const [dx, dy, w] of [[-9, -49, 5], [-11, -47, 4], [-12, -45, 3], [5, -49, 5], [8, -47, 4], [10, -45, 2], [-8, -46, 2], [6, -45, 2]]) g.rect(X + dx, Y + dy, w, 2, (dx + dy) % 2 ? "#3f6f34" : "#5c8f45");
-    // the hill, the temple and two cypresses
-    g.rect(X - 12, Y - 29, 25, 7, "#7fa05c"); g.rect(X - 12, Y - 29, 25, 1, "#9bb873"); g.rect(X - 12, Y - 25, 12, 3, "#6b8c4c");
-    g.rect(X + 4, Y - 35, 8, 6, "#f1e8d2"); g.rect(X + 3, Y - 37, 10, 2, "#dccfb0"); g.rect(X + 5, Y - 38, 6, 1, "#dccfb0"); g.rect(X + 7, Y - 39, 2, 1, "#dccfb0");
-    for (let i = 0; i < 4; i++) g.rect(X + 5 + i * 2, Y - 35, 1, 6, "#b9ad92");
-    g.rect(X - 11, Y - 39, 2, 11, "#2f5a34"); g.rect(X - 10, Y - 41, 1, 2, "#2f5a34"); g.rect(X - 8, Y - 35, 2, 7, "#3a6a3c");
-    // the steps she sits on
-    g.rect(X - 12, Y - 22, 25, 19, "#d8ceb6"); g.rect(X - 12, Y - 22, 25, 1, "#ebe3cf");
-    g.rect(X - 12, Y - 15, 25, 1, "#b3a88e"); g.rect(X - 12, Y - 14, 25, 1, "#ebe3cf"); g.rect(X - 12, Y - 8, 25, 1, "#b3a88e"); g.rect(X - 12, Y - 7, 25, 1, "#ebe3cf");
-    // the gown: bodice, lap, and skirts spreading over the steps
-    g.rect(X - 6, Y - 30, 13, 8, white); g.rect(X - 8, Y - 23, 17, 12, white); g.rect(X - 10, Y - 13, 21, 10, white);
-    g.rect(X + 4, Y - 30, 3, 8, fold); g.rect(X + 6, Y - 23, 3, 12, fold); g.rect(X + 8, Y - 13, 3, 10, fold);
-    for (const [dx, dy, h] of [[-5, -21, 16], [-1, -19, 15], [3, -22, 18], [-8, -11, 7]]) { g.rect(X + dx, Y + dy, 1, h, fold); g.rect(X + dx + 1, Y + dy + 2, 1, h - 3, foldDk, 0.5); }
-    g.rect(X - 6, Y - 24, 13, 1, foldDk); g.rect(X - 10, Y - 4, 21, 1, foldDk);
-    // shoulders, arms, and her head on one side
-    g.rect(X - 4, Y - 33, 9, 4, skin); g.rect(X - 2, Y - 30, 5, 1, skinDk);
-    g.rect(X - 8, Y - 31, 3, 11, skin); g.rect(X - 8, Y - 31, 1, 11, skinDk); g.rect(X - 7, Y - 21, 4, 3, skin);
-    if (singing) {
-      // a glass raised, and a note held
-      g.rect(X + 6, Y - 31, 3, 4, skin); g.rect(X + 8, Y - 40, 2, 10, skin); g.rect(X + 9, Y - 40, 1, 10, skinDk);
-      g.rect(X + 7, Y - 46, 5, 4, "#e4f6ff"); g.rect(X + 8, Y - 45, 3, 2, "#b84a5a"); g.rect(X + 9, Y - 42, 1, 2, "#e4f6ff");
-    } else { g.rect(X + 6, Y - 31, 3, 9, skin); g.rect(X + 8, Y - 31, 1, 9, skinDk); g.rect(X + 3, Y - 23, 5, 3, skin); }
-    g.rect(X - 1, Y - 35, 3, 2, skinDk);
-    g.rect(X - 3, Y - 42, 7, 8, skin); g.rect(X + 3, Y - 41, 1, 6, skinDk); g.rect(X - 2, Y - 34, 5, 1, skin);
-    g.px(X - 2, Y - 39, C.ink); g.px(X + 2, Y - 39, C.ink); g.px(X - 2, Y - 40, hair); g.px(X + 2, Y - 40, hair);
-    g.px(X - 3, Y - 37, "#e39a8c"); g.px(X + 3, Y - 37, "#e39a8c");
-    if (singing && Math.floor(f / 3) % 2) g.rect(X - 1, Y - 37, 3, 2, "#4a1612"); else g.rect(X - 1, Y - 36, 3, 1, "#a8402f");
-    // dark curls, and a wreath of leaves and flowers
-    g.rect(X - 4, Y - 45, 9, 4, hair); g.rect(X - 5, Y - 44, 2, 9, hair); g.rect(X + 4, Y - 44, 2, 9, hair); g.rect(X - 6, Y - 41, 1, 5, hair); g.rect(X + 6, Y - 41, 1, 5, hair);
-    g.px(X - 3, Y - 44, "#5a4030"); g.px(X + 2, Y - 43, "#5a4030");
-    for (let i = 0; i < 9; i++) g.px(X - 4 + i, Y - 46 + (i % 3 === 1 ? 1 : 0), i % 3 === 0 ? "#e58aa6" : i % 3 === 1 ? "#4f8a3f" : "#7bb060");
-  });
-}
-
-const LADY_EVERY = 4; // the lady's portrait hangs on every fourth tower
-const LADY_STOREY = 1; // on the balcony over the great door, in the middle of the opening picture
-const LADY_LAP = (LAP_MS / 1000) * 12; // her exchange keeps time with the camera's lap
-const LADY_AT = 48; // the beat of each lap on which she notices her caller, just as the camera closes in
-
-/** Everything that never moves, for one stretch of the hall: walls, floor, vault, towers, balconies. */
-function paintHall(l: Gfx, hung: Portrait[]) {
+/** Everything that never moves, for one stretch of the hall: walls, bookcases, floor, towers, balconies. */
+function paintHall(l: Gfx) {
   /** how far column `x` is from the nearest even tower */
   const from = (x: number) => Math.min(x, PERIOD - x);
   l.rect(0, 0, PERIOD, HW, C.wall);
-  // the back wall, in courses of stone
   for (let y = 0; y < WALL_BASE; y += 4) for (let x = 0; x < PERIOD; x++) {
     const i = Math.floor((from(x) + ((y >> 2) % 2) * 4) / 8), tone = hash(i, y, 21);
     if (tone < 0.3) l.rect(x, y, 1, 4, tone < 0.15 ? C.wall2 : C.wall3);
@@ -564,53 +377,22 @@ function paintHall(l: Gfx, hung: Portrait[]) {
     });
   });
   l.rect(0, WALL_BASE, PERIOD, 1, C.mortar);
-  // the vault: pointed arches from tower to tower, and above them the night sky
-  for (let x = 0; x < PERIOD; x++) {
-    const top = vaultRow(x);
-    for (let y = 0; y < top; y++) l.px(x, y, y < 10 ? "#10153a" : y < 22 ? "#182050" : "#232c66");
-    l.rect(x, top, 1, 2, C.mouldHi); l.rect(x, top + 2, 1, 1, C.mould);
-    for (let i = 0; i < 8; i++) l.px(x, top + 3 + i, "#0d0906", (8 - i) * 0.05);
-  }
-
-  // the frames, bevelled, and their painted backgrounds; whoever lives in them is drawn every frame
-  fine(l, () => {
-    for (const p of hung) {
-      const X = F * p.x, Y = F * p.y, wd = F * p.w, ht = F * p.h, a = canvasOf(p, p.x);
-      const [edge, body, lit] = [[C.giltDk, C.gilt, C.giltHi], ["#5e4516", C.giltDk, C.gilt], ["#1c120b", "#3a2616", "#5a3d24"]][p.frame];
-      l.rect(X, Y, wd, ht, edge); l.rect(X + 1, Y + 1, wd - 2, ht - 2, body);
-      l.rect(X + 1, Y + 1, wd - 2, 1, lit); l.rect(X + 1, Y + 1, 1, ht - 2, lit);
-      l.rect(X + 3, Y + 3, wd - 6, ht - 6, edge);
-      if (p.bg < CANVAS.length) {
-        // old varnish: lighter toward the top, dark along the bottom
-        l.rect(a.x, a.y, a.w, a.h, CANVAS[p.bg]);
-        l.rect(a.x, a.y, a.w, Math.floor(a.h / 3), tint(CANVAS[p.bg], 1.12));
-        l.rect(a.x, a.y + a.h - 2, a.w, 2, tint(CANVAS[p.bg], 0.8));
-      } else {
-        // some sit out of doors: sky, a far hill, a tree
-        const out = p.bg === CANVAS.length, half = Math.floor(a.h * 0.55);
-        l.rect(a.x, a.y, a.w, a.h, out ? "#6f8fa0" : "#c0905e"); l.rect(a.x, a.y + half - 3, a.w, 3, out ? "#93adb8" : "#d8ab78");
-        l.rect(a.x, a.y + half, a.w, a.h - half, out ? "#3f5a3a" : "#5a3f2a"); l.rect(a.x, a.y + half, a.w, 1, out ? "#56764a" : "#75553a");
-        l.rect(a.x + 1, a.y + half - 5, 2, 5, out ? "#2c4a30" : "#3f2c1c"); l.rect(a.x, a.y + half - 7, 4, 3, out ? "#35583a" : "#4a3422");
-      }
-    }
-  });
 
   // the gaps between towers, each drawn outward from its even tower so that left mirrors right
   for (const [ox, dir] of [[0, 1], [PERIOD, -1]]) {
     const X = across(ox, dir);
     const R = (u: number, y: number, rw: number, rh: number, c: string) => l.rect(X(u, rw), y, rw, rh, c);
-    for (const sill of WINDOWS) windowAt(l, X(42), sill, WINDOW_H, false);
-    // the library: two tiers of bookcases, the upper one reached from a gallery with a brass rail
-    const shelves = (top: number, n: number, sd: number) => {
-      R(0, top, RUN, n * 6, "#22150c");
+    /** a bookcase `n` shelves tall from the row `top`, between two distances from the even tower */
+    const shelves = (top: number, n: number, sd: number, u0 = 0, u1 = RUN) => {
+      R(u0, top, u1 - u0, n * 6, "#22150c");
       fine(l, () => {
-        const span = RUN * F;
+        const lo = F * u0, hi = F * u1;
         const P = (u: number, y: number, rw: number, rh: number, c: string) => l.rect(dir > 0 ? F * (ox + PIER) + u : F * (ox - PIER) - u - rw, y, rw, rh, c);
         for (let shelf = 0; shelf < n; shelf++) {
           const base = F * (top + shelf * 6) + 10; // the board the books stand on
-          P(0, base, span, 1, C.oakHi); P(0, base + 1, span, 1, C.oak);
-          P(0, base - 10, span, 2, "#150c06"); // the shadow of the shelf above
-          for (let u = 1; u < span - 4; ) {
+          P(lo, base, hi - lo, 1, C.oakHi); P(lo, base + 1, hi - lo, 1, C.oak);
+          P(lo, base - 10, hi - lo, 2, "#150c06"); // the shadow of the shelf above
+          for (let u = lo + 1; u < hi - 4; ) {
             const id = u + shelf * 997, kind = hash(id, sd, 1);
             if (kind < 0.07) { u += 3 + Math.floor(hash(id, sd, 2) * 4); continue; } // a gap
             if (kind < 0.13) {
@@ -631,32 +413,42 @@ function paintHall(l: Gfx, hung: Portrait[]) {
             u += wd;
           }
         }
-        for (let u = 0; u <= span - 4; u += 42) {
-          const x = Math.min(u, span - 4);
+        for (let u = lo; u <= hi - 4; u += 42) {
+          const x = Math.min(u, hi - 4);
           P(x, F * top, 4, n * 12, C.oak); P(x, F * top, 1, n * 12, C.oakHi); P(x + 3, F * top, 1, n * 12, C.oakDk);
         }
+        P(hi - 4, F * top, 4, n * 12, C.oak); P(hi - 4, F * top, 1, n * 12, C.oakHi);
       });
     };
-    R(0, G + 62, RUN, 3, C.oakDk); R(0, G + 62, RUN, 1, C.oakHi);
-    shelves(G + 65, 6, 40);
+    // three tiers of bookcases; the upper two stand either side of a tall window
+    for (const [u0, u1] of [[0, 32], [52, RUN]]) {
+      shelves(2, 4, 31 + u0, u0, u1);
+      R(u0, G + 62, u1 - u0, 3, C.oakDk); R(u0, G + 62, u1 - u0, 1, C.oakHi);
+      shelves(G + 65, 6, 40 + u0, u0, u1);
+    }
+    windowAt(l, X(42), SILL, WINDOW_H, false);
+    // a gallery with a brass rail in front of the middle tier, and the ground-floor cases under it
     R(0, G + 101, RUN, 4, C.oakDk); R(0, G + 101, RUN, 1, C.oakHi);
     for (let u = 3; u < RUN; u += 7) R(u, G + 95, 1, 6, C.giltDk);
     R(0, G + 94, RUN, 1, C.gilt);
     shelves(G + 105, 5, 49);
     R(0, G + 135, RUN, 11, C.oak); R(0, G + 135, RUN, 1, C.oakHi);
     for (let u = 3; u < RUN - 6; u += 10) R(u, G + 138, 7, 6, C.oakDk);
+    // a rolling ladder
+    R(60, G + 106, 1, 40, "#c2925a"); R(65, G + 106, 1, 40, "#c2925a");
+    for (let y = G + 109; y < G + 146; y += 4) R(61, y, 4, 1, "#9a6f3e");
   }
 
   for (let k = -1; k <= 3; k++) {
-    const x = k * BAY, even = k % 2 === 0, top = VAULT - 14;
+    const x = k * BAY, even = k % 2 === 0;
     // the tower: lighter stone, shaded evenly down both edges
-    l.rect(x - PIER, top, PIER * 2, FLOOR - top, C.pier);
-    l.rect(x - PIER, top, 2, FLOOR - top, C.pierDk); l.rect(x + PIER - 2, top, 2, FLOOR - top, C.pierDk);
-    l.rect(x - PIER + 2, top, 1, FLOOR - top, C.pierHi); l.rect(x + PIER - 3, top, 1, FLOOR - top, C.pierHi);
+    l.rect(x - PIER, 0, PIER * 2, FLOOR, C.pier);
+    l.rect(x - PIER, 0, 2, FLOOR, C.pierDk); l.rect(x + PIER - 2, 0, 2, FLOOR, C.pierDk);
+    l.rect(x - PIER + 2, 0, 1, FLOOR, C.pierHi); l.rect(x + PIER - 3, 0, 1, FLOOR, C.pierHi);
     fine(l, () => {
       // courses of dressed stone: a dark joint with a lit edge under it, and a few stones weathered darker or paler
       const L = F * (x - PIER) + 6, wd = F * PIER * 2 - 12;
-      for (let y = F * FLOOR - 12, row = 0; y > F * top + 8; y -= 12, row++) {
+      for (let y = F * FLOOR - 12, row = 0; y > -12; y -= 12, row++) {
         l.rect(L, y, wd, 1, C.pierDk); l.rect(L, y + 1, wd, 1, C.pierHi, 0.5);
         for (const j of row % 2 ? [-10, 10] : [-20, 0, 20]) { l.rect(F * x + j, y + 1, 1, 11, C.pierDk, 0.8); l.rect(F * x + j + 1, y + 2, 1, 10, C.pierHi, 0.35); }
         for (let i = 0; i < 2; i++) {
@@ -666,7 +458,6 @@ function paintHall(l: Gfx, hung: Portrait[]) {
       }
     });
     l.rect(x - PIER - 1, FLOOR - 5, PIER * 2 + 2, 5, C.pierDk); l.rect(x - PIER - 1, FLOOR - 5, PIER * 2 + 2, 1, C.pierHi);
-    l.rect(x - PIER - 1, top, PIER * 2 + 2, 3, C.pierHi); l.rect(x - PIER - 1, top + 3, PIER * 2 + 2, 1, C.pierDk); // where the vault springs from
 
     const doorAt = (base: number, wd: number, ht: number, wooden = false) => fine(l, () => {
       const X = F * x + 1, B = F * base, W2 = F * wd + 1, H2 = F * ht, half = Math.floor(W2 / 2);
@@ -686,27 +477,11 @@ function paintHall(l: Gfx, hung: Portrait[]) {
         arch(l, X, B, W2 - 6, H2 - 8, "#2a1a0e"); arch(l, X, B, W2 - 12, H2 - 15, "#4a2c14"); arch(l, X, B, W2 - 18, H2 - 22, "#7a4a1c");
       }
     });
-    /** where a storey has no door: a suit of armour in a niche, or one very large picture */
-    const niche = (base: number) => fine(l, () => {
-      const X = F * x + 1, B = F * base - 6, st = "#aab4bf", dk = "#69727e", hi = "#dfe6ec";
-      arch(l, X, B, 27, 37, C.pierDk); arch(l, X, B, 23, 35, "#241a12"); arch(l, X, B, 17, 29, "#30241a");
-      l.rect(X - 2, B - 27, 5, 2, "#a8362e"); l.rect(X - 1, B - 29, 2, 2, "#c8473c"); // a plume
-      l.rect(X - 3, B - 25, 7, 6, st); l.rect(X - 3, B - 25, 1, 6, hi); l.rect(X - 2, B - 23, 5, 1, C.dark); l.rect(X + 3, B - 25, 1, 6, dk); // helmet and visor
-      l.rect(X - 5, B - 19, 11, 3, st); l.rect(X - 4, B - 16, 9, 7, st); l.rect(X - 4, B - 16, 1, 7, hi); l.rect(X + 3, B - 16, 2, 7, dk); l.rect(X, B - 16, 1, 7, dk); // shoulders and breastplate
-      l.rect(X - 6, B - 17, 2, 9, dk); l.rect(X + 5, B - 17, 2, 9, dk);
-      l.rect(X - 3, B - 9, 3, 8, st); l.rect(X + 1, B - 9, 3, 8, st); l.rect(X - 3, B - 5, 3, 1, dk); l.rect(X + 1, B - 5, 3, 1, dk); l.rect(X - 4, B - 1, 4, 1, dk); l.rect(X + 1, B - 1, 4, 1, dk);
-      l.rect(X + 7, B - 30, 1, 30, "#6b4423"); l.rect(X + 6, B - 33, 3, 4, hi); l.rect(X + 8, B - 31, 2, 2, st); // a halberd
-      l.rect(X - 9, B, 19, 2, C.pierHi);
-    });
-    const picture = (base: number, look: number) => fine(l, () => {
-      const X = F * x + 1, T0 = F * (base - 23), bg = CANVAS[look % CANVAS.length];
-      const skin = pick(SKINS, look, 2), hair = pick(HAIRS, look, 1), robe = pick(PAINT, look, 3);
-      l.rect(X - 15, T0, 31, 38, C.giltDk); l.rect(X - 14, T0 + 1, 29, 36, C.gilt); l.rect(X - 14, T0 + 1, 29, 1, C.giltHi); l.rect(X - 14, T0 + 1, 1, 36, C.giltHi); l.rect(X - 12, T0 + 3, 25, 32, C.giltDk);
-      l.rect(X - 11, T0 + 4, 23, 30, bg); l.rect(X - 11, T0 + 4, 23, 10, tint(bg, 1.15));
-      l.rect(X - 8, T0 + 18, 17, 16, robe); l.rect(X - 5, T0 + 16, 11, 2, robe); l.rect(X + 4, T0 + 18, 5, 16, tint(robe, 0.75));
-      l.rect(X - 2, T0 + 15, 5, 4, "#e9e2d0"); l.rect(X - 1, T0 + 14, 3, 2, tint(skin, 0.8));
-      l.rect(X - 3, T0 + 7, 7, 8, skin); l.rect(X + 3, T0 + 8, 1, 6, tint(skin, 0.8)); l.px(X - 2, T0 + 10, C.ink); l.px(X + 2, T0 + 10, C.ink); l.rect(X - 1, T0 + 13, 3, 1, tint(skin, 0.6));
-      l.rect(X - 3, T0 + 5, 7, 3, hair); l.rect(X - 4, T0 + 6, 1, 6, hair); l.rect(X + 4, T0 + 6, 1, 6, hair);
+    /** where a storey has no door: a narrow window */
+    const slit = (base: number) => fine(l, () => {
+      const X = F * x + 1, B = F * base - 8;
+      arch(l, X, B, 15, 30, C.pierHi); arch(l, X, B, 13, 29, C.pierDk); arch(l, X, B, 9, 26, "#a9c9dd"); arch(l, X, B - 8, 9, 18, "#d3e7f0");
+      l.rect(X, B - 26, 1, 26, C.pierDk); l.rect(X - 4, B - 13, 9, 1, C.pierDk); l.rect(X - 8, B, 17, 2, C.pierHi);
     });
     const lantern = (lx: number, ly: number) => fine(l, () => {
       const X = F * lx + 1, Y = F * ly;
@@ -714,12 +489,11 @@ function paintHall(l: Gfx, hung: Portrait[]) {
       l.rect(X - 3, Y + 6, 6, 1, C.dark); l.rect(X - 1, Y + 7, 2, 1, C.dark);
     });
 
-    const has = storeys({ even });
     doorAt(FLOOR, even ? 17 : 13, even ? 26 : 21, even);
     for (const sgn of [-1, 1]) lantern(x + sgn * 10, FLOOR - 22);
-    for (let st = 1; st <= TOP_STOREY; st++) {
+    for (const st of [1, 2]) {
       const y = FLOOR - st * STOREY;
-      if (!has.includes(st)) { if (st % 4 === 1 || st === 4) niche(y); else picture(y, 700 + st * 13 + (even ? 0 : 5)); continue; }
+      if (st !== balcony({ even })) { slit(y); continue; }
       doorAt(y, 13, 21);
       // the balcony: a moulded slab on corbels, turned balusters, and end posts with finials.
       // Its handrail is drawn later, over whoever stands behind it.
@@ -741,6 +515,38 @@ function paintHall(l: Gfx, hung: Portrait[]) {
   l.rect(0, HW - 1, PERIOD, 1, C.dark);
 }
 
+/** A shaft of light from the tall window: where it starts (x, top), where it ends, and how far it leans, in pixels. */
+const shaft = (mx: number, dir: number): [number, number, number, number] => [F * mx + 1, F * (SILL - WINDOW_H) + 12, F * SILL + 150, dir * 70];
+/** The lantern rows of a tower: beside the ground door, and beside the door on its balcony. */
+const lanterns = (t: { even: boolean }) => [FLOOR - 22, FLOOR - balcony(t) * STOREY - 18];
+
+/**
+ * The light of everything that stays put, for one stretch of the hall, on
+ * black: lanterns, open doorways, the desk lamps, and daylight (or moonlight)
+ * slanting in through the tall windows. It is laid over the finished picture
+ * so that it lightens whatever is under it.
+ */
+function paintLight(l: Gfx, night: boolean) {
+  const lit = night ? 1 : 0.62, ctx = l.ctx;
+  ctx.globalCompositeOperation = "lighter";
+  for (let k = -1; k <= 3; k++) {
+    const x = k * BAY, even = k % 2 === 0;
+    if (even) for (const dir of [1, -1]) {
+      const X = across(x, dir), rgb = night ? "140,170,255" : "255,240,205";
+      const [wx, top, end, lean] = shaft(X(42), dir);
+      const gr = ctx.createLinearGradient(0, top, 0, end);
+      gr.addColorStop(0, `rgba(${rgb},${night ? 0.2 : 0.26})`); gr.addColorStop(1, `rgba(${rgb},0)`);
+      ctx.fillStyle = gr;
+      ctx.beginPath(); ctx.moveTo(wx - 14, top); ctx.lineTo(wx + 14, top); ctx.lineTo(wx + 14 + lean, end); ctx.lineTo(wx - 14 + lean, end); ctx.closePath(); ctx.fill();
+      glow(l, wx, F * (SILL - WINDOW_H / 2), 64, rgb, night ? 0.2 : 0.26);
+      glow(l, F * (X(DESK, 15) + (dir > 0 ? 2 : 12)) + 1, F * (G + 138), 34, "120,235,165", 0.42 * lit);
+    }
+    for (const row of lanterns({ even })) for (const sgn of [-1, 1]) glow(l, F * (x + sgn * 10) + 1, F * row + 2, 46, "255,190,105", 0.55 * lit);
+    glow(l, F * x + 1, F * (FLOOR - balcony({ even }) * STOREY) - 18, 32, "255,160,70", 0.3 * lit);
+    if (!even) glow(l, F * x + 1, F * FLOOR - 18, 32, "255,160,70", 0.3 * lit);
+  }
+}
+
 function canvas(w: number, h: number, paint: (g: Gfx) => void) {
   const cv = document.createElement("canvas");
   cv.width = w; cv.height = h;
@@ -750,178 +556,229 @@ function canvas(w: number, h: number, paint: (g: Gfx) => void) {
 }
 
 // --- things that move ------------------------------------------------------
-type Mover = { k: number; x: number; level: number; side: 1 | -1; t0: number; next: number; look: number };
-type Ghost = { x: number; y: number; v: number; kind: number; phase: number; hurry: number };
-type Spell = { x0: number; y0: number; x1: number; y1: number; t: number; dur: number; col: string };
-type Part = { x: number; y: number; vx: number; vy: number; life: number; max: number; col: string };
-type Caster = { x: number; y: number; look: number; side: number };
-type Say = { x: number; y: number; text: string; until: number };
+type Mover = { k: number; x: number; st: number; side: 1 | -1; t0: number; next: number; a: number };
+/** A book in the air: from a point to a point, or to (or from) someone's hands. */
+type Book = { x0: number; y0: number; x1: number; y1: number; t: number; dur: number; cover: string; to?: Person; arc: number };
+/** What someone is doing right now. They do one thing at a time and think again when it is done. */
+type Doing =
+  | { is: "fade"; to: 0 | 1 }
+  | { is: "go"; x: number; y: number }
+  | { is: "wait"; beats: number }
+  | { is: "climb"; cx: number; level: number; dir: 1 | -1; up: boolean; d: number } // one of the two fixed flights from the ground floor
+  | { is: "board"; up: boolean; beats: number } // on a balcony, waiting for a flight that swings
+  | { is: "ride"; m: Mover; up: boolean; d: number }
+  | { is: "browse"; beats: number; asked: boolean };
+type Person = {
+  look: number; x: number; y: number; alpha: number; steps: number;
+  k: number; st: number; // the tower and storey they are at (or were last at)
+  want: number; // the storey they are making for; 3 means on up the stairs and out of sight
+  todo: Doing[]; book?: string; keep?: boolean; gone?: boolean;
+};
 type State = {
-  f: number; rng: Rng; cx: number; cy: number; w: number;
-  hall: HTMLCanvasElement | null; light: (HTMLCanvasElement | null)[]; ladyArt: HTMLCanvasElement | null;
-  movers: Map<string, Mover>; ladies: Map<number, number>;
-  hung: Portrait[]; ghosts: Ghost[]; spells: Spell[]; parts: Part[]; casters: Caster[]; says: Say[];
+  f: number; rng: Rng; x0: number; x1: number;
+  hall: HTMLCanvasElement | null; light: (HTMLCanvasElement | null)[];
+  movers: Map<string, Mover>; people: Person[]; books: Book[];
 };
 
-const REMARKS = ["PSST", "HM?", "SHH!", "AHEM", "OH!", "ZZZ", "HA!", "WHO?", "TUT", "I SAY"];
-const GREETINGS = ["HELLO!", "GOOD DAY", "SHH!", "WELCOME", "MIND THE STEP", "LOVELY HAT"];
+const END = PIER + RUN; // how far along a flight its top is
+const PACE = 0.7; // units walked per beat on the level
+const CLIMB = 1; // and on the stairs
+const FRONT = FLOOR + 7; // the row people walk along at the front of the hall
+/** The row someone stands on, on a balcony at storey `st`. */
+const ledge = (st: number) => FLOOR - st * STOREY + 2;
 
-const GHOSTS = [
-  // a gentleman in a ruff
-  ["...www...", "..wwwww..", "..wewew..", "..wwwww..", ".ddddddd.", "..wwwww..", ".wwwwwww.", "wwwdwdwww", "wwwwwwwww", "w.wwwww.w", "..wwwww..", "..wdwdw..", "..wwwww..", "...wwww..", "....www..", ".....ww.."],
-  // a lady in a long gown
-  ["...www...", "..wwwww..", ".dwewewd.", ".dwwwwwd.", ".d.www.d.", "..wwwww..", ".wwdddww.", ".wwwwwww.", "..wwwww..", ".wwwwwww.", ".wwwwwww.", "wwwwwwwww", "wwdwwwdww", ".wwwwwww.", "..ww.www.", "...w..ww."],
-  // a stout friar
-  ["...www...", "..ddddd..", "..wewew..", "..wwwww..", ".wwwwwww.", "wwwwwwwww", "wwwwdwwww", "wwwwdwwww", "wwwdddwww", "wwwwwwwww", ".wwwwwww.", ".wwwwwww.", "..wwwww..", "..wwww...", "...www...", "...ww...."],
-];
-
-function ghost(g: Gfx, gh: Ghost, f: number, night: boolean) {
-  const rows = GHOSTS[gh.kind % GHOSTS.length], x = Math.round(gh.x) - 4, y = Math.round(gh.y + Math.sin(f * 0.05 + gh.phase) * 3) - 8;
-  const a = night ? 0.72 : 0.55;
-  for (let r = 0; r < rows.length; r++) {
-    // the hem trails and ripples as they drift
-    const sway = r > 10 ? Math.round(Math.sin(f * 0.25 + r * 0.9 + gh.phase) * 0.8) - Math.sign(gh.v) * (r > 13 ? 1 : 0) : 0;
-    for (let i = 0; i < 9; i++) {
-      const ch = rows[r][gh.v < 0 ? 8 - i : i];
-      if (ch === ".") continue;
-      g.px(x + i + sway, y + r, ch === "w" ? "#eef6fb" : ch === "d" ? "#b7d2e2" : "#4a6578", ch === "e" ? 0.9 : a);
-    }
-  }
-}
-
-/** A speech bubble over (x, y), kept inside the window. */
-function bubble(g: Gfx, x: number, y: number, text: string, s: State) {
-  const bw = text.length * 4 + 3, bx = Math.max(s.cx + 1, Math.min(s.cx + s.w - bw - 1, Math.round(x - bw / 2)));
-  const below = y - 10 < s.cy + 1, by = below ? y + 4 : y - 10;
-  g.rect(bx, by, bw, 9, C.ink); g.rect(bx + 1, by + 1, bw - 2, 7, C.paper);
-  g.px(Math.max(bx + 2, Math.min(bx + bw - 3, Math.round(x))), below ? by - 1 : by + 9, C.ink);
-  g.text(text, bx + 2, by + 2, C.ink);
-}
-
-/** The flight that leaves a balcony. It is made the first time the window comes near it. */
-function mover(s: State, t: Tower, st: number): Mover {
-  const key = t.k + ":" + st;
+/** The flight that leaves a balcony. It is made the first time anything needs it. */
+function mover(s: State, k: number, st: number): Mover {
+  const key = k + ":" + st;
   let m = s.movers.get(key);
   if (!m) {
-    // which way each one starts is a pattern, so that the hall opens on a balanced picture
-    const n = t.even ? t.k / 2 + (st - 1) / 2 : (t.k - 1) / 2 + st / 2;
-    m = {
-      k: t.k, x: t.x, level: st * STOREY, side: ((n % 2) + 2) % 2 === 0 ? 1 : -1, t0: -1, look: 300 + t.k * 7 + st,
-      // the first to go is the one in the middle of the opening picture, a second after it appears
-      next: s.f + (t.k === 0 && st === 1 ? 14 : 40 + Math.floor(hash(t.k, st, 7) * 190)),
-    };
+    const n = k % 2 === 0 ? k / 2 : (k - 1) / 2 + 1;
+    m = { k, x: k * BAY, st, side: ((n % 2) + 2) % 2 === 0 ? 1 : -1, t0: -1, a: 0, next: s.f + 30 + Math.floor(hash(k, st, 7) * 200) };
+    m.a = m.side > 0 ? 0 : Math.PI;
     s.movers.set(key, m);
   }
   return m;
 }
+const docked = (m: Mover) => m.t0 < 0;
 
-/** A flight's angle this frame. */
-function angle(m: Mover, f: number, rng: Rng) {
-  if (m.t0 < 0 && f >= m.next) m.t0 = f;
-  let p = 0;
-  if (m.t0 >= 0) {
-    p = (f - m.t0) / SWING;
-    if (p >= 1) { m.side = m.side > 0 ? -1 : 1; m.t0 = -1; m.next = f + 100 + Math.floor(rng() * 110); p = 0; }
+/** Send a book flying. */
+function fly(s: State, x0: number, y0: number, x1: number, y1: number, cover: string, to?: Person) {
+  s.books.push({ x0, y0, x1, y1, t: 0, dur: Math.max(30, Math.hypot(x1 - x0, y1 - y0) * 0.7), cover, to, arc: 10 + s.rng() * 12 });
+}
+/** Somewhere on the shelves near column `x`: a place a book can leave from or go back to. */
+function shelfNear(s: State, x: number): [number, number] {
+  const k = Math.round(x / BAY), base = k * BAY + (x >= k * BAY ? 1 : -1) * (PIER + 4 + s.rng() * (RUN - 8));
+  return [base, SHELF_ROWS[Math.floor(s.rng() * SHELF_ROWS.length)]];
+}
+
+/** Someone new comes in: through a door, or down the stairs from out of sight. */
+function arrive(s: State) {
+  const k = Math.round((s.x0 + s.rng() * (s.x1 - s.x0)) / BAY), t = tower(k), r = s.rng();
+  const p: Person = { look: Math.floor(s.rng() * 1e6), x: t.x, y: 0, alpha: 0, steps: 0, k, st: 0, want: 0, todo: [] };
+  const from = r < 0.5 ? 0 : r < 0.85 || t.even ? balcony(t) : 3;
+  if (from === 3) {
+    // down the flight that climbs out of the picture, if it is this side just now
+    const m = mover(s, k, 2);
+    if (!docked(m)) return;
+    p.st = 2; p.alpha = 1;
+    p.todo.push({ is: "ride", m, up: false, d: END - 1 });
+  } else {
+    p.st = from;
+    p.y = from ? ledge(from) : FLOOR + 2;
+    p.todo.push({ is: "fade", to: 1 });
+    if (!from) p.todo.push({ is: "go", x: t.x, y: FRONT });
   }
-  const ease = p * p * (3 - 2 * p), from = m.side > 0 ? 0 : Math.PI;
-  return from + (Math.PI - 2 * from) * ease;
+  // where to? Anywhere but where they came in, except that the ground floor is worth a stroll
+  const choices = [0, 1, 1, 2, 2, 3].filter((st) => st !== from || st === 0);
+  p.want = choices[Math.floor(s.rng() * choices.length)];
+  s.people.push(p);
 }
 
-/** Someone walking a flight: down, a pause, and back up again. */
-function walker(f: number, id: number): Walker {
-  const lap = 380, u = (f + Math.floor(hash(id, 3, 33) * lap)) % lap;
-  const along = u < 160 ? u / 160 : u < 190 ? 1 : u < 350 ? 1 - (u - 190) / 160 : 0;
-  return { d: PIER + RUN - 2 - along * (RUN - 4), look: 100 + id * 17 };
+/** Someone has nothing left to do: work out the next thing from where they are and where they want to be. */
+function think(s: State, p: Person) {
+  const t = tower(p.k), go = (x: number, y: number) => p.todo.push({ is: "go", x, y });
+  const leave = (x: number, y: number) => { go(x, y); p.todo.push({ is: "fade", to: 0 }); };
+  if (p.st === 0 && p.want === 0) {
+    // a turn about the ground floor: perhaps a book, then out by some other door
+    if (!p.keep && p.book === undefined && s.rng() < 0.7) {
+      const d = s.rng() < 0.5 ? 1 : -1;
+      go(t.x + d * (PIER + 8 + s.rng() * (RUN - 16)), FRONT - 1 - s.rng() * 3);
+      p.todo.push({ is: "browse", beats: 0, asked: false });
+      p.keep = true; // they will not want another
+      return;
+    }
+    const k = p.k + (s.rng() < 0.5 ? 1 : -1) * (s.rng() < 0.7 ? 1 : 2);
+    p.k = k;
+    go(k * BAY, FRONT);
+    leave(k * BAY, FLOOR + 2);
+  } else if (p.st === p.want) leave(t.x, ledge(p.st));
+  else if (p.want > p.st) {
+    if (p.st === 0) {
+      // the fixed flights start beside the towers in between, and climb to the even towers either side
+      const odd = t.even ? p.k + (s.rng() < 0.5 ? 1 : -1) : p.k, dir = (t.even ? p.k - odd : s.rng() < 0.5 ? 1 : -1) as 1 | -1;
+      const foot = odd * BAY + dir * (PIER + 2);
+      go(foot, FRONT); go(foot, FLOOR + 1);
+      p.todo.push({ is: "climb", cx: odd * BAY, level: 0, dir, up: true, d: PIER + 2 });
+      p.k = odd + dir;
+    } else p.todo.push({ is: "board", up: true, beats: 0 });
+  } else if (p.st === 1) {
+    // down one of the two fixed flights that meet at this balcony
+    const e = s.rng() < 0.5 ? 1 : -1;
+    go(t.x + e * 10, ledge(1));
+    p.todo.push({ is: "climb", cx: (p.k + e) * BAY, level: 0, dir: -e as 1 | -1, up: false, d: END - 2 });
+    p.k += e;
+  } else p.todo.push({ is: "board", up: false, beats: 0 });
 }
 
-/** A shaft of light from a tall window: where it starts (x, top), where it ends, and how far it leans, in pixels. */
-const shaft = (mx: number, sill: number, dir: number): [number, number, number, number] => [F * mx + 1, F * (sill - WINDOW_H) + 12, F * sill + 150, dir * 70];
-
-/**
- * The light of everything that stays put, for one stretch of the hall, on
- * black: lanterns, open doorways, candles, the desk lamps, and daylight (or
- * moonlight) slanting in through the tall windows. It is laid over the
- * finished picture so that it lightens whatever is under it.
- */
-function paintLight(l: Gfx, night: boolean) {
-  const lit = night ? 1 : 0.62, ctx = l.ctx;
-  ctx.globalCompositeOperation = "lighter";
-  for (let k = -1; k <= 3; k++) {
-    const x = k * BAY, even = k % 2 === 0;
-    if (even) for (const dir of [1, -1]) {
-      const X = across(x, dir), rgb = night ? "140,170,255" : "255,240,205";
-      for (const sill of WINDOWS) {
-        const [wx, top, end, lean] = shaft(X(42), sill, dir);
-        const gr = ctx.createLinearGradient(0, top, 0, end);
-        gr.addColorStop(0, `rgba(${rgb},${night ? 0.2 : 0.24})`); gr.addColorStop(1, `rgba(${rgb},0)`);
-        ctx.fillStyle = gr;
-        ctx.beginPath(); ctx.moveTo(wx - 14, top); ctx.lineTo(wx + 14, top); ctx.lineTo(wx + 14 + lean, end); ctx.lineTo(wx - 14 + lean, end); ctx.closePath(); ctx.fill();
-        glow(l, wx, F * (sill - WINDOW_H / 2), 64, rgb, night ? 0.2 : 0.26);
+/** One redraw's worth of everybody's business. `dt` is in beats. */
+function live(s: State, f: number, dt: number) {
+  s.f = f;
+  // the flights that swing
+  for (const t of towersIn(s.x0, s.x1)) mover(s, t.k, balcony(t));
+  for (const m of s.movers.values()) {
+    if (m.t0 < 0 && f >= m.next) m.t0 = f;
+    let p = 0;
+    if (m.t0 >= 0) {
+      p = (f - m.t0) / SWING;
+      if (p >= 1) { m.side = m.side > 0 ? -1 : 1; m.t0 = -1; m.next = f + 110 + Math.floor(s.rng() * 130); p = 0; }
+    }
+    const ease = p * p * (3 - 2 * p), from = m.side > 0 ? 0 : Math.PI;
+    m.a = from + (Math.PI - 2 * from) * ease;
+  }
+  // people
+  const cap = Math.max(8, Math.round((s.x1 - s.x0) / 28));
+  if (s.people.length < cap && s.rng() < 0.05 * dt * 2) arrive(s);
+  for (const p of s.people) {
+    if (!p.todo.length) think(s, p);
+    const d = p.todo[0];
+    if (!d) continue;
+    let done = false;
+    switch (d.is) {
+      case "fade":
+        p.alpha = Math.max(0, Math.min(1, p.alpha + (d.to ? 1 : -1) * dt * 0.14));
+        done = p.alpha === d.to;
+        if (done && !d.to) p.gone = true;
+        break;
+      case "go": {
+        const dx = d.x - p.x, dy = d.y - p.y, far = Math.hypot(dx, dy), step = PACE * dt;
+        if (far <= step) { p.x = d.x; p.y = d.y; done = true; }
+        else { p.x += (dx / far) * step; p.y += (dy / far) * step; p.steps += step; }
+        break;
       }
-      for (const [u, row] of CANDLES) glow(l, F * X(u) + 1, F * row - 2, 18, "255,205,120", 0.5 * lit);
-      glow(l, F * (X(DESK, 15) + (dir > 0 ? 2 : 12)) + 1, F * (G + 138), 34, "120,235,165", 0.42 * lit);
+      case "wait":
+        done = (d.beats -= dt) <= 0;
+        break;
+      case "climb": {
+        d.d += (d.up ? 1 : -1) * CLIMB * dt;
+        p.steps += CLIMB * dt;
+        if (d.up ? d.d >= END - 2 : d.d <= PIER + 2) {
+          // off at the top onto the balcony, or at the bottom onto the floor
+          done = true;
+          p.st = d.up ? 1 : 0;
+          p.x = d.up ? d.cx + d.dir * (END + 3) : d.cx + d.dir * (PIER + 2);
+          p.y = d.up ? ledge(1) : FLOOR + 1;
+          if (!d.up) p.todo.push({ is: "go", x: p.x, y: FRONT });
+        }
+        break;
+      }
+      case "board": {
+        // going up, it is this balcony's own flight; going down, whichever neighbour's flight has come round to here
+        const here = p.k * BAY;
+        const ms = d.up ? [mover(s, p.k, p.st)] : [mover(s, p.k - 1, p.st - 1), mover(s, p.k + 1, p.st - 1)].filter((m) => m.x + m.side * BAY === here);
+        const m = ms.find(docked);
+        const edge = m ? here + (d.up ? m.side : -m.side) * 10 : here;
+        if (Math.abs(p.x - edge) > 0.5) { p.x += Math.sign(edge - p.x) * Math.min(PACE * dt, Math.abs(edge - p.x)); p.steps += PACE * dt; }
+        else if (m) { done = true; p.todo.push({ is: "ride", m, up: d.up, d: d.up ? PIER + 2 : END - 2 }); }
+        // nothing coming? After a while, give up and go back in by the door here
+        if (!done && (d.beats += dt) > 170) { done = true; p.want = p.st; }
+        break;
+      }
+      case "ride": {
+        const m = d.m, at = d.up ? END - 2 : PIER + 2, off = d.up ? d.d >= at : d.d <= at;
+        if (!off) { d.d += (d.up ? 1 : -1) * CLIMB * dt; p.steps += CLIMB * dt; }
+        else if (docked(m)) {
+          // step off, wherever the flight has ended up
+          done = true;
+          p.k = d.up ? m.k + m.side : m.k;
+          p.st = d.up ? m.st + 1 : m.st;
+          if (p.st > 2) p.gone = true; // up and out of the picture
+          p.x = d.up ? m.x + m.side * (END + 3) : m.x + m.side * 10;
+          p.y = ledge(p.st);
+        }
+        break;
+      }
+      case "browse":
+        if (!d.asked) {
+          // the book they are after comes off a shelf and down to their hands
+          d.asked = true;
+          const [bx, by] = shelfNear(s, p.x);
+          fly(s, bx, by, p.x, p.y - 9, SPINES[Math.floor(s.rng() * (SPINES.length - 1))], p);
+        } else if (p.book !== undefined && (d.beats += dt) > 70) {
+          done = true;
+          if (s.rng() < 0.5) {
+            // read enough: it goes back by itself
+            const [bx, by] = shelfNear(s, p.x);
+            fly(s, p.x, p.y - 9, bx, by, p.book);
+            p.book = undefined;
+          }
+        }
+        break;
     }
-    for (const st of [0, ...storeys({ even })]) {
-      const y = FLOOR - st * STOREY;
-      for (const sgn of [-1, 1]) glow(l, F * (x + sgn * 10) + 1, F * (y - (st ? 18 : 22)) + 2, 46, "255,190,105", 0.55 * lit);
-      if ((st || !even) && !(even && st === LADY_STOREY)) glow(l, F * x + 1, F * y - 18, 32, "255,160,70", 0.3 * lit);
-    }
+    if (done) p.todo.shift();
+  }
+  s.people = s.people.filter((p) => !p.gone && p.x > s.x0 - 3 * BAY && p.x < s.x1 + 3 * BAY);
+  // books: the ones on an errand, and now and then one that simply shelves itself somewhere else or calls on a desk
+  for (const b of s.books) if ((b.t += dt) >= b.dur && b.to) b.to.book = b.cover;
+  s.books = s.books.filter((b) => b.t < b.dur);
+  if (s.books.length < 2 + (s.x1 - s.x0) / 120 && s.rng() < 0.025 * dt * 2) {
+    const x = s.x0 + s.rng() * (s.x1 - s.x0), [ax, ay] = shelfNear(s, x), cover = SPINES[Math.floor(s.rng() * (SPINES.length - 1))];
+    if (s.rng() < 0.4) {
+      // to or from the nearest reading desk
+      const k = Math.round(x / PERIOD) * 2, dir = x >= k * BAY ? 1 : -1, dx = across(k * BAY, dir)(DESK, 15) + 7;
+      if (s.rng() < 0.5) fly(s, ax, ay, dx, G + 140, cover); else fly(s, dx, G + 140, ax, ay, cover);
+    } else { const [bx, by] = shelfNear(s, x + (s.rng() - 0.5) * 80); fly(s, ax, ay, bx, by, cover); }
   }
 }
-
-/** Where a wand's lit tip is, in pixels. */
-const tip = (c: Caster): [number, number] => [F * c.x + 1 + c.side * 8 - (c.side < 0 ? 1 : 0), F * c.y + F - 20];
-const rgbOf = (hex: string) => { const n = parseInt(hex.slice(1), 16); return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`; };
-
-function cast(s: State, from: Caster, x1: number, y1: number) {
-  const x0 = from.x + from.side * 4, y0 = from.y - 9;
-  s.spells.push({ x0, y0, x1, y1, t: 0, dur: Math.max(14, Math.round(Math.hypot(x1 - x0, y1 - y0) / 3.2)), col: MAGIC[Math.abs(from.look) % MAGIC.length] });
-}
-function burst(s: State, x: number, y: number, col: string, n = 12) {
-  for (let i = 0; i < n; i++) {
-    const a = (i / n) * Math.PI * 2 + s.rng(), v = 0.5 + s.rng() * 0.8, life = 12 + Math.floor(s.rng() * 12);
-    s.parts.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, life, max: life, col: i % 3 ? col : "#fffbe6" });
-  }
-}
-
-/**
- * The lady's portrait and whoever is calling on her. She asks for the
- * password, is given it, swings open on her hinges to let them through into
- * the firelight, and shuts again; in between she practises her singing.
- */
-/** How far the lady's door stands open at this moment, 0 to 1. */
-function ladyOpen(s: State, t: Tower, f: number) {
-  const since = f - (s.ladies.get(t.k) ?? LADY_AT), u = ((since % LADY_LAP) + LADY_LAP) % LADY_LAP;
-  return u < 54 ? 0 : u < 66 ? (u - 54) / 12 : u < 94 ? 1 : u < 106 ? 1 - (u - 94) / 12 : 0;
-}
-
-function lady(g: Gfx, s: State, t: Tower, f: number) {
-  const x = t.x, y = FLOOR - LADY_STOREY * STOREY, since = f - (s.ladies.get(t.k) ?? LADY_AT), u = ((since % LADY_LAP) + LADY_LAP) % LADY_LAP;
-  if (u === 8) s.says.push({ x: x - 26, y: y - 13, text: "PASSWORD?", until: f + 22 });
-  if (u === 32) s.says.push({ x: x + 35, y: y - 8, text: "CAPUT DRACONIS", until: f + 24 });
-  const open = ladyOpen(s, t, f);
-  const singing = u > 130 && u < 280;
-  if (open > 0) {
-    // the round hole behind her, and the common-room fire beyond
-    arch(g, x, y, 13, 26, "#2a140a"); arch(g, x, y, 9, 21, "#8a3f14"); arch(g, x, y, 5, 14, "#e08a2c");
-  } else ladyPortrait(g, x, y, singing, f);
-  // the caller: waiting, stepping through, gone, and later someone new arriving
-  const who = 4000 + t.k * 3 + Math.floor(since / LADY_LAP);
-  if (u < 66) person(g, x + 9, y + 2, who, 0);
-  else if (u < 80) person(g, x + 9 - Math.round(((u - 66) / 14) * 9), y + 2, who, Math.floor(u / 2));
-  else if (u >= 296) person(g, x + 9 + Math.max(0, 8 - Math.floor((u - 296) / 2)), y + 2, who + 1, u < 312 ? Math.floor(u / 2) : 0);
-  if (open > 0) {
-    s.ladyArt ??= canvas(17 * F + 1, 29 * F, (l) => { l.ctx.scale(F, F); ladyPortrait(l, 8, 29, false, 0); });
-    const wide = Math.max(2, Math.round(17 * Math.cos(open * Math.PI * 0.46)));
-    g.ctx.drawImage(s.ladyArt, x - 8, y - 29, wide + 0.5, 29);
-  }
-  if (singing) for (let j = 0; j < 2; j++) {
-    const ph = (u + j * 22) % 44, nx = x + 9 + j * 5 + Math.round(Math.sin(ph * 0.3) * 1.5), ny = y - 16 - Math.round(ph * 0.45);
-    const a = 1 - ph / 44;
-    g.rect(nx + 1, ny, 1, 4, "#fbe6a0", a); g.rect(nx, ny + 3, 2, 1, "#fbe6a0", a); g.px(nx + 2, ny + 1, "#fbe6a0", a);
-  }
-}
-const hasLady = (t: Tower) => t.k % LADY_EVERY === 0;
 
 export const stairwell: Scene<State> = {
   w: W,
@@ -929,274 +786,119 @@ export const stairwell: Scene<State> = {
   fps: 12 * T,
   poster: 0,
   fluid: true,
-  camera,
-  alt: "The grand staircase, seen from the front through a window that slowly travels up, along and down the hall: stone towers with arched doors and balconies, and pale flights of stairs crossing between them, storey above storey, many of which swing round to the other side with people walking on them. Two tiers of bookcases line the lower walls and living portraits crowd the upper ones; one portrait, of a lady in white, asks for the password and opens like a door. Ghosts drift past, books fly back to their shelves, candles float, spells arc across the hall, and at the top the vault is open to the stars.",
+  alt: "A library with moving stairs: stone towers with arched doors and balconies, three tiers of bookcases and tall windows behind, and pale flights of stairs crossing between the towers, some of which swing round to the other side. People come in through the doors, climb or come down, browse and leave again; books fly down to their hands, back to the shelves, and over to the readers at the desks.",
+  camera: () => ({ x: 0, y: (HW * F) / 2, zoom: 1 }),
   init(rng, w) {
-    const ghosts: Ghost[] = [], across = w / F, n = Math.max(2, Math.round(across / 120));
-    for (let i = 0; i < n; i++) {
-      ghosts.push({ x: -across / 2 + ((i + 0.3 + rng() * 0.4) * across) / n, y: HW - 160 + [44, 86, 126, 22][i % 4], v: (i % 2 ? -1 : 1) * (0.16 + rng() * 0.12), kind: i, phase: rng() * 6, hurry: 0 });
-    }
-    return { f: 0, rng, cx: 0, cy: 0, w: 0, hall: null, light: [null, null], ladyArt: null, movers: new Map(), ladies: new Map(), hung: hang(), ghosts, spells: [], parts: [], casters: [], says: [] };
+    const half = w / F / 2 + 12;
+    const s: State = { f: 0, rng, x0: -half, x1: half, hall: null, light: [null, null], movers: new Map(), people: [], books: [] };
+    // let the place fill up before anyone sees it
+    for (let f = -420; f < 0; f += 0.5) live(s, f, 0.5);
+    return s;
   },
   draw(g, tick, s, env, view) {
-    // the patch of hall to paint, in units; `f` counts beats, in halves
-    const v = view ?? { x: -g.w / 2, y: HW * F - g.h, w: g.w, h: g.h }, f = tick / T, beat = tick % T === 0;
-    const cx = Math.floor(v.x / F), cy = Math.floor(v.y / F), x1 = Math.ceil((v.x + v.w) / F), y1 = Math.ceil((v.y + v.h) / F);
-    const w = x1 - cx, tall = y1 - cy, mid = cx + w / 2;
-    s.f = f; s.cx = cx; s.cy = cy; s.w = w;
-    /** is this row of the hall in the window, give or take? */
-    const seen = (y: number, pad = 30) => y > cy - pad && y < y1 + pad;
-    const all = towersIn(cx, x1);
-    const ctx = g.ctx;
+    const v = view ?? { x: -g.w / 2, y: 0, w: g.w, h: g.h }, f = tick / T;
+    const cx = Math.floor(v.x / F), x1 = Math.ceil((v.x + v.w) / F), w = x1 - cx;
+    if (f > s.f) live(s, f, 1 / T);
+    const all = towersIn(cx, x1), ctx = g.ctx;
     ctx.save();
     ctx.translate(-v.x, -v.y);
     ctx.scale(F, F);
-    s.hall ??= canvas(PERIOD * F, HW * F, (l) => { l.ctx.scale(F, F); paintHall(l, s.hung); });
+    s.hall ??= canvas(PERIOD * F, HW * F, (l) => { l.ctx.scale(F, F); paintHall(l); });
     for (let n = Math.floor(cx / PERIOD); n * PERIOD < x1; n++) ctx.drawImage(s.hall, n * PERIOD, 0, PERIOD, HW);
 
-    // the portraits: blinking, glancing about, and calling on their neighbours
-    const inView: [Portrait, number][] = [];
-    for (let n = Math.floor(cx / PERIOD); n * PERIOD < x1; n++) s.hung.forEach((p) => {
-      const px = p.x + n * PERIOD;
-      if (!seen(p.y, 16) || px > x1 || px + p.w < cx) return;
-      inView.push([p, px]);
-      const look = Math.floor(hash(p.look, n, 55) * 9973), seed = p.seed + n * 131;
-      const t = (f + (seed % 997)) % (420 + (seed % 240)), reach = p.w / 2 + 3;
-      const blink = (f + seed) % (50 + (seed % 40)) < 2;
-      const mate = p.mate >= 0 ? s.hung[p.mate] : null, sgn = mate && mate.x < p.x ? -1 : 1;
-      let dx = (f + seed * 3) % 260 < 40 ? (seed % 2 ? 1 : -1) : 0, home = true;
-      if (mate) {
-        if (t < 24) dx = sgn * (t / 24) * reach;
-        else if (t < 170) {
-          home = false;
-          // over at the neighbour's: in at one side, a chat, and out again
-          const u = t - 24, mr = mate.w / 2 + 3;
-          const vx = u < 22 ? -sgn * (mr - (u / 22) * (mr - 3)) : u > 124 ? -sgn * (3 + ((u - 124) / 22) * (mr - 3)) : -sgn * 3;
-          sitter(g, mate, mate.x + n * PERIOD, look, vx, blink);
-        } else if (t < 194) dx = sgn * (1 - (t - 170) / 24) * reach;
-      }
-      // a host makes room for a caller
-      if (p.caller >= 0) {
-        const c = s.hung[p.caller], cs = c.seed + n * 131, ct = (f + (cs % 997)) % (420 + (cs % 240));
-        if (ct >= 40 && ct < 150) dx = c.x < p.x ? 2 : -2;
-      }
-      if (home) sitter(g, p, px, look, dx, blink);
-    });
-    if (beat && f % 64 === 40 && inView.length) {
-      const [p, px] = inView[Math.floor(s.rng() * inView.length)];
-      s.says.push({ x: px + p.w / 2, y: p.y, text: REMARKS[Math.floor(s.rng() * REMARKS.length)], until: f + 26 });
-    }
-
-    // in the library: someone on the rolling ladder, someone reading, a quill writing by itself, books on the wing
-    if (seen(G + 110, 60)) for (const t of all) if (t.even) for (const dir of [1, -1]) {
-      const X = across(t.x, dir), id = t.k * 2 + dir;
-      const slide = (f * 0.11 + hash(id, 1, 80) * 80) % 80, lu = 20 + Math.round(slide < 40 ? slide : 80 - slide);
-      const lx = X(lu, 6);
-      g.rect(lx, G + 106, 1, 40, "#c2925a"); g.rect(lx + 5, G + 106, 1, 40, "#c2925a");
-      for (let y = G + 109; y < G + 146; y += 4) g.rect(lx + 1, y, 4, 1, "#9a6f3e");
-      person(g, lx + 3, G + 132 + Math.round(Math.sin(f * 0.02 + id) * 8), 800 + id * 11, Math.floor(f / 8));
-      const dx = X(DESK, 15);
-      person(g, dx + 7, G + 151, 900 + id * 13, 0, G + 142);
+    // the readers at their desks
+    for (const t of all) if (t.even) for (const dir of [1, -1]) {
+      const dx = across(t.x, dir)(DESK, 15);
+      person(g, dx + 7, G + 151, 900 + (t.k * 2 + dir) * 13, 0, G + 142);
       g.rect(dx, G + 142, 15, 2, C.oakHi); g.rect(dx + 1, G + 144, 13, 5, C.oakDk); g.rect(dx, G + 144, 1, 8, C.oak); g.rect(dx + 14, G + 144, 1, 8, C.oak);
       g.rect(dx + 5, G + 141, 5, 1, "#f4ecd8"); g.px(dx + 7, G + 141, "#b9ad92");
-      const lampX = dir > 0 ? dx + 2 : dx + 12;
-      g.rect(lampX, G + 138, 1, 4, C.giltDk); g.rect(lampX - 1, G + 136, 3, 2, "#2f8a5a");
-      const qx = dx + 5 + Math.floor((f / 3) % 5), qy = G + 138 - (Math.floor(f / 2) % 2);
-      g.line(qx, qy + 2, qx + 3, qy - 2, "#f4ecd8"); g.px(qx, qy + 2, C.ink);
-      // books that shelve themselves
-      for (let b = 0; b < 3; b++) {
-        const lap = 150 + b * 37, n = Math.floor((f + b * 50) / lap), u = (f + b * 50) % lap;
-        if (u > 96) continue;
-        const p = u / 96, slot = (m: number) => [X(4 + hash(id * 9 + b, n + m, 81) * 76), G + [69, 75, 81, 87, 109, 115, 121, 127][Math.floor(hash(id * 9 + b, n + m, 82) * 8)]];
-        const [ax, ay] = slot(0), [bx, by] = slot(1);
-        const x = Math.round(ax + (bx - ax) * p), y = Math.round(ay + (by - ay) * p - Math.sin(p * Math.PI) * (14 + b * 5));
-        const cover = SPINES[Math.floor(hash(id * 9 + b, n, 83) * (SPINES.length - 1))];
-        if (Math.floor(f / 2) % 2) { g.px(x - 2, y - 1, cover); g.px(x + 2, y - 1, cover); g.rect(x - 2, y, 2, 1, "#f4ecd8"); g.rect(x + 1, y, 2, 1, "#f4ecd8"); g.rect(x - 1, y + 1, 3, 1, cover); }
-        else { g.rect(x - 2, y, 5, 1, "#f4ecd8"); g.rect(x - 2, y + 1, 5, 1, cover); }
-        if (beat && f % 3 === 0) s.parts.push({ x, y: y + 2, vx: 0, vy: 0.15, life: 8, max: 8, col: "#ffe9a8" });
+      const lamp = dir > 0 ? dx + 2 : dx + 12;
+      g.rect(lamp, G + 138, 1, 4, C.giltDk); g.rect(lamp - 1, G + 136, 3, 2, "#2f8a5a");
+    }
+
+    // who is on which stairs
+    const on = new Map<string, Walker[]>();
+    const put = (key: string, d: number, look: number) => { const list = on.get(key) ?? []; list.push({ d, look }); on.set(key, list); };
+    for (const p of s.people) {
+      const d = p.todo[0];
+      if (d?.is === "climb") put(d.cx + ":" + d.dir, d.d, p.look);
+      else if (d?.is === "ride") put(d.m.k + ":m", d.d, p.look);
+    }
+    // the two flights from the ground floor stay where they are; the rest swing when their turn comes
+    for (const t of all) if (!t.even) for (const dir of [1, -1] as const) stairs(g, t.x, 0, dir > 0 ? 0 : Math.PI, on.get(t.x + ":" + dir) ?? []);
+    const moving = all.map((t) => mover(s, t.k, balcony(t))).sort((p, q) => Math.sin(p.a) - Math.sin(q.a) || p.st - q.st);
+    for (const m of moving) stairs(g, m.x, m.st * STOREY, m.a, on.get(m.k + ":m") ?? []);
+
+    // everyone on their feet: those on balconies behind the handrail, then those on the floor, nearest last
+    const afoot = s.people.filter((p) => p.todo[0]?.is !== "climb" && p.todo[0]?.is !== "ride").sort((p, q) => p.y - q.y);
+    const stand = (p: Person) => {
+      ctx.globalAlpha = p.alpha;
+      person(g, p.x, p.y, p.look, Math.floor(p.steps / 2.5));
+      if (p.book !== undefined) fine(g, () => {
+        // open in their hands
+        const X = Math.round(F * p.x) + 1, Y = Math.round(F * p.y) - 14;
+        g.rect(X - 4, Y, 9, 4, C.ink); g.rect(X - 3, Y, 3, 3, "#f4ecd8"); g.rect(X + 1, Y, 3, 3, "#f4ecd8"); g.rect(X - 3, Y + 3, 7, 1, p.book!);
+      });
+      ctx.globalAlpha = 1;
+    };
+    for (const p of afoot) if (p.st > 0) stand(p);
+    for (const t of all) fine(g, () => { const L = F * (t.x - PIER), Y = F * (FLOOR - balcony(t) * STOREY); g.rect(L, Y - 9, F * PIER * 2, 1, "#fbf6e8"); g.rect(L, Y - 8, F * PIER * 2, 1, C.rail); g.rect(L, Y - 7, F * PIER * 2, 1, C.railDk); });
+    for (const p of afoot) if (p.st === 0) stand(p);
+
+    // books on the wing, flapping their covers
+    fine(g, () => {
+      for (const b of s.books) {
+        const p = b.t / b.dur, e = p * p * (3 - 2 * p);
+        const x = Math.round(F * (b.x0 + (b.x1 - b.x0) * e)), y = Math.round(F * (b.y0 + (b.y1 - b.y0) * e - Math.sin(p * Math.PI) * b.arc));
+        if (Math.floor(f / 2) % 2) {
+          g.rect(x - 5, y - 2, 2, 1, b.cover); g.rect(x + 4, y - 2, 2, 1, b.cover); g.rect(x - 4, y - 1, 3, 2, "#f4ecd8"); g.rect(x + 2, y - 1, 3, 2, "#f4ecd8");
+          g.rect(x - 2, y + 1, 5, 1, b.cover); g.rect(x - 1, y, 3, 1, "#d8cdb4");
+        } else { g.rect(x - 5, y, 11, 2, "#f4ecd8"); g.rect(x, y, 1, 2, "#d8cdb4"); g.rect(x - 5, y + 2, 11, 1, b.cover); }
+        g.px(x - 1 + ((f * 3) % 3), y + 4 + (Math.floor(f) % 3), "#ffe9a8", 0.7);
       }
-    }
-
-    // the lady's portrait, drawn before the stairs and the balcony rail in front of it
-    for (const t of all) if (hasLady(t) && seen(FLOOR - LADY_STOREY * STOREY - 14, 40)) lady(g, s, t, f);
-
-    // the two flights from the ground floor stay where they are
-    if (seen(FLOOR - STOREY / 2, 50)) for (const t of all) if (!t.even) for (const dir of [1, -1]) {
-      const id = t.k * 4 + dir;
-      docked(g, t.x, 0, dir as 1 | -1, [walker(f, id), walker(f + 190, id + 50)]);
-    }
-    // every other flight swings when its turn comes; whoever is on it keeps walking
-    const moving: { m: Mover; a: number }[] = [];
-    for (const t of all) for (const st of storeys(t)) {
-      if (st >= TOP_STOREY || !seen(FLOOR - st * STOREY - STOREY / 2, 60)) continue;
-      const m = mover(s, t, st);
-      moving.push({ m, a: angle(m, f, s.rng) });
-    }
-    moving.sort((p, q) => Math.sin(p.a) - Math.sin(q.a) || p.m.level - q.m.level);
-    for (const { m, a } of moving) {
-      if (a === 0 || a === Math.PI) docked(g, m.x, m.level, a === 0 ? 1 : -1, [walker(f, m.look)]);
-      else flight(g, m.x, m.level, a, [walker(f, m.look)]);
-    }
-    if (s.movers.size > 400) for (const [key, m] of s.movers) if (Math.abs(m.x - mid) > 12 * BAY) s.movers.delete(key);
-
-    // people on the balconies, behind the handrail, wands lit
-    s.casters = [];
-    for (const t of all) for (const st of storeys(t)) {
-      const y = FLOOR - st * STOREY;
-      if (!seen(y, 24)) continue;
-      const id = t.k * 9 + st, side = hash(id, 2, 70) < 0.5 ? -1 : 1;
-      if (hash(id, 1, 70) < 0.7 && !(hasLady(t) && st === LADY_STOREY)) {
-        const c = { x: t.x + side * 5, y: y + 2, look: 500 + id * 3, side };
-        s.casters.push(c);
-        person(g, c.x, c.y, c.look, 0, undefined, side);
-      }
-      fine(g, () => { const L = F * (t.x - PIER), Y = F * y; g.rect(L, Y - 9, F * PIER * 2, 1, "#fbf6e8"); g.rect(L, Y - 8, F * PIER * 2, 1, C.rail); g.rect(L, Y - 7, F * PIER * 2, 1, C.railDk); });
-    }
-    // a cat on its rounds along the front of the hall
-    if (seen(FLOOR, 10)) for (const t of all) if (t.k % 4 === 0) {
-      const lap = 520, u = (f + 5200) % lap, span = 150, back = u >= lap / 2, p = back ? 2 - (u / lap) * 2 : (u / lap) * 2;
-      const x = Math.round(t.x - span / 2 + p * span), step = Math.floor(f / 2) % 2, col = "#2e2a2c";
-      const R = (i: number, y: number, rw: number, c = col) => g.rect(back ? x - i - rw + 1 : x + i, FLOOR + 1 + y, rw, 1, c);
-      R(0, 0, 1); R(0, 1, 1); R(1, 2, 7); R(1, 3, 6); R(6, 0, 1); R(8, 0, 1); R(6, 1, 3); R(8, 2, 1, "#e6d36a");
-      R(step ? 1 : 2, 4, 1); R(step ? 4 : 3, 4, 1); R(step ? 5 : 6, 4, 1);
-    }
+    });
 
     // The hall is dim away from its lamps: shade everything, then put light back where there is some.
     // The lamps do not move, so their light is painted once per stretch of hall and laid over the lot.
-    g.rect(cx, cy, w, tall, env.night ? "#060a1e" : "#1c1226", env.night ? 0.5 : 0.2);
-    const lit = env.night ? 1 : 0.62, which = env.night ? 1 : 0;
+    g.rect(cx, 0, w, HW, env.night ? "#060a1e" : "#1c1226", env.night ? 0.5 : 0.2);
+    const which = env.night ? 1 : 0;
     s.light[which] ??= canvas(PERIOD * F, HW * F, (l) => paintLight(l, env.night));
     ctx.globalCompositeOperation = "screen";
     for (let n = Math.floor(cx / PERIOD); n * PERIOD < x1; n++) ctx.drawImage(s.light[which]!, n * PERIOD, 0, PERIOD, HW);
-    const lamps: [number, number, number][] = []; // lantern flames, in pixels, with a flicker
-    const sticks: [number, number, number][] = []; // floating candles
     fine(g, () => {
-      for (const t of all) {
-        if (t.even) for (const dir of [1, -1]) {
-          const X = across(t.x, dir);
-          // dust turning in the light from the tall windows
-          for (const sill of WINDOWS) if (seen(sill - WINDOW_H / 2, 120)) {
-            const [wx, top, end, lean] = shaft(X(42), sill, dir);
-            for (let i = 0; i < 12; i++) {
-              const p = (f * 0.004 + hash(i, sill, 95)) % 1;
-              g.px(wx - 12 + hash(i, sill, 96) * 24 + lean * p + Math.sin(f * 0.05 + i) * 2, top + p * (end - top), "#fff8e0", (1 - p) * 0.8);
-            }
-          }
-          CANDLES.forEach(([u, row], i) => { if (seen(row, 12)) sticks.push([F * X(u) + 1, F * row + Math.round(Math.sin(f * 0.07 + i * 1.7 + t.k) * 3), i]); });
-        }
-        for (const st of [0, ...storeys(t)]) {
-          const y = FLOOR - st * STOREY;
-          if (!seen(y - 10, 40)) continue;
-          for (const sgn of [-1, 1]) { const lx = F * (t.x + sgn * 10) + 1; lamps.push([lx, F * (y - (st ? 18 : 22)), Math.floor(f / 4 + lx) % 5]); }
-          // the doors over the great doors: an ordinary corridor, or the lady's, which only glows when it is open
-          if (t.even && st === LADY_STOREY) {
-            if (!hasLady(t)) glow(g, F * t.x + 1, F * y - 18, 32, "255,160,70", 0.3 * lit);
-            else if (ladyOpen(s, t, f) > 0) glow(g, F * t.x + 1, F * y - 18, 56, "255,160,70", 0.6 * lit * ladyOpen(s, t, f));
-          }
+      // dust turning in the light from the tall windows
+      for (const t of all) if (t.even) for (const dir of [1, -1]) {
+        const [wx, top, end, lean] = shaft(across(t.x, dir)(42), dir);
+        for (let i = 0; i < 12; i++) {
+          const p = (f * 0.004 + hash(i, t.k + dir, 95)) % 1;
+          g.px(wx - 12 + hash(i, t.k + dir, 96) * 24 + lean * p + Math.sin(f * 0.05 + i) * 2, top + p * (end - top), "#fff8e0", (1 - p) * 0.8);
         }
       }
-      for (const c of s.casters) glow(g, ...tip(c), 12, rgbOf(MAGIC[Math.abs(c.look) % MAGIC.length]), 0.8);
-      for (const sp of s.spells) {
-        const p = sp.t / sp.dur;
-        glow(g, F * (sp.x0 + (sp.x1 - sp.x0) * p), F * (sp.y0 + (sp.y1 - sp.y0) * p - Math.sin(p * Math.PI) * 14), 16, rgbOf(sp.col), 0.7);
-      }
-      for (const gh of s.ghosts) glow(g, F * gh.x, F * gh.y, 30, "190,225,255", env.night ? 0.3 : 0.2);
-      ctx.globalCompositeOperation = "source-over";
-      // the flames and wicks themselves, crisp on top of their glow
-      for (const [x, y, i] of sticks) {
-        g.rect(x - 1, y, 2, 8, "#f3ead6"); g.rect(x, y, 1, 8, "#d8cdb4");
-        g.rect(x - 1, y - 3, 2, 3, Math.floor(f / 3 + i) % 4 ? "#ffd772" : "#ffab3d"); g.px(x - 1 + (Math.floor(f / 2 + i) % 2), y - 4, "#fff3c4");
-      }
-      for (const [x, y, flick] of lamps) { g.rect(x - 1, y - 1, 2, 6, "#ffc04a"); g.rect(x - 1, y + 1 - (flick ? 0 : 1), 2, 3, "#fff3c4"); }
-      for (const c of s.casters) { const [x, y] = tip(c); g.px(x, y, "#ffffff"); g.px(x - 1, y, "#fffbe6", 0.7); g.px(x + 1, y, "#fffbe6", 0.7); g.px(x, y - 1, "#fffbe6", 0.7); g.px(x, y + 1, "#fffbe6", 0.7); }
     });
-    ctx.globalCompositeOperation = "source-over"; // (leaving the block above puts back the blend it started with)
-    if (env.night) for (const t of all) if (t.even) for (const dir of [1, -1]) for (const sill of WINDOWS) if (seen(sill - WINDOW_H / 2, 40)) windowAt(g, across(t.x, dir)(42), sill, WINDOW_H, true, f);
+    ctx.globalCompositeOperation = "source-over";
+    // the lantern flames and lamp shades themselves, crisp on top of their glow
+    fine(g, () => {
+      for (const t of all) for (const row of lanterns(t)) for (const sgn of [-1, 1]) {
+        const x = F * (t.x + sgn * 10) + 1, y = F * row;
+        g.rect(x - 1, y - 1, 2, 6, "#ffc04a"); g.rect(x - 1, y + (Math.floor(f / 4 + x) % 5 ? 1 : 0), 2, 3, "#fff3c4");
+      }
+    });
+    if (env.night) for (const t of all) if (t.even) for (const dir of [1, -1]) windowAt(g, across(t.x, dir)(42), SILL, WINDOW_H, true, f);
     for (const t of all) if (t.even) for (const dir of [1, -1]) { const lamp = across(t.x, dir)(DESK, 15) + (dir > 0 ? 2 : 12); g.rect(lamp - 1, G + 136, 3, 2, "#5fd08c"); }
-    // through the vault: stars, and a moon over every other gap
-    if (cy < VAULT + 4) {
-      for (let n = Math.floor(cx / PERIOD); n * PERIOD < x1; n++) {
-        for (let i = 0; i < 46; i++) {
-          const x = n * PERIOD + Math.floor(hash(i, 1, 90) * PERIOD), y = Math.floor(hash(i, 2, 90) * 30), tw = (f + i * 13) % 50;
-          if (y < vaultRow(x) - 1 && tw < 38) g.px(x, y, "#fff6d8", 0.35 + 0.65 * (1 - Math.abs(tw - 19) / 19));
-        }
-        g.disc(n * PERIOD + BAY / 2, 14, 4, "#f4f0d8"); g.disc(n * PERIOD + BAY / 2 + 2, 13, 3, "#182050");
-      }
-    }
-
-    // now and then someone sends a spell across the hall
-    if (beat && f % 38 === 20 && s.casters.length) {
-      const from = s.casters[Math.floor(s.rng() * s.casters.length)], near = s.casters.filter((c) => c !== from && Math.abs(c.x - from.x) < 240);
-      const to = near.length && s.rng() < 0.6 ? near[Math.floor(s.rng() * near.length)] : null;
-      cast(s, from, to ? to.x : from.x + (s.rng() - 0.5) * 160, to ? to.y - 26 : cy + 10 + s.rng() * 60);
-    }
-    s.spells = s.spells.filter((sp) => {
-      const p = sp.t / sp.dur, x = sp.x0 + (sp.x1 - sp.x0) * p + Math.sin(p * 9) * 2, y = sp.y0 + (sp.y1 - sp.y0) * p - Math.sin(p * Math.PI) * 14;
-      const life = 8 + Math.floor(s.rng() * 8);
-      s.parts.push({ x, y, vx: (s.rng() - 0.5) * 0.5, vy: (s.rng() - 0.5) * 0.5, life, max: life, col: sp.col });
-      g.rect(Math.round(x) - 1, Math.round(y), 3, 1, sp.col); g.rect(Math.round(x), Math.round(y) - 1, 1, 3, sp.col); g.px(x, y, "#ffffff");
-      if ((sp.t += 1 / T) <= sp.dur) return true;
-      burst(s, sp.x1, sp.y1, sp.col);
-      return false;
-    });
-    if (s.parts.length > 500) s.parts.splice(0, s.parts.length - 500);
-    s.parts = s.parts.filter((p) => {
-      const a = p.life / p.max;
-      g.px(p.x, p.y, p.col, Math.min(1, a * 1.3));
-      if (a > 0.7 && p.max > 10) { g.px(p.x - 1, p.y, p.col, 0.5); g.px(p.x + 1, p.y, p.col, 0.5); g.px(p.x, p.y - 1, p.col, 0.5); g.px(p.x, p.y + 1, p.col, 0.5); }
-      p.x += p.vx / T; p.y += p.vy / T; p.vy += 0.015 / T;
-      return (p.life -= 1 / T) > 0;
-    });
-
-    // the ghosts go straight through everything, and keep the window company wherever it goes
-    for (const gh of s.ghosts) {
-      gh.x += (gh.v * (gh.hurry > 0 ? 5 : 1)) / T;
-      if (gh.hurry > 0) gh.hurry -= 1 / T;
-      const lost = gh.y < cy - 26 || gh.y > y1 + 26;
-      if (gh.x < cx - 16 || (lost && gh.v < 0)) gh.x = x1 + 12;
-      else if (gh.x > x1 + 16 || lost) gh.x = cx - 12;
-      if (lost) gh.y = cy + 22 + s.rng() * (tall - 50);
-      ghost(g, gh, f, env.night);
-    }
-    s.says = s.says.filter((say) => say.until > f);
-    for (const say of s.says) bubble(g, say.x, say.y, say.text, s);
     ctx.restore();
   },
-  /** Tap a ghost, the lady, a flight of stairs or a portrait and it answers; tap anywhere else and someone sends a spell there. */
+  /** A tap sends the nearest flight that is free to move round to its other side. */
   pointer(s, px, py) {
     const x = px / F, y = py / F;
-    const say = (sx: number, sy: number, text: string) => { s.says = s.says.filter((q) => Math.abs(q.x - sx) > 30); s.says.push({ x: sx, y: sy, text, until: s.f + 30 }); };
-    for (const gh of s.ghosts) if (Math.abs(x - gh.x) < 8 && Math.abs(y - gh.y) < 12) {
-      gh.v = -gh.v; gh.hurry = 18;
-      say(gh.x, gh.y - 10, "BOO!");
-      whoosh();
-      return true;
-    }
-    // the lady: ask her and she starts over with the password
-    const k = Math.round(x / BAY), base = FLOOR - LADY_STOREY * STOREY;
-    if (hasLady({ k, x: k * BAY, even: k % 2 === 0 }) && Math.abs(x - k * BAY) <= 9 && y > base - 30 && y <= base) {
-      s.ladies.set(k, s.f - 6);
-      chime(false);
-      return true;
-    }
-    // a flight, if the tap is on or near its slope
-    let best: Mover | null = null, bestD = 10;
+    let best: Mover | null = null, bestD = Infinity;
     for (const m of s.movers.values()) {
-      if (m.t0 >= 0) continue;
-      const ax = m.x + m.side * PIER, ay = FLOOR - m.level, bx = m.x + m.side * (PIER + RUN), by = ay - STOREY;
-      const u = Math.max(0, Math.min(1, ((x - ax) * (bx - ax) + (y - ay) * (by - ay)) / ((bx - ax) ** 2 + (by - ay) ** 2)));
-      const d = Math.hypot(x - (ax + u * (bx - ax)), y - (ay + u * (by - ay)));
+      if (!docked(m)) continue;
+      const d = Math.hypot(x - (m.x + m.side * BAY / 2), y - (FLOOR - m.st * STOREY - STOREY / 2));
       if (d < bestD) { bestD = d; best = m; }
     }
-    if (best) { best.next = s.f; rumble(); return true; }
-    const n = Math.floor(x / PERIOD), lx = x - n * PERIOD;
-    const p = s.hung.find((q) => lx >= q.x && lx < q.x + q.w && y >= q.y && y < q.y + q.h);
-    if (p) { say(p.x + n * PERIOD + p.w / 2, p.y, GREETINGS[Math.floor(s.rng() * GREETINGS.length)]); pluck(); return true; }
-    // anywhere else: whoever is nearest with a wand sends something that way
-    let from: Caster | null = null;
-    for (const c of s.casters) if (!from || Math.hypot(c.x - x, c.y - y) < Math.hypot(from.x - x, from.y - y)) from = c;
-    if (from) cast(s, from, x, y); else burst(s, x, y, MAGIC[s.f % MAGIC.length]);
-    chime(true);
+    if (!best) return false;
+    best.next = s.f;
+    rumble();
     return true;
   },
 };
