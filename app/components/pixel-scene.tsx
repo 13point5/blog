@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Gfx, mulberry32 } from "@/lib/pixel/engine";
+import { Gfx, mulberry32, type Scene, type View } from "@/lib/pixel/engine";
 import { SCENES, DEFAULT_COVER } from "@/lib/pixel";
 import { cn } from "@/lib/utils";
 import { bell, boing, coin, hit, keys, knock, pageFlip, plop, rain, yes } from "@/lib/audio";
@@ -78,6 +78,90 @@ function inkFilter(ctx: CanvasRenderingContext2D, w: number, h: number, night: b
 }
 
 /**
+ * A scene with a camera, as a pixel-art game would show it. The world is
+ * redrawn a few times a second into a buffer a little bigger than the
+ * window; every screen refresh that buffer is put on screen wherever the
+ * camera has got to, scaled without smoothing. So figures animate at the
+ * scene's own pace while the view pans and zooms as smoothly as the screen
+ * allows, in steps finer than one art pixel.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function runCamera(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, def: Scene<any>, o: { scene: string; cols: number; rows: number }) {
+  const camera = def.camera!;
+  const { cols, rows } = o;
+  const state = def.init(mulberry32(1337), cols);
+  const root = document.documentElement;
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+  const still = () => reduced.matches || root.dataset.motion === "off";
+  const step = 1000 / (def.fps ?? 12);
+  const buffer = document.createElement("canvas");
+  let g: Gfx | null = null;
+  let patch: View = { x: 0, y: 0, w: 0, h: 0 };
+  let clock = 0, frame = 0, since = 0, last = 0, raf = 0, visible = true;
+
+  /** the part of the world in the window at a given moment */
+  const windowAt = (ms: number): View => {
+    const c = camera(ms, cols, rows), w = cols / c.zoom, h = rows / c.zoom;
+    return { x: c.x - w / 2, y: c.y - h / 2, w, h };
+  };
+  /** redraw the world: everything the window will pass over before the next redraw */
+  const render = () => {
+    const ws = [windowAt(clock), windowAt(clock + step), windowAt(clock + 2 * step)];
+    const x = Math.floor(Math.min(...ws.map((v) => v.x))) - 2, y = Math.floor(Math.min(...ws.map((v) => v.y))) - 2;
+    patch = { x, y, w: Math.ceil(Math.max(...ws.map((v) => v.x + v.w))) + 2 - x, h: Math.ceil(Math.max(...ws.map((v) => v.y + v.h))) + 2 - y };
+    if (!g || buffer.width < patch.w || buffer.height < patch.h) {
+      buffer.width = Math.max(buffer.width, patch.w + 48);
+      buffer.height = Math.max(buffer.height, patch.h + 48);
+      const b = buffer.getContext("2d");
+      if (!b) return;
+      g = new Gfx(b, buffer.width, buffer.height);
+    }
+    g.w = patch.w; g.h = patch.h;
+    g.ctx.clearRect(0, 0, buffer.width, buffer.height);
+    def.draw(g, frame, state, { night: root.classList.contains("dark") }, patch);
+  };
+  const present = () => {
+    const v = windowAt(clock);
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(buffer, v.x - patch.x, v.y - patch.y, v.w, v.h, 0, 0, canvas.width, canvas.height);
+  };
+  const tick = (now: number) => {
+    raf = requestAnimationFrame(tick);
+    const dt = last ? Math.min(100, now - last) : 0;
+    last = now;
+    if (!visible || still()) return;
+    clock += dt; since += dt;
+    const v = windowAt(clock);
+    const covered = v.x >= patch.x && v.y >= patch.y && v.x + v.w <= patch.x + patch.w && v.y + v.h <= patch.y + patch.h;
+    if (since >= step || !covered) { frame++; since = since >= step ? since % step : 0; render(); }
+    present();
+  };
+  render();
+  present();
+  raf = requestAnimationFrame(tick);
+
+  const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; last = 0; }, { rootMargin: "80px" });
+  io.observe(canvas);
+  const mo = new MutationObserver(() => { render(); present(); });
+  mo.observe(root, { attributes: true, attributeFilter: ["class", "data-motion"] });
+  const sound = SCENE_SOUNDS[o.scene];
+  const onTap = (e: MouseEvent) => {
+    const r = canvas.getBoundingClientRect(), v = windowAt(clock);
+    const hit = def.pointer ? def.pointer(state, v.x + ((e.clientX - r.left) / r.width) * v.w, v.y + ((e.clientY - r.top) / r.height) * v.h) : true;
+    if (hit) sound?.();
+    if (hit && still()) { render(); present(); }
+  };
+  canvas.addEventListener("click", onTap);
+  return () => {
+    cancelAnimationFrame(raf);
+    io.disconnect();
+    mo.disconnect();
+    canvas.removeEventListener("click", onTap);
+  };
+}
+
+/**
  * Renders a procedural pixel-art scene. The canvas is tiny and scaled up by
  * CSS; the loop pauses offscreen and holds a still frame when motion is off.
  */
@@ -85,11 +169,15 @@ export function PixelScene({ scene, className, interactive, wide, maxPx = 640, i
   const ref = useRef<HTMLCanvasElement>(null);
   const def = SCENES[scene] ?? SCENES[DEFAULT_COVER];
   const [box, setBox] = useState(0); // container width in CSS px (wide mode only)
+  const [dpr, setDpr] = useState(1); // device pixels per CSS px (scenes with a camera draw at full resolution)
 
   useEffect(() => {
     const el = ref.current?.parentElement;
     if (!wide || !el) return;
-    const ro = new ResizeObserver(([e]) => setBox(Math.round(e.contentRect.width)));
+    const ro = new ResizeObserver(([e]) => {
+      setBox(Math.round(e.contentRect.width));
+      setDpr(Math.min(3, window.devicePixelRatio || 1));
+    });
     ro.observe(el);
     return () => ro.disconnect();
   }, [wide]);
@@ -105,6 +193,7 @@ export function PixelScene({ scene, className, interactive, wide, maxPx = 640, i
     const ctx = canvas?.getContext("2d", { willReadFrequently: true });
     if (!canvas || !ctx || (wide && !box)) return;
     ctx.imageSmoothingEnabled = false;
+    if (def.camera) return runCamera(canvas, ctx, def, { scene, cols, rows });
 
     // Fluid scenes draw straight onto the wide canvas. The rest draw at their
     // native size offscreen, then get centred with their backdrop stretched out.
@@ -201,13 +290,16 @@ export function PixelScene({ scene, className, interactive, wide, maxPx = 640, i
       mo.disconnect();
       canvas.removeEventListener("click", onTap);
     };
-  }, [def, scene, interactive, wide, box, cols, rows, top, ink]);
+  }, [def, scene, interactive, wide, box, cols, rows, top, ink, dpr]);
+
+  // a scene with a camera fills the canvas at the screen's own resolution
+  const hd = !!def.camera && wide && box > 0;
 
   return (
     <canvas
       ref={ref}
-      width={cols}
-      height={rows}
+      width={hd ? Math.round(box * dpr) : cols}
+      height={hd ? Math.round(rows * scale * dpr) : rows}
       data-scene={scene}
       role="img"
       aria-label={def.alt}

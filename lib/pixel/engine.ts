@@ -159,6 +159,8 @@ export class Gfx {
 }
 
 export type Env = { night: boolean };
+/** A patch of a scene's world, in art pixels. */
+export type View = { x: number; y: number; w: number; h: number };
 
 export interface Scene<S = unknown> {
   w: number;
@@ -178,7 +180,17 @@ export interface Scene<S = unknown> {
   /** Rows [top, bottom) to keep when shown as a full-width band. */
   band?: [number, number];
   init: (rng: Rng, w: number) => S;
-  draw: (g: Gfx, f: number, s: S, env: Env) => void;
+  /**
+   * Scenes with a camera are a window onto a world bigger than the picture.
+   * Given the time and the size of the window at zoom 1 (in art pixels), say
+   * where in the world the middle of the window is and how far it is zoomed
+   * in. The camera is asked every screen refresh, so it moves smoothly even
+   * though the world itself is redrawn only `fps` times a second. Such a
+   * scene's `draw` is handed the patch of world to paint (its top-left goes
+   * at the canvas origin), and its `pointer` is given world coordinates.
+   */
+  camera?: (ms: number, cols: number, rows: number) => { x: number; y: number; zoom: number };
+  draw: (g: Gfx, f: number, s: S, env: Env, view?: View) => void;
   /** Canvas-space click. Return true if the scene reacted. */
   pointer?: (s: S, x: number, y: number) => boolean;
 }
