@@ -171,6 +171,65 @@ export function pluck() {
   note(midi(72), 0.25, 0.05, { type: "triangle" });
 }
 
+/** A book: a page turning over. */
+export function pageFlip() {
+  burst(0.16, 0.07, "bandpass", 2600, 700);
+  burst(0.05, 0.05, "lowpass", 500, 500, 0.14);
+}
+
+/** A slime: a rubbery boing. */
+export function boing() {
+  note(180, 0.14, 0.09, { glideTo: 520 });
+  note(520, 0.22, 0.07, { glideTo: 240, delay: 0.12 });
+}
+
+/** A gavel on wood. */
+export function knock() {
+  note(140, 0.14, 0.14, { glideTo: 60 });
+  burst(0.05, 0.1, "lowpass", 900);
+}
+
+/** A sword landing a hit. */
+export function hit() {
+  burst(0.09, 0.12, "bandpass", 3000, 600);
+  note(300, 0.16, 0.06, { type: "square", glideTo: 90 });
+}
+
+/** A keyboard: a few quick key presses. */
+export function keys() {
+  for (let i = 0; i < 4; i++) burst(0.025, 0.09, "bandpass", 1500 + (i % 2) * 600, 1500, i * 0.07);
+}
+
+/** An eager little "yes!": three rising blips. */
+export function yes() {
+  [76, 79, 84].forEach((n, i) => note(midi(n), 0.14, 0.05, { type: "square", delay: i * 0.08 }));
+}
+
+/** A castle bell, some way off. */
+export function bell() {
+  note(330, 2.2, 0.07);
+  note(660, 1.6, 0.035);
+  note(990, 0.9, 0.02);
+}
+
+/** Stone grinding as a staircase swings round. */
+export function rumble() {
+  burst(0.7, 0.1, "lowpass", 160, 90);
+  note(55, 0.7, 0.07, { attack: 0.1 });
+}
+
+/** A fish taking a crumb. */
+export function plop() {
+  note(620, 0.12, 0.09, { glideTo: 170 });
+  burst(0.04, 0.03, "highpass", 3000, 3000, 0.05);
+}
+
+/** A gust of rain against the glass. */
+export function rain() {
+  burst(0.9, 0.035, "highpass", 2500);
+  for (let i = 0; i < 6; i++) burst(0.015, 0.03, "bandpass", 3500, 3500, i * 0.13 + 0.05);
+}
+
 // The opening bars of Bach's Prelude in C (BWV 846): five notes, then the last
 // three again, each bar played twice.
 const BARS = [

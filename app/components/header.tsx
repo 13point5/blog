@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Reactor, Sprite } from "./toys";
+import { pageFlip } from "@/lib/audio";
 import { cn } from "@/lib/utils";
 
 export function Header() {
@@ -40,10 +41,10 @@ export function Header() {
             Sriraam
           </Link>
           {/* the owl's home: it waits here, beside the name, when no heading is on screen */}
-          <span data-owl-home="" aria-hidden="true" className="w-[46px] h-[50px] shrink-0" />
+          <span data-owl-home="" aria-hidden="true" className="w-[46px] h-[46px] shrink-0" />
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/blog" aria-label="Blog" title="Blog" className="relative flex items-center hover:opacity-70 transition-opacity">
+          <Link href="/blog" aria-label="Blog" title="Blog" onClick={pageFlip} className="relative flex items-center hover:opacity-70 transition-opacity">
             <Sprite id="book" scale={2} rows={27} />
             {isOnBlogPage && <span aria-hidden="true" className="absolute left-1/2 -bottom-1 -translate-x-1/2 size-1 bg-koi" />}
           </Link>

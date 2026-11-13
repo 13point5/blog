@@ -149,7 +149,7 @@ export function Reactor() {
     setTaps(taps + 1);
   };
   return (
-    <Sprite id="reactor" scale={3} rows={19} active={dark} taps={taps} onTap={flip} label={dark ? "Switch to the light theme" : "Switch to the dark theme"} />
+    <Sprite id="reactor" scale={2} rows={27} active={dark} taps={taps} onTap={flip} label={dark ? "Switch to the light theme" : "Switch to the dark theme"} />
   );
 }
 
@@ -556,8 +556,8 @@ function Owl() {
       ctx.clearRect(0, 0, F.w, F.h + 2);
       // push off with a downstroke, beat on the way, flare the wings up to land
       const rows = !flying ? OWL_FRAMES.perched : t < 0.1 ? OWL_FRAMES.down : t > 0.86 ? OWL_FRAMES.up : OWL_FLAP[f % OWL_FLAP.length];
-      if (!flying) {
-        // a soft shadow on whatever it is standing on
+      if (!flying && aim) {
+        // a soft shadow on the heading it is standing at (none in the header, where it would sit off-centre)
         g.rect(F.bodyX + 5, F.bodyY + F.bodyH, 13, 1, "#3b2414", 0.22);
         g.rect(F.bodyX + 7, F.bodyY + F.bodyH + 1, 9, 1, "#3b2414", 0.12);
       }

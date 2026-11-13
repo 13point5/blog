@@ -4,6 +4,23 @@ import { useEffect, useRef, useState } from "react";
 import { Gfx, mulberry32 } from "@/lib/pixel/engine";
 import { SCENES, DEFAULT_COVER } from "@/lib/pixel";
 import { cn } from "@/lib/utils";
+import { bell, boing, coin, hit, keys, knock, pageFlip, plop, rain, rumble, yes } from "@/lib/audio";
+
+/** What each scene sounds like when tapped. (The shelf's objects each have their own.) */
+export const SCENE_SOUNDS: Record<string, (() => void) | undefined> = {
+  "koi-pond": plop,
+  "rain-city": rain,
+  stairwell: rumble,
+  hogwarts: bell,
+  castle: bell,
+  library: pageFlip,
+  "vibe-rl": keys,
+  gdpx: knock,
+  grpo: boing,
+  dungeon: coin,
+  sycophant: yes,
+  "boss-fight": hit,
+};
 
 type Props = {
   scene: string;
@@ -165,25 +182,27 @@ export function PixelScene({ scene, className, interactive, wide, maxPx = 640, i
     });
     mo.observe(root, { attributes: true, attributeFilter: ["class", "data-motion"] });
 
-    const onPointer = (e: PointerEvent) => {
-      if (!def.pointer) return;
-      const r = canvas.getBoundingClientRect();
-      const hit = def.pointer(
-        state,
-        ((e.clientX - r.left) / r.width) * cols - ox,
-        ((e.clientY - r.top) / r.height) * rows + top
-      );
-      if (hit && still()) paint(frame);
+    // A tap (not a scroll that happens to start here) reaches the scene, and
+    // every scene answers with a sound of its own.
+    const sound = SCENE_SOUNDS[scene];
+    const onTap = (e: MouseEvent) => {
+      let hit = true;
+      if (interactive && def.pointer) {
+        const r = canvas.getBoundingClientRect();
+        hit = def.pointer(state, ((e.clientX - r.left) / r.width) * cols - ox, ((e.clientY - r.top) / r.height) * rows + top);
+        if (hit && still()) paint(frame);
+      }
+      if (hit) sound?.();
     };
-    if (interactive) canvas.addEventListener("pointerdown", onPointer);
+    if (interactive || sound) canvas.addEventListener("click", onTap);
 
     return () => {
       cancelAnimationFrame(raf);
       io.disconnect();
       mo.disconnect();
-      canvas.removeEventListener("pointerdown", onPointer);
+      canvas.removeEventListener("click", onTap);
     };
-  }, [def, interactive, wide, box, cols, rows, top, ink]);
+  }, [def, scene, interactive, wide, box, cols, rows, top, ink]);
 
   return (
     <canvas
@@ -192,7 +211,7 @@ export function PixelScene({ scene, className, interactive, wide, maxPx = 640, i
       height={rows}
       role="img"
       aria-label={def.alt}
-      className={cn("pixelated block w-full select-none", interactive && "cursor-pointer touch-manipulation", className)}
+      className={cn("pixelated block w-full select-none", (interactive || SCENE_SOUNDS[scene]) && "cursor-pointer touch-manipulation", className)}
       style={
         wide
           ? { height: box ? rows * scale : (rows / def.w) * Math.min(maxPx, 400) }

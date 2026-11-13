@@ -336,49 +336,57 @@ const ITEMS: Item[] = [
   },
 ];
 
-// An arc reactor, drawn the way a Minecraft item is: sixteen chunky pixels
-// across, a dark outline, a steel ring lit from the top left, glowing
-// segments between four copper spokes, and a bright core. It is the light
-// switch for the site: `active` means the dark theme is on, when it burns
-// brighter. `since` counts frames from the last tap: the segments light up
-// one after another round the ring as it switches.
+// An arc reactor in chunky pixels: a dark outline, a steel ring lit from the
+// top left, ten glowing segments with copper coils between them, an inner
+// glowing ring and a bright core. It is the light switch for the site:
+// `active` means the dark theme is on, when it burns brighter. `since` counts
+// frames from the last tap: the segments light up one after another round
+// the ring as it switches.
 const REACTOR_ROWS = [
-  ".....kkkkkk.....",
-  "...kkkhhhhkkk...",
-  "..kkhhcoochskk..",
-  ".kkhcccoocccskk.",
-  ".khckCCooCCkcsk.",
-  "kkhcCknnnnkCcskk",
-  "khccCnnCCnnCccdk",
-  "khooonCwwCnooodk",
-  "khooonCwwCnooodk",
-  "khccCnnCCnnCccdk",
-  "kkhcCknnnnkCcdkk",
-  ".ksckCCooCCkcdk.",
-  ".kkscccoocccdkk.",
-  "..kksscoocddkk..",
-  "...kkkddddkkk...",
-  ".....kkkkkk.....",
+  "........kkkkkkk........",
+  "......kkkhhhhhkkk......",
+  "....kkhhhhhhhhhhhkk....",
+  "...kkhhhccooocchsskk...",
+  "..kkhhkoccoooccoksskk..",
+  "..khhcoocCCoCCcoocssk..",
+  ".khhcccokCnnnCkocccssk.",
+  ".khhccCCnnCCCnnCCccsdk.",
+  "kkhkooCnnCCnCCnnCookdkk",
+  "khhoooknCnnwnnCnkoooddk",
+  "khhcconCCnwwwnCCnoccddk",
+  "khhccCnCnwwwwwnCnCccddk",
+  "khhcconCCnwwwnCCnoccddk",
+  "khhoooknCnnwnnCnkoooddk",
+  "kkhkooCnnCCnCCnnCookdkk",
+  ".khhccCCnnCCCnnCCccddk.",
+  ".khscccokCnnnCkocccddk.",
+  "..ksscoocCCoCCcoocddk..",
+  "..kksskoccoooccokddkk..",
+  "...kksssccoooccdddkk...",
+  "....kksddddddddddkk....",
+  "......kkkdddddkkk......",
+  "........kkkkkkk........",
 ];
+const REACTOR_SEGMENTS = 10;
 const REACTOR: Item = {
-  id: "reactor", w: 16, priority: 99,
+  id: "reactor", w: 23, priority: 99,
   draw(g, x, y, f, _P, active = false, _taps, since = 99) {
     const pal: Record<string, string> = {
       k: "#12161d", s: "#7b8494", h: "#aab3c2", d: "#4d5565", o: "#b9722f", n: "#0f2a3d", w: "#f2fdff",
       c: active ? "#7fdcff" : "#27a9e3", C: active ? "#d6f6ff" : "#7fdcff",
     };
-    const top = y - REACTOR_ROWS.length;
-    const sweep = since < 20 ? since / 1.6 : -1; // how many of the eight segments the surge has reached
-    const beat = active && Math.floor(f / 9) % 2 === 0; // the core's slow pulse in the dark
+    const top = y - REACTOR_ROWS.length, mid = (REACTOR_ROWS.length - 1) / 2;
+    const sweep = since < 22 ? since / 1.4 : -1; // how many segments the surge has reached
+    const beat = active && Math.floor(f / 9) % 2 === 0; // the inner ring's slow pulse in the dark
     REACTOR_ROWS.forEach((row, j) => {
       for (let i = 0; i < row.length; i++) {
         const ch = row[i];
         if (ch === ".") continue;
         let color = pal[ch];
-        const dx = i - 7.5, dy = j - 7.5, d = Math.hypot(dx, dy);
-        if (ch === "c" || (ch === "C" && d > 3.3)) {
-          // a segment: lit white for a moment as the surge passes it, starting from the top
-          const seg = Math.floor((((Math.atan2(dy, dx) + Math.PI * 2.5) % (Math.PI * 2)) / (Math.PI * 2)) * 8);
+        const dx = i - mid, dy = j - mid, d = Math.hypot(dx, dy);
+        if ((ch === "c" || ch === "C") && d > 5.3) {
+          // a segment: lit white for a moment as the surge passes it, clockwise from the top
+          const seg = Math.floor((((Math.atan2(dy, dx) + Math.PI * 2.5) % (Math.PI * 2)) / (Math.PI * 2)) * REACTOR_SEGMENTS);
           if (sweep >= 0 && seg <= sweep && seg > sweep - 3) color = pal.w;
         } else if (ch === "C" && beat) color = pal.w;
         g.px(x + i, top + j, color);
