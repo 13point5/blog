@@ -336,31 +336,42 @@ const ITEMS: Item[] = [
   },
 ];
 
-// After the Elder Wand: dark wood, a flared pommel, knobbly clusters of
-// "berries" spaced along its length, and a shaft that thins to a fine tip.
-// It only sparks while `active`.
+// After Harry's wand: the handle is a piece of branch with the bark left on,
+// rough and grey-brown with a knobbly end, and above it a smooth, warm,
+// reddish-brown shaft that tapers to the tip. It only sparks while `active`.
 const WAND: Item = {
   id: "wand", w: 24, priority: 99,
   draw(g, x, y, f, P, active = false) {
-    const DK = "#3b2a1e", WD = "#70502f", HI = "#a8855a";
-    // point i along the wand, from the pommel (bottom left) to the tip (top right)
+    const BARK = "#8f7c68", BARK_DK = "#4a3d32", BARK_HI = "#b9a892";
+    const WOOD = "#9a5230", WOOD_HI = "#c47a4a", WOOD_DK = "#6e3519";
+    // point i along the wand, from the butt of the handle (bottom left) to the tip (top right)
     const at = (i: number) => [x + 1 + i, y - 2 - i] as const;
-    const knot = (i: number, r: number) => {
-      const [cx, cy] = at(i);
-      g.disc(cx, cy, r, DK);
-      g.disc(cx, cy, r - 0.9, WD);
-      g.px(cx - 1, cy - 1, HI);
-      if (r > 1.6) { g.px(cx + 1, cy, HI); g.px(cx, cy + 1, DK); }
-    };
-    // shaft: two pixels thick at the grip, one toward the tip
-    for (let i = 0; i < 22; i++) {
+    // the smooth shaft: two pixels thick, then one toward the tip
+    for (let i = 8; i < 22; i++) {
       const [px, py] = at(i);
-      if (i < 15) { g.rect(px, py, 2, 2, WD); g.px(px, py, HI); g.px(px + 1, py + 1, DK); }
-      else g.px(px, py, i >= 20 ? HI : WD);
+      if (i < 16) { g.rect(px, py, 2, 2, WOOD); g.px(px, py, WOOD_HI); g.px(px + 1, py + 1, WOOD_DK); }
+      else g.px(px, py, i >= 20 ? WOOD_HI : WOOD);
     }
-    g.rect(x, y - 3, 3, 3, DK); // pommel
-    g.px(x, y - 1, WD);
-    knot(3, 2.5); knot(7, 2); knot(11, 1.7); knot(15, 1.3); knot(18, 1);
+    // the bark handle: a dark edge first, then the bark laid over it so its
+    // grey-brown shows, with lumps where twigs were cut off
+    const lump = (i: number) => i === 2 || i === 5;
+    for (let i = 0; i < 9; i++) {
+      const [px, py] = at(i);
+      g.rect(px - 1, py - 1, 4, 4, BARK_DK);
+      if (lump(i)) { g.rect(px - 2, py - 2, 3, 3, BARK_DK); g.rect(px + 1, py + 1, 3, 3, BARK_DK); }
+    }
+    g.rect(x - 1, y - 4, 4, 4, BARK_DK); // a knobbly butt
+    for (let i = 0; i < 9; i++) {
+      const [px, py] = at(i);
+      g.rect(px, py, 2, 2, BARK);
+      if (lump(i)) { g.px(px - 1, py - 1, BARK); g.px(px + 2, py + 2, BARK); }
+      g.px(px, py, hash(i, 1, 41) < 0.55 ? BARK_HI : BARK);
+      if (hash(i, 2, 41) < 0.35) g.px(px + 1, py + 1, BARK_DK);
+    }
+    g.rect(x, y - 3, 2, 2, BARK); g.px(x, y - 3, BARK_HI);
+    // a ridge where the bark ends and the shaft begins
+    const [jx, jy] = at(9);
+    g.rect(jx - 1, jy, 3, 2, BARK_DK); g.px(jx, jy, WOOD_HI);
     if (!active) return;
     const [tx, ty] = at(21);
     for (let i = 0; i < 8; i++) {
