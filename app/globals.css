@@ -655,3 +655,43 @@ dd {
   background: repeating-linear-gradient(90deg, var(--border) 0 4px, transparent 4px 8px);
 }
 
+/* What the owl says: a little pixel speech bubble above its head. The border
+   is made of box-shadows so its corners step instead of curving. */
+.px-bubble {
+  position: absolute;
+  padding: 3px 8px 4px;
+  white-space: nowrap;
+  font-family: var(--f-pixelify), system-ui, sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  font-variant-ligatures: none;
+  color: #3b2414;
+  background: #fbf1dc;
+  box-shadow: 0 -3px 0 0 #3b2414, 0 3px 0 0 #3b2414, -3px 0 0 0 #3b2414, 3px 0 0 0 #3b2414, 4px 6px 0 0 rgb(0 0 0 / 0.18);
+  animation: px-pop 0.18s steps(3) both;
+}
+.px-bubble::after {
+  /* the tail, pointing down at the owl */
+  content: "";
+  position: absolute;
+  left: 24px;
+  top: 100%;
+  width: 6px;
+  height: 6px;
+  margin: 3px 0 0 0;
+  background: #fbf1dc;
+  box-shadow: -3px 0 0 0 #3b2414, 3px 0 0 0 #3b2414, 0 3px 0 0 #3b2414;
+}
+@keyframes px-pop {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.px-bubble[data-side="right"]::after { left: auto; right: 24px; }
+/* a bubble that opens below the owl has its tail on top */
+.px-bubble[data-below="true"]::after {
+  top: auto;
+  bottom: 100%;
+  margin: 0 0 3px 0;
+  box-shadow: -3px 0 0 0 #3b2414, 3px 0 0 0 #3b2414, 0 -3px 0 0 #3b2414;
+}
+

@@ -4,7 +4,8 @@
 //   pnpm test:e2e                   (in another; BASE_URL defaults to http://localhost:3000)
 //
 // Needs Playwright with a Chromium build (`npx playwright install chromium`).
-// At every scroll position, going down and coming back up, it asserts:
+// After the welcome it checks that the owl's speech bubble covers no text.
+// Then, at every scroll position, going down and coming back up, it asserts:
 //   - if a heading is fully on screen (with an owl's height of room above it),
 //     the owl is at a heading, not in the header
 //   - if none is, the owl is in its slot beside the name
@@ -86,6 +87,25 @@ const probe = () => {
   };
 };
 
+/** After the welcome, whatever the owl says must not sit on top of text. */
+const bubbleHits = () => {
+  const b = document.querySelector(".px-bubble")?.getBoundingClientRect();
+  if (!b) return null;
+  const hits = [];
+  const range = document.createRange();
+  const walker = document.createTreeWalker(document.querySelector("main"), NodeFilter.SHOW_TEXT);
+  while (walker.nextNode()) {
+    const n = walker.currentNode;
+    if (!n.textContent.trim()) continue;
+    range.selectNodeContents(n);
+    for (const r of range.getClientRects()) {
+      const t = r.top + r.height * 0.22, bt = r.bottom - r.height * 0.08;
+      if (r.left < b.right && r.right > b.left && t < b.bottom && bt > b.top) hits.push(n.textContent.trim().slice(0, 28));
+    }
+  }
+  return { hits: [...new Set(hits)], inView: b.left >= 0 && b.right <= innerWidth && b.top >= 0 };
+};
+
 const browser = await chromium.launch();
 for (const viewport of VIEWPORTS) {
   for (const url of PAGES) {
@@ -93,7 +113,12 @@ for (const viewport of VIEWPORTS) {
     const where = (y) => `${viewport.width}px ${url} @${y}`;
     const fail = (y, msg) => failures.push(`${where(y)}: ${msg}`);
     await page.goto(BASE + url, { waitUntil: "networkidle" });
-    await page.waitForTimeout(1600);
+    // the welcome: a lap of the page, a landing, then (where there is room) a word
+    await page.waitForTimeout(4600);
+    const said = await page.evaluate(bubbleHits);
+    checks++;
+    if (said && said.hits.length) failures.push(`${viewport.width}px ${url}: the owl's bubble covers "${said.hits.join('", "')}"`);
+    if (said && !said.inView) failures.push(`${viewport.width}px ${url}: the owl's bubble runs off the screen`);
     const max = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
     const step = Math.round(viewport.height * 0.45);
     const stops = [];

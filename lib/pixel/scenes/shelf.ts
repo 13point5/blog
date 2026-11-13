@@ -395,28 +395,50 @@ const REACTOR: Item = {
   },
 };
 
-// A spellbook: oxblood leather with a darker spine, a gilt border, a gem set
-// in the cover, a clasp, cream page edges and a ribbon. Drawn to stand about
-// as tall as the owl, at the same pixel size.
+// A spellbook, seen flat on: a deep purple cover with a darker spine, a gilt
+// border, and a crescent moon cradling a star. The star twinkles.
+const BOOK_ROWS = [
+  ".kkkkkkkkkkkkkkkkk.",
+  "kkssMMMMMMMMMMMMMkk",
+  "ksssmmmmmmmmmmmmmmk",
+  "ksssmmggggggggggmmk",
+  "kgggmgmmmmmmmmmmgmk",
+  "kGGGmgmymmmmmmymgmk",
+  "ksssmgmmmmmmmmmmgmk",
+  "ksssmgmmmmmmmmmmgmk",
+  "ksssmgmmggmmmmymgmk",
+  "ksssmgmggmmmymmmgmk",
+  "ksssmgmggmmywymmgmk",
+  "ksssmggggmmmymmmgmk",
+  "ksssmggggmmmmmmmgmk",
+  "ksssmgmggmmmmmmmgmk",
+  "ksssmgmgggmmmmmmgmk",
+  "ksssmgmmgggggmmmgmk",
+  "ksssmgmmmmmmmymmgmk",
+  "ksssmgmmmmmmmmmmgmk",
+  "kGGGmgmymmmmmmymgmk",
+  "kgggmgmmmmmmmmmmgmk",
+  "ksssmmggggggggggmmk",
+  "ksssmmmmmmmmmmmmmmk",
+  "kkssmmmmmmmmmmmmmkk",
+  ".kkkkkkkkkkkkkkkkk.",
+];
+const BOOK_PAL = { k: "#1c1030", s: "#2e1a52", m: "#4a2a80", M: "#6b46a8", g: "#e3b34d", G: "#a87a2a", y: "#f8e08c", w: "#ffffff" };
 const BOOK: Item = {
   id: "book", w: 19, priority: 99,
   draw(g, x, y, f) {
-    const K = "#2a1a22", S = "#4a1728", M = "#8a2f44", M2 = "#a8405a", G = "#e0b050", Y = "#f6dc8c", C = "#58c7d9", PG = "#f3ead6", PL = "#cfc4a8", R = "#d9532b";
-    const cw = 14, ch = 18, top = y - ch - 7; // the cover; pages and a ribbon show below it
-    g.rect(x, top, cw + 2, ch + 2, K);
-    g.rect(x + cw + 2, top + 2, 3, ch + 2, K); // page block, right edge
-    g.rect(x + 2, top + ch + 2, cw + 3, 3, K); // and along the bottom
-    g.rect(x + cw + 2, top + 3, 2, ch, PG); g.rect(x + cw + 3, top + 3, 1, ch, PL);
-    g.rect(x + 3, top + ch + 2, cw + 1, 2, PG); g.rect(x + 3, top + ch + 3, cw + 1, 1, PL);
-    g.rect(x + 1, top + 1, cw, ch, M);
-    g.rect(x + 1, top + 1, 2, ch, S); // spine
-    g.rect(x + 3, top + 1, cw - 2, 1, M2); // light along the top edge
-    g.box(x + 4, top + 3, cw - 4, ch - 4, G); // gilt border
-    const gx = x + 7, gy = top + 8; // the gem: a diamond in the middle of the cover
-    g.rect(gx + 1, gy, 2, 4, Y); g.rect(gx, gy + 1, 4, 2, Y); g.rect(gx + 1, gy + 1, 2, 2, C);
-    g.rect(x + cw - 1, top + 9, 5, 2, G); g.px(x + cw + 3, top + 9, Y); // clasp
-    g.rect(x + 6, top + ch + 5, 1, 2, R); g.px(x + 7, top + ch + 6, R); // ribbon
-    if (f % 64 < 3) g.px(gx + 1, gy + 1, "#ffffff"); // the gem catches the light
+    const top = y - BOOK_ROWS.length;
+    g.sprite(BOOK_ROWS, x, top, BOOK_PAL);
+    // the big star flares now and then, and the little ones wink out in turn
+    const starRow = BOOK_ROWS.findIndex((r) => r.includes("w"));
+    const starCol = BOOK_ROWS[starRow].indexOf("w");
+    if (f % 48 < 4) {
+      for (const [dx, dy] of [[2, 0], [-2, 0], [0, 2], [0, -2]]) g.px(x + starCol + dx, top + starRow + dy, BOOK_PAL.y);
+    }
+    const wink = Math.floor(f / 14) % 6;
+    const small: [number, number][] = [];
+    BOOK_ROWS.forEach((r, j) => { for (let i = 0; i < r.length; i++) if (r[i] === "y" && Math.abs(i - starCol) + Math.abs(j - starRow) > 2) small.push([i, j]); });
+    if (wink < small.length) g.px(x + small[wink][0], top + small[wink][1], BOOK_PAL.m);
   },
 };
 
