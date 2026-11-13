@@ -395,50 +395,48 @@ const REACTOR: Item = {
   },
 };
 
-// A spellbook, seen flat on: a deep purple cover with a darker spine, a gilt
-// border, and a crescent moon cradling a star. The star twinkles.
+// A spellbook, seen flat on: one deep purple panel with a gilt frame and, in
+// a gold lozenge at its centre, a clear blue gem. No spine, no page edges.
+// Now and then light runs down the gem.
 const BOOK_ROWS = [
   ".kkkkkkkkkkkkkkkkk.",
-  "kkssMMMMMMMMMMMMMkk",
-  "ksssmmmmmmmmmmmmmmk",
-  "ksssmmggggggggggmmk",
-  "kgggmgmmmmmmmmmmgmk",
-  "kGGGmgmymmmmmmymgmk",
-  "ksssmgmmmmmmmmmmgmk",
-  "ksssmgmmmmmmmmmmgmk",
-  "ksssmgmmggmmmmymgmk",
-  "ksssmgmggmmmymmmgmk",
-  "ksssmgmggmmywymmgmk",
-  "ksssmggggmmmymmmgmk",
-  "ksssmggggmmmmmmmgmk",
-  "ksssmgmggmmmmmmmgmk",
-  "ksssmgmgggmmmmmmgmk",
-  "ksssmgmmgggggmmmgmk",
-  "ksssmgmmmmmmmymmgmk",
-  "ksssmgmmmmmmmmmmgmk",
-  "kGGGmgmymmmmmmymgmk",
-  "kgggmgmmmmmmmmmmgmk",
-  "ksssmmggggggggggmmk",
-  "ksssmmmmmmmmmmmmmmk",
-  "kkssmmmmmmmmmmmmmkk",
+  "kkmmmmmmmmmmmmmmmkk",
+  "kmmgggggggggggggmmk",
+  "kmgmmmmmmmmmmmmmgmk",
+  "kmgmymmmmgmmmmymgmk",
+  "kmgmmmmmmgmmmmmmgmk",
+  "kmgmmmmmgmgmmmmmgmk",
+  "kmgmmmmgmmmgmmmmgmk",
+  "kmgmmmmgmcmgmmmmgmk",
+  "kmgmmmgmwCmmgmmmgmk",
+  "kmgmmgmmCccmmgmmgmk",
+  "kmgmgmmcccccmmgmgmk",
+  "kmgmgmmcccccmmgmgmk",
+  "kmgmmgmmcccmmgmmgmk",
+  "kmgmmmgmmcmmgmmmgmk",
+  "kmgmmmmgmcmgmmmmgmk",
+  "kmgmmmmgmmmgmmmmgmk",
+  "kmgmmmmmgmgmmmmmgmk",
+  "kmgmmmmmmgmmmmmmgmk",
+  "kmgmymmmmgmmmmymgmk",
+  "kmgmmmmmmmmmmmmmgmk",
+  "kmmgggggggggggggmmk",
+  "kkmmmmmmmmmmmmmmmkk",
   ".kkkkkkkkkkkkkkkkk.",
 ];
-const BOOK_PAL = { k: "#1c1030", s: "#2e1a52", m: "#4a2a80", M: "#6b46a8", g: "#e3b34d", G: "#a87a2a", y: "#f8e08c", w: "#ffffff" };
+const BOOK_PAL = { k: "#1c1030", m: "#4a2a80", g: "#e3b34d", y: "#f8e08c", w: "#ffffff", c: "#58c7d9", C: "#bff2fa" };
 const BOOK: Item = {
   id: "book", w: 19, priority: 99,
   draw(g, x, y, f) {
     const top = y - BOOK_ROWS.length;
     g.sprite(BOOK_ROWS, x, top, BOOK_PAL);
-    // the big star flares now and then, and the little ones wink out in turn
-    const starRow = BOOK_ROWS.findIndex((r) => r.includes("w"));
-    const starCol = BOOK_ROWS[starRow].indexOf("w");
-    if (f % 48 < 4) {
-      for (const [dx, dy] of [[2, 0], [-2, 0], [0, 2], [0, -2]]) g.px(x + starCol + dx, top + starRow + dy, BOOK_PAL.y);
+    // a glint travelling down the gem's left facet
+    const t = f % 60;
+    if (t < 8) {
+      const j = 8 + Math.floor(t / 2) * 2;
+      const i = BOOK_ROWS[j]?.indexOf("c") ?? -1;
+      if (i >= 0) g.px(x + i + (j < 12 ? 1 : 0), top + j, BOOK_PAL.w);
     }
-    const wink = Math.floor(f / 14) % 6;
-    const small: [number, number][] = [];
-    BOOK_ROWS.forEach((r, j) => { for (let i = 0; i < r.length; i++) if (r[i] === "y" && Math.abs(i - starCol) + Math.abs(j - starRow) > 2) small.push([i, j]); });
-    if (wink < small.length) g.px(x + small[wink][0], top + small[wink][1], BOOK_PAL.m);
   },
 };
 
