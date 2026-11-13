@@ -1,6 +1,4 @@
-import { hash } from "./engine";
 import { Voxels } from "./voxel";
-import { click, fanfare } from "@/lib/audio";
 import type { Item } from "./scenes/shelf";
 
 // The small objects scattered around the site, built from voxels so they read
@@ -43,64 +41,4 @@ const record: Item = {
   },
 };
 
-// Colours of the four side faces, in the cube's own frame: +x, +y, -x, -y.
-const SIDES = ["#2f6fd6", "#c8321f", "#2f9d5a", "#f08a2c"];
-const TOP = "#fdfbf7";
-const TURN = 7; // frames a quarter turn takes
-
-/**
- * The cube is three layers that each turn about the vertical axis. This gives
- * each layer's quarter-turns (bottom, middle, top) after `n` pokes, and which
- * layer the last poke turned. Every poke turns whichever layer is still out of
- * line; once all three agree the cube is solved, and the next poke scrambles it.
- */
-function cubeState(n: number) {
-  const o = [0, 3, 1];
-  let last = -1;
-  for (let i = 0; i < n; i++) {
-    last = (o[2] - o[0]) % 4 ? 2 : (o[1] - o[0]) % 4 ? 1 : 2;
-    o[last]++;
-  }
-  return { o, last, solved: (o[1] - o[0]) % 4 === 0 && (o[2] - o[0]) % 4 === 0 };
-}
-
-const cube: Item = {
-  id: "cube", w: 60, priority: 2,
-  sound: (taps) => (cubeState(taps).solved ? fanfare() : click()),
-  draw(g, x, y, f, P, _active, taps = 0, since = 99) {
-    const { o, last, solved } = cubeState(taps);
-    const m = new Voxels();
-    for (let layer = 0; layer < 3; layer++) {
-      // a layer that was just poked is caught part-way through its quarter turn
-      const q = o[layer] - (layer === last && since < TURN ? 1 - since / TURN : 0);
-      const a = (q * Math.PI) / 2, ca = Math.cos(a), sa = Math.sin(a);
-      const z0 = layer * 4, z1 = layer === 2 ? 10 : z0 + 3;
-      for (let tx = 0; tx < 15; tx++) for (let ty = 0; ty < 15; ty++) {
-        // which cell of the unturned 11x11 layer ends up here?
-        const dx = tx - 7, dy = ty - 7;
-        const u = Math.round(ca * dx + sa * dy) + 5, v = Math.round(-sa * dx + ca * dy) + 5;
-        if (u < 0 || v < 0 || u > 10 || v > 10) continue;
-        for (let z = z0; z <= z1; z++) {
-          m.set(tx, ty, z, BLACK);
-          if (z % 4 === 3) continue; // the seam between layers
-          if (z === 10 && u % 4 !== 3 && v % 4 !== 3) m.face(tx, ty, z, 0, TOP);
-          // stickers on the rim, painted on whichever visible faces they now point toward
-          const rim: [boolean, number, number][] = [[u === 10 && v % 4 !== 3, 1, 0], [v === 10 && u % 4 !== 3, 0, 1], [u === 0 && v % 4 !== 3, -1, 0], [v === 0 && u % 4 !== 3, 0, -1]];
-          rim.forEach(([on, nx, ny], side) => {
-            if (!on) return;
-            if (ca * nx - sa * ny > 0.38) m.face(tx, ty, z, 2, SIDES[side]);
-            if (sa * nx + ca * ny > 0.38) m.face(tx, ty, z, 1, SIDES[side]);
-          });
-        }
-      }
-    }
-    m.w = m.d = 15; // keep the cube still on the page while a layer swings out
-    m.draw(g, x, y);
-    if (solved && since >= TURN) {
-      const t = Math.floor(f / 2);
-      for (let i = 0; i < 6; i++) if (hash(i, t, 9) < 0.6) g.px(x + 6 + hash(i, t, 10) * 48, y - 52 + hash(i, t, 11) * 40, i % 2 ? P.gold : P.accent);
-    }
-  },
-};
-
-export const VOXEL_TOYS: Record<string, Item> = { record, cube };
+export const VOXEL_TOYS: Record<string, Item> = { record };

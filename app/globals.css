@@ -10,8 +10,8 @@
   --background-card: #fdfbf7;
   --background-alt: #efede8;
   --link: #1d1d1b;
-  --link-hover: #c2401a;
-  --koi: #d9532b;
+  --link-hover: #3577cc;
+  --koi: #3577cc;
   --accent: #f0ebe2;
   --accent-light: #e6dfd3;
   --border: #e3ddd2;
@@ -53,8 +53,8 @@
   --background-card: #1f1f1d;
   --background-alt: #262624;
   --link: #ecebe6;
-  --link-hover: #ff9166;
-  --koi: #ff7a4d;
+  --link-hover: #7fb0ee;
+  --koi: #7fb0ee;
   --accent: #242422;
   --accent-light: #30302d;
   --border: #353532;
@@ -75,6 +75,7 @@
   --color-foreground: var(--foreground);
   --color-foreground-muted: var(--foreground-muted);
   --color-koi: var(--koi);
+  --color-link-hover: var(--link-hover);
   --color-accent: var(--accent);
   --color-accent-light: var(--accent-light);
   --color-border: var(--border);
@@ -629,13 +630,14 @@ dd {
   cursor: pointer;
   outline: none;
 }
-.px-menu-cursor { width: 0.8em; flex: none; font-size: 0.7em; color: #d9532b; opacity: 0; }
+.px-menu-cursor { width: 0.8em; flex: none; font-size: 0.7em; color: #3577cc; opacity: 0; }
 .px-menu-item:hover, .px-menu-item:focus-visible { background: rgb(217 154 85 / 0.3); }
 .px-menu-item:hover .px-menu-cursor,
 .px-menu-item:focus-visible .px-menu-cursor,
 .px-menu-item[aria-current] .px-menu-cursor { opacity: 1; }
-.px-menu-item[aria-current] { color: #b33d1c; }
-.dark .px-menu-item[aria-current] { color: #ff9166; }
+.px-menu-item[aria-current] { color: #2a62ad; }
+.dark .px-menu-item[aria-current] { color: #8fbaf0; }
+.dark .px-menu-cursor { color: #8fbaf0; }
 .px-menu-item[aria-current] .px-menu-cursor { animation: px-nudge 0.9s steps(2) infinite; }
 .px-menu-rule {
   height: 3px;
