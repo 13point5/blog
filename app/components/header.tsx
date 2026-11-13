@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Reactor, Sprite } from "./toys";
 import { pageFlip } from "@/lib/audio";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 export function Header() {
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
+  const [bookTaps, setBookTaps] = useState(0);
+  const router = useRouter();
   const pathname = usePathname();
   const isOnBlogPage = pathname.startsWith("/blog");
 
@@ -25,6 +27,18 @@ export function Header() {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Tapping the book lets its cover swing open before the blog appears. Inside
+  // the blog it already lies open, so the tap just goes to the index.
+  const openBook = (e: React.MouseEvent) => {
+    pageFlip();
+    const plain = !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey && e.button === 0;
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (isOnBlogPage || !plain || still) return;
+    e.preventDefault();
+    setBookTaps((n) => n + 1);
+    setTimeout(() => router.push("/blog"), 380);
+  };
 
   return (
     <header
@@ -44,9 +58,8 @@ export function Header() {
           <span data-owl-home="" aria-hidden="true" className="w-[46px] h-[46px] shrink-0" />
         </div>
         <div className="flex items-center gap-3">
-          <Link href="/blog" aria-label="Blog" title="Blog" onClick={pageFlip} className="relative flex items-center hover:opacity-70 transition-opacity">
-            <Sprite id="book" scale={2} rows={27} />
-            {isOnBlogPage && <span aria-hidden="true" className="absolute left-1/2 -bottom-1 -translate-x-1/2 size-1 bg-koi" />}
+          <Link href="/blog" aria-label="Blog" title="Blog" onClick={openBook} className="flex items-center hover:opacity-80 transition-opacity">
+            <Sprite id="book" scale={2} rows={27} active={isOnBlogPage} taps={bookTaps} />
           </Link>
           {/*
             The settings menu (theme, type, playfulness, art style and width) is

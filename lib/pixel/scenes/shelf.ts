@@ -425,18 +425,58 @@ const BOOK_ROWS = [
   ".kkkkkkkkkkkkkkkkk.",
 ];
 const BOOK_PAL = { k: "#1c1030", m: "#4a2a80", g: "#e3b34d", y: "#f8e08c", w: "#ffffff", c: "#58c7d9", C: "#bff2fa" };
+const PAGE = "#fbf1dc", PAGE_EDGE = "#d9cdb0", INK_LINE = "#a39a86";
+/** frames the cover takes to swing open after a tap */
+export const BOOK_OPENING = 4;
+
+/** The book lying open, in the same footprint: two cream pages inside the purple cover. */
+function drawOpenBook(g: Gfx, x: number, top: number, f: number) {
+  const h = BOOK_ROWS.length;
+  BOOK_ROWS.forEach((row, j) => {
+    for (let i = 0; i < row.length; i++) if (row[i] !== ".") g.px(x + i, top + j, row[i] === "k" ? BOOK_PAL.k : BOOK_PAL.m);
+  });
+  for (const px of [2, 10]) {
+    g.rect(x + px, top + 2, 7, h - 4, PAGE);
+    g.rect(x + px, top + h - 3, 7, 1, PAGE_EDGE);
+    // lines of writing, some shorter than others
+    for (let j = 6; j < h - 4; j += 3) g.rect(x + px + 1, top + j, j % 2 ? 5 : 4, 1, INK_LINE);
+  }
+  g.rect(x + 9, top + 2, 1, h - 4, BOOK_PAL.k); // the gutter
+  // an illuminated capital on the left page and a little gem drawn on the right
+  g.rect(x + 3, top + 3, 2, 2, BOOK_PAL.g);
+  g.rect(x + 13, top + 3, 1, 3, BOOK_PAL.c);
+  g.rect(x + 12, top + 4, 3, 1, f % 40 < 20 ? BOOK_PAL.c : BOOK_PAL.C);
+}
+
 const BOOK: Item = {
   id: "book", w: 19, priority: 99,
-  draw(g, x, y, f) {
+  // `active` means it is lying open (you are in the blog); `since` counts
+  // frames from the last tap, while the cover swings open.
+  draw(g, x, y, f, _P, active = false, _taps, since = 99) {
     const top = y - BOOK_ROWS.length;
-    g.sprite(BOOK_ROWS, x, top, BOOK_PAL);
-    // a glint travelling down the gem's left facet
-    const t = f % 60;
-    if (t < 8) {
-      const j = 8 + Math.floor(t / 2) * 2;
-      const i = BOOK_ROWS[j]?.indexOf("c") ?? -1;
-      if (i >= 0) g.px(x + i + (j < 12 ? 1 : 0), top + j, BOOK_PAL.w);
+    const opening = since < BOOK_OPENING;
+    if (!active && !opening && since > BOOK_OPENING + 10) {
+      g.sprite(BOOK_ROWS, x, top, BOOK_PAL);
+      // a glint travelling down the gem's left facet
+      const t = f % 60;
+      if (t < 8) {
+        const j = 8 + Math.floor(t / 2) * 2;
+        const i = BOOK_ROWS[j]?.indexOf("c") ?? -1;
+        if (i >= 0) g.px(x + i + (j < 12 ? 1 : 0), top + j, BOOK_PAL.w);
+      }
+      return;
     }
+    drawOpenBook(g, x, top, f);
+    if (!opening) return;
+    // the cover swinging open on its left edge: drawn narrower each frame
+    const width = [14, 10, 6, 3][since] ?? 0;
+    BOOK_ROWS.forEach((row, j) => {
+      for (let i = 0; i < width; i++) {
+        const ch = row[Math.floor((i * row.length) / width)];
+        if (ch !== ".") g.px(x + i, top + j, BOOK_PAL[ch as keyof typeof BOOK_PAL]);
+      }
+      if (row[0] !== "." || j > 0) g.px(x + width, top + j, BOOK_PAL.k); // its leading edge
+    });
   },
 };
 
