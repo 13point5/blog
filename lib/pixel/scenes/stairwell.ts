@@ -22,11 +22,13 @@ const DEEP = 20; // stairs and balconies are this deep
 const WALL_BASE = FLOOR - 10; // the back wall stands 40 units behind the towers
 const RAIL = 9; // height of a handrail
 const SWING = 44; // frames a flight takes to swing round
+const FIRST = 34; // the first swing starts about a second after the picture appears (it opens on frame 20)
+const REST = 54; // and after each one a flight rests for five or six seconds
 
 const C = {
   wall: "#4a392b", wall2: "#534132", wall3: "#423225", mortar: "#3a2c21", mould: "#7b6447", mouldHi: "#94794f",
   pier: "#927a58", pierHi: "#a68c66", pierDk: "#6f5b41", pierLine: "#7f6a4b",
-  tread: "#f3e6c8", tread2: "#e3d1ab", side: "#c2aa7f", sideDk: "#96805c", rail: "#f8eed6", railDk: "#cdb88e", post: "#e0cea6",
+  tread: "#ecdcb8", tread2: "#d8c398", side: "#b59c70", sideDk: "#87714e", rail: "#f4e8cc", railDk: "#c2ab80", post: "#d6c297",
   farRail: "#b9a47c", farPost: "#a08c68",
   oak: "#5a3a20", oakDk: "#3a2413", oakHi: "#7a5230",
   gilt: "#d2a23e", giltHi: "#f0cc68", giltDk: "#8f6a22",
@@ -55,11 +57,16 @@ function poly(g: Gfx, pts: [number, number][], c: string) {
   }
 }
 
-// a student in robes, 5 x 12; the last row is the feet, in two poses
-const STUDENT = [".hhh.", "hhhhh", "hsssh", ".sss.", "ccccc", "rrcrr", "rrcrr", "rrrrr", "rrrrr", "rrrrr", ".rrr."];
-const FEET = [".b.b.", "..bb."];
-const HAIR = ["#3a2413", "#1c1612", "#b5622f", "#d8b05a"];
-const SCARF = ["#b3332a", "#2f7a4f", "#2f5fa8", "#e0b03a"];
+// someone in a pointed hat and bright robes, 7 x 15; the last row is the feet, in two poses
+const WIZARD = [
+  "...t...", "..ttt..", "..ttt..", ".ttttt.", ".hsssh.", "..sss..", ".rcccr.",
+  "rrrrrrr", "rrrrrrr", "rrrrrrr", ".rrcrr.", ".rrcrr.", ".rrrrr.", ".rrrrr.",
+];
+const FEET = ["..b.b..", "...bb.."];
+const HAIR = ["#3a2413", "#1c1612", "#b5622f", "#e3c06a"];
+// robes and hats, bright enough to read against both the pale stairs and the dark wall
+const ROBE = ["#c63f31", "#2f9560", "#3a6fd0", "#8552c2"];
+const HAT = ["#8c281f", "#1d6740", "#254c9c", "#5a358f"];
 
 type Walker = { d: number; look: number };
 
@@ -116,8 +123,9 @@ function flight(g: Gfx, cx: number, level: number, a: number, walkers: Walker[] 
   for (const wk of walkers) {
     const i = Math.max(0, Math.min(STEPS - 1, Math.floor((wk.d - PIER) / GOING)));
     const [x, y] = pt(PIER + GOING * i + GOING / 2, 0, top(i));
-    const pal = { h: HAIR[wk.look % HAIR.length], s: SKIN, c: SCARF[(wk.look >> 2) % SCARF.length], r: "#1d1a24", b: "#0e0c10" };
-    g.sprite([...STUDENT, FEET[i % 2]], Math.round(x) - 2, Math.round(y) - 11, pal);
+    const n = wk.look % ROBE.length;
+    const pal = { h: HAIR[(wk.look >> 2) % HAIR.length], s: SKIN, c: "#f2cf6a", r: ROBE[n], t: HAT[n], b: "#17100b" };
+    g.sprite([...WIZARD, FEET[i % 2]], Math.round(x) - 3, Math.round(y) - 14, pal);
   }
   balustrade(near, C.rail, C.railDk, C.post);
 }
@@ -311,7 +319,7 @@ export const stairwell: Scene<State> = {
   alt: "The grand staircase, seen from the front: stone towers with arched doors and balconies, pale flights of stairs crossing between them on three storeys, walls crowded with gilt-framed portraits above a ground floor lined with bookcases, tall windows, lanterns and floating candles. Now and then one of the flights swings round to the other side.",
   init(_rng, w) {
     const movers: Mover[] = towers(w).filter((t) => t.even).map((t) => ({
-      k: t.k, x: t.x, side: t.k > 0 ? -1 : 1, t0: -1, next: 70 + Math.floor(hash(t.k, 5, 31) * 180),
+      k: t.k, x: t.x, side: t.k > 0 ? -1 : 1, t0: -1, next: FIRST + Math.abs(t.k) * 14,
     }));
     return { movers, f: 0 };
   },
@@ -323,11 +331,14 @@ export const stairwell: Scene<State> = {
     // the flights that stay put: ground floor up to the even towers, and the top storey on up out of sight
     for (const t of towers(w)) if (!t.even) for (const dir of [1, -1]) {
       const a = dir > 0 ? 0 : Math.PI;
-      flight(g, t.x, 2 * STOREY, a);
-      // someone on the stairs: down, a pause, and back up again
-      const id = t.k * 2 + dir, lap = 420, u = (f + Math.floor(hash(id, 3, 33) * lap)) % lap;
-      const along = u < 180 ? u / 180 : u < 210 ? 1 : u < 390 ? 1 - (u - 210) / 180 : 0;
-      flight(g, t.x, 0, a, [{ d: PIER + RUN - 2 - along * (RUN - 4), look: Math.floor(hash(id, 7, 34) * 16) }]);
+      // someone on each flight: down, a pause, and back up again
+      const walker = (id: number): Walker => {
+        const lap = 420, u = (f + Math.floor(hash(id, 3, 33) * lap)) % lap;
+        const along = u < 180 ? u / 180 : u < 210 ? 1 : u < 390 ? 1 - (u - 210) / 180 : 0;
+        return { d: PIER + RUN - 2 - along * (RUN - 4), look: Math.floor(hash(id, 7, 34) * 16) };
+      };
+      flight(g, t.x, 2 * STOREY, a, [walker(t.k * 4 + dir + 100)]);
+      flight(g, t.x, 0, a, [walker(t.k * 4 + dir)]);
     }
     // and the ones that move
     for (const m of s.movers) {
@@ -335,10 +346,11 @@ export const stairwell: Scene<State> = {
       let p = 0;
       if (m.t0 >= 0) {
         p = (f - m.t0) / SWING;
-        if (p >= 1) { m.side = m.side > 0 ? -1 : 1; m.t0 = -1; m.next = f + 240 + Math.floor(hash(m.k, f, 32) * 200); p = 0; }
+        if (p >= 1) { m.side = m.side > 0 ? -1 : 1; m.t0 = -1; m.next = f + REST + Math.floor(hash(m.k, f, 32) * 24); p = 0; }
       }
       const ease = p * p * (3 - 2 * p), from = m.side > 0 ? 0 : Math.PI;
-      flight(g, m.x, STOREY, from + (Math.PI - 2 * from) * ease);
+      // whoever was half-way up when it set off simply rides it round
+      flight(g, m.x, STOREY, from + (Math.PI - 2 * from) * ease, [{ d: PIER + GOING * 9 + 2, look: Math.abs(m.k) + 2 }]);
     }
 
     if (env.night) g.rect(0, 0, w, H, "#0a0e22", 0.5);
