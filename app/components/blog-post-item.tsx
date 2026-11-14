@@ -16,7 +16,6 @@ export function BlogPostItem({ slug, metadata }: BlogPostItemProps) {
         <span className="font-display d-md block leading-snug group-hover:text-link-hover transition-colors">{metadata.title}</span>
         <time dateTime={metadata.publishedAt} className="block text-sm text-foreground-muted tabular-nums mt-0.5">
           {formatDate(metadata.publishedAt, false, true)}
-          {metadata.placeholder === "true" && <span> · placeholder</span>}
         </time>
       </span>
     </PostLink>

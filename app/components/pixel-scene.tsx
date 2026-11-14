@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Gfx, mulberry32 } from "@/lib/pixel/engine";
 import { SCENES, DEFAULT_COVER } from "@/lib/pixel";
 import { cn } from "@/lib/utils";
-import { bell, boing, coin, hit, keys, knock, plop, rain, yes } from "@/lib/audio";
+import { bell, coin, keys, plop, rain } from "@/lib/audio";
 
 /** What each scene sounds like when tapped. (The shelf's objects each have their own.) */
 export const SCENE_SOUNDS: Record<string, (() => void) | undefined> = {
@@ -13,11 +13,7 @@ export const SCENE_SOUNDS: Record<string, (() => void) | undefined> = {
   hogwarts: bell,
   castle: bell,
   "vibe-rl": keys,
-  gdpx: knock,
-  grpo: boing,
   dungeon: coin,
-  sycophant: yes,
-  "boss-fight": hit,
 };
 
 type Props = {

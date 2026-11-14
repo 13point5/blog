@@ -4,8 +4,8 @@ import { koiPond } from "./scenes/koi-pond";
 import { shelf } from "./scenes/shelf";
 import { castle } from "./scenes/castle";
 import { hogwarts } from "./scenes/hogwarts";
-import { vibeRl, gdpx, grpo } from "./scenes/covers-a";
-import { dungeon, sycophant, bossFight } from "./scenes/covers-b";
+import { vibeRl } from "./scenes/covers-a";
+import { dungeon } from "./scenes/covers-b";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const SCENES: Record<string, Scene<any>> = {
@@ -15,11 +15,7 @@ export const SCENES: Record<string, Scene<any>> = {
   castle,
   hogwarts,
   "vibe-rl": vibeRl,
-  gdpx,
-  grpo,
   dungeon,
-  sycophant,
-  "boss-fight": bossFight,
 };
 
 export type SceneName = keyof typeof SCENES;

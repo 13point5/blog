@@ -26,7 +26,7 @@ try {
 }
 
 const BASE = process.env.BASE_URL ?? "http://localhost:3000";
-const PAGES = ["/", "/blog", "/blog/gdpx", "/blog/grpo-from-scratch", "/blog/vibe-rl"];
+const PAGES = ["/", "/blog", "/blog/vibe-rl"];
 const VIEWPORTS = [{ width: 390, height: 844 }, { width: 1440, height: 900 }];
 const failures = [];
 let checks = 0;

@@ -177,32 +177,9 @@ export function pageFlip() {
   burst(0.05, 0.05, "lowpass", 500, 500, 0.14);
 }
 
-/** A slime: a rubbery boing. */
-export function boing() {
-  note(180, 0.14, 0.09, { glideTo: 520 });
-  note(520, 0.22, 0.07, { glideTo: 240, delay: 0.12 });
-}
-
-/** A gavel on wood. */
-export function knock() {
-  note(140, 0.14, 0.14, { glideTo: 60 });
-  burst(0.05, 0.1, "lowpass", 900);
-}
-
-/** A sword landing a hit. */
-export function hit() {
-  burst(0.09, 0.12, "bandpass", 3000, 600);
-  note(300, 0.16, 0.06, { type: "square", glideTo: 90 });
-}
-
 /** A keyboard: a few quick key presses. */
 export function keys() {
   for (let i = 0; i < 4; i++) burst(0.025, 0.09, "bandpass", 1500 + (i % 2) * 600, 1500, i * 0.07);
-}
-
-/** An eager little "yes!": three rising blips. */
-export function yes() {
-  [76, 79, 84].forEach((n, i) => note(midi(n), 0.14, 0.05, { type: "square", delay: i * 0.08 }));
 }
 
 /** A castle bell, some way off. */

@@ -88,12 +88,6 @@ export default async function BlogPost({
           </p>
         </header>
 
-        {metadata.placeholder === "true" && (
-          <p role="note" className="text-sm text-foreground-muted italic mb-8">
-            This is a placeholder post, written to try out the layout and the math. Don&apos;t cite it.
-          </p>
-        )}
-
         <div className="post-body">
           <CustomMDX source={post.content} />
         </div>

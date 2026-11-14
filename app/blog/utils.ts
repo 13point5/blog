@@ -10,7 +10,6 @@ export type Metadata = {
   /** Name of a pixel-art scene in lib/pixel (see SCENES). */
   cover?: string;
   /** "true" marks filler content that exists to show off the layout. */
-  placeholder?: string;
 };
 
 function parseFrontmatter(fileContent: string) {
