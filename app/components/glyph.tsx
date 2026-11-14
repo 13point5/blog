@@ -14,12 +14,13 @@ const GLYPHS = {
   ],
   // The three marks below are traced from the real logos: each official
   // outline laid over a 24 by 24 grid, and a cell filled where the logo covers
-  // at least half of it. They are shown one screen pixel to a cell.
+  // at least half of it. They are shown one screen pixel to a cell. (The thin
+  // stroke of the X is squared off to its full width at both ends by hand.)
   // X
   x: [
     "........................",
-    "kkkkkkkk...........kkk..",
-    ".kkkkkkkk.........kkk...",
+    "kkkkkkkk...........kkkk.",
+    ".kkkkkkkk.........kkkk..",
     "..kkk..kk........kkkk...",
     "...kk..kkk......kkkk....",
     "...kkk..kkk....kkkk.....",
@@ -37,9 +38,9 @@ const GLYPHS = {
     ".....kkkk....kk..kkk....",
     "....kkkk.....kkk..kkk...",
     "...kkkk.......kkk..kk...",
-    "...kkk.........kkk.kkk..",
-    "..kkk...........kkkkkkk.",
-    ".kkk............kkkkkkkk",
+    "...kkkk........kkk.kkk..",
+    "..kkkk..........kkkkkkk.",
+    ".kkkk...........kkkkkkkk",
     "........................",
   ],
   // GitHub: the cat is the gap in the disc

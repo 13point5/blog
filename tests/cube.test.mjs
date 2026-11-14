@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { applyMove, castBox, dragMove, hitCube, inverse, isSolved, randomMove, sight, solvedCube } from "../lib/pixel/cube-model.ts";
+import { SIGHT, applyMove, castBox, dragMove, hitCube, inverse, isSolved, randomMove, scramble, sight, solve, solvedCube } from "../lib/pixel/cube-model.ts";
 
 test("a fresh cube is solved, and one turn unsolves it", () => {
   const cube = solvedCube();
@@ -36,25 +36,65 @@ test("every piece keeps exactly its own stickers", () => {
 });
 
 test("a point in the middle of each visible face hits that face's middle piece, and the corners of the box miss", () => {
-  assert.deepEqual(hitCube(30, 19), { face: 0, c: [0, 0, 1] }, "top");
-  assert.deepEqual(hitCube(41, 35.5), { face: 2, c: [1, 0, 0] }, "right");
-  assert.deepEqual(hitCube(19, 35.5), { face: 1, c: [0, 1, 0] }, "left");
+  assert.deepEqual(hitCube(30, 17.4), { face: 0, c: [0, 0, 1] }, "top");
+  assert.deepEqual(hitCube(41, 35.2), { face: 2, c: [1, 0, 0] }, "right");
+  assert.deepEqual(hitCube(19, 35.2), { face: 1, c: [0, 1, 0] }, "left");
   // the top face's four corner pieces: far, right, near, left
-  assert.deepEqual(hitCube(30, 11)?.c, [-1, -1, 1]);
-  assert.deepEqual(hitCube(46, 19)?.c, [1, -1, 1]);
-  assert.deepEqual(hitCube(30, 27)?.c, [1, 1, 1]);
-  assert.deepEqual(hitCube(14, 19)?.c, [-1, 1, 1]);
+  assert.deepEqual(hitCube(30, 9.4)?.c, [-1, -1, 1]);
+  assert.deepEqual(hitCube(46, 17.4)?.c, [1, -1, 1]);
+  assert.deepEqual(hitCube(30, 25.4)?.c, [1, 1, 1]);
+  assert.deepEqual(hitCube(14, 17.4)?.c, [-1, 1, 1]);
   assert.equal(hitCube(2, 2), null);
   assert.equal(hitCube(58, 58), null);
 });
 
+test("the cube is drawn with all its edges the same length", () => {
+  // where a corner of the cube lands on the drawing: the inverse of sight()
+  const at = (x, y, z) => [30 + 2 * (x - y), 31 + x + y - Math.sqrt(5) * z];
+  const len = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+  const along = len(at(0, 0, 11), at(11, 0, 11)), across = len(at(0, 0, 11), at(0, 11, 11)), up = len(at(11, 11, 0), at(11, 11, 11));
+  assert.ok(Math.abs(along - across) < 1e-9 && Math.abs(along - up) < 1e-9, `${along} ${across} ${up}`);
+  // and sight() really is the inverse: the line through a corner's pixel passes through the corner
+  const o = sight(...at(11, 11, 11)), t = 11 / SIGHT[2];
+  for (let k = 0; k < 3; k++) assert.ok(Math.abs(o[k] + t * SIGHT[k] - 11) < 1e-9);
+});
+
 test("lines of sight meet a box on the side facing the viewer", () => {
-  // straight through the middle of the cube: out through the corner nearest the viewer
-  const h = castBox(sight(30, 30), [1, 1, 1], [0, 0, 0], [11, 11, 11]);
-  assert.ok(h && Math.abs(h.t - 11) < 1e-9);
   // a thin slab on the floor is met on its top
   assert.deepEqual(castBox([5, 5, -20], [1, 1, 1], [0, 0, 0], [50, 50, 3]), { t: 23, axis: 2, sign: 1 });
   assert.equal(castBox([20, 0, 0], [1, 1, 1], [0, 0, 0], [11, 11, 11]), null);
+});
+
+test("the solver solves any scramble, by way of the cross, the first two layers, OLL and PLL", () => {
+  for (let round = 0; round < 120; round++) {
+    const cube = solvedCube();
+    // outside layers only, or (every third round) any layer, which turns the centres over too
+    if (round % 3) for (const m of scramble(30)) applyMove(cube, m);
+    else for (let i = 0; i < 30; i++) applyMove(cube, randomMove());
+    const { moves, stages } = solve(cube);
+    assert.equal(stages.length, 4);
+    assert.equal(stages[3], moves.length);
+    // play it through, checking each stage as it finishes
+    const centre = (s) => cube.find((p) => p.st.filter(Boolean).length === 1 && p.st[s] !== null).st[s];
+    const solvedPiece = (p) => p.st.every((c, s) => c === null || c === centre(s));
+    const bottom = () => { for (let s = 0; s < 6; s++) if (centre(s) === "#f2c14e") return s; };
+    moves.forEach((m, i) => {
+      applyMove(cube, m);
+      const n = i + 1, axis = bottom() >> 1, low = bottom() % 2 ? -1 : 1;
+      if (n === stages[0]) assert.ok(cube.filter((p) => p.p[axis] === low && p.st.filter(Boolean).length === 2).every(solvedPiece), "cross");
+      if (n === stages[1]) assert.ok(cube.filter((p) => p.p[axis] !== -low).every(solvedPiece), "first two layers");
+      if (n === stages[2]) assert.ok(cube.filter((p) => p.p[axis] === -low).every((p) => p.st[axis * 2 + (low > 0 ? 1 : 0)] === "#fdfbf7"), "top all one colour");
+    });
+    assert.ok(isSolved(cube), `round ${round}`);
+    assert.ok(moves.length < 140, `a solve of ${moves.length} turns`);
+  }
+});
+
+test("a scramble never turns the same layer twice running", () => {
+  const s = scramble(200);
+  assert.equal(s.length, 200);
+  for (let i = 1; i < s.length; i++) assert.ok(s[i].axis !== s[i - 1].axis || s[i].layer !== s[i - 1].layer);
+  assert.ok(s.every((m) => m.layer !== 0));
 });
 
 test("dragging a face turns the layer under the finger, in the finger's direction", () => {

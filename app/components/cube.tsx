@@ -3,20 +3,29 @@
 import { useEffect, useRef } from "react";
 import { Gfx } from "@/lib/pixel/engine";
 import { drawCube } from "@/lib/pixel/cube";
-import { CUBE_PX, applyMove, dragMove, hitCube, inverse, isSolved, randomMove, solvedCube, type Move } from "@/lib/pixel/cube-model";
+import { CUBE_PX, applyMove, dragMove, hitCube, isSolved, scramble, solve, solvedCube, type Move } from "@/lib/pixel/cube-model";
 import { click, fanfare } from "@/lib/audio";
 import { useToys } from "./toys";
 import { cn } from "@/lib/utils";
 
 const SCALE = 2;
+const SCRAMBLE = 26; // turns in a scramble
+const QUARTER = 380; // milliseconds a quarter turn takes while it solves itself
+const HALF = 560; // a half turn, done in one sweep
+const MIXING = 95; // and a turn while it scrambles itself
 const still = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /**
- * A puzzle cube you can actually turn. Drag across any of its three faces and
+ * A puzzle cube that never stops being a puzzle. It starts from a different
+ * scramble on every load and solves itself the way a person would: a cross
+ * on the bottom, the first two layers pair by pair, then the top layer turned
+ * the right way up and put in place, with a breath between the stages. Once
+ * it is done it sits solved for a moment, scrambles itself, and starts on the
+ * new one.
+ *
+ * It can be turned by hand as well: drag across any of its three faces and
  * the layer under your finger follows; a tap gives that layer a quarter turn.
- * Each time the page loads it starts from a different scramble and, once it
- * is on screen, solves itself. Leave it alone after playing with it and it
- * quietly undoes what you did.
+ * Leave it alone and it carries on solving from wherever you left it.
  */
 export function Cube({ className }: { className?: string }) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -28,12 +37,11 @@ export function Cube({ className }: { className?: string }) {
     if (!on || !canvas || !ctx) return;
     const g = new Gfx(ctx, CUBE_PX, CUBE_PX);
     const cube = solvedCube();
-    /** every turn made so far and not yet undone, oldest first */
-    const history: Move[] = [];
-    type Step = { m: Move; ms: number; mine: boolean };
+    /** one thing to do: turn a layer (a quarter, or a half in one sweep), or simply wait */
+    type Step = { m?: Move; turns: number; ms: number; mine: boolean };
     const queue: Step[] = [];
-    let cur: (Step & { start: number }) | null = null;
-    let raf = 0, rest: ReturnType<typeof setTimeout> | undefined, glow = 0, started = false;
+    let cur: (Step & { spent: number }) | null = null;
+    let raf = 0, last = 0, visible = false, glow = 0, rest: ReturnType<typeof setTimeout> | undefined;
 
     const paint = (anim: { m: Move; t: number } | null) => {
       drawCube(ctx, cube, anim);
@@ -45,66 +53,74 @@ export function Cube({ className }: { className?: string }) {
         }
       }
     };
+    const wait = (ms: number) => queue.push({ turns: 0, ms, mine: false });
+    /** queue some turns, a pair of the same turn becoming one half turn */
+    const turn = (moves: Move[], quarter: number, half: number) => {
+      for (let i = 0; i < moves.length; i++) {
+        const m = moves[i], n = moves[i + 1], twice = !!n && n.axis === m.axis && n.layer === m.layer && n.dir === m.dir;
+        queue.push({ m, turns: twice ? 2 : 1, ms: twice ? half : quarter, mine: false });
+        if (twice) i++;
+      }
+    };
+    /** Nothing left to do: if it is in a muddle, solve it; if it is solved, admire it, then make a new muddle. */
+    const plan = () => {
+      if (isSolved(cube)) {
+        wait(2400);
+        turn(scramble(SCRAMBLE), MIXING, MIXING * 1.5);
+        wait(900);
+        return;
+      }
+      const { moves, stages } = solve(cube);
+      wait(500);
+      stages.forEach((end, i) => {
+        turn(moves.slice(i ? stages[i - 1] : 0, end), QUARTER, HALF);
+        if (i < stages.length - 1) wait(450); // a breath between the cross, the pairs, and the two halves of the top layer
+      });
+    };
 
     const step = (now: number) => {
       raf = 0;
+      const dt = last ? Math.min(100, now - last) : 0;
+      last = now;
+      if (!visible) { last = 0; return; }
       if (!cur) {
+        if (!queue.length && !rest) plan();
         const next = queue.shift();
-        if (next) cur = { ...next, start: now };
+        if (next) cur = { ...next, spent: 0 };
       }
       if (cur) {
-        const t = Math.min(1, (now - cur.start) / cur.ms);
-        if (t < 1) paint({ m: cur.m, t: t * t * (3 - 2 * t) });
+        cur.spent += dt;
+        const t = Math.min(1, cur.spent / cur.ms);
+        if (t < 1) { if (cur.m) paint({ m: cur.m, t: t * t * (3 - 2 * t) * cur.turns }); }
         else {
-          applyMove(cube, cur.m);
-          if (cur.mine) history.push(cur.m);
-          const wasMine = cur.mine;
+          const done = cur;
           cur = null;
-          if (!queue.length && isSolved(cube)) {
-            glow = 26;
-            if (wasMine) fanfare(); // you solved it yourself
+          if (done.m) {
+            for (let i = 0; i < done.turns; i++) applyMove(cube, done.m);
+            canvas.dataset.cube = isSolved(cube) ? "solved" : "mixed"; // for the tests, and the curious
+            if (!queue.length && isSolved(cube)) {
+              glow = 26;
+              if (done.mine) fanfare(); // you solved it yourself
+            }
+            paint(null);
           }
-          paint(null);
         }
-      } else if (glow > 0) {
+      }
+      if (glow > 0 && !cur?.m) {
         glow--;
         paint(null);
       }
-      if (cur || queue.length || glow > 0) raf = requestAnimationFrame(step);
+      raf = requestAnimationFrame(step);
     };
     const run = () => { if (!raf) raf = requestAnimationFrame(step); };
 
-    /** Undo everything, newest first: brisk if there is a lot to undo. */
-    const solve = () => {
-      const ms = history.length > 16 ? 110 : history.length > 9 ? 170 : 240;
-      while (history.length) queue.push({ m: inverse(history.pop()!), ms, mine: false });
-      run();
-    };
-    /** Stop solving: whatever was still to be undone goes back on the record. */
-    const takeOver = () => {
-      clearTimeout(rest);
-      while (queue.length) {
-        const s = queue.pop()!;
-        if (!s.mine) history.push(inverse(s.m));
-      }
-    };
-
     // a different scramble on every load (with motion off it simply sits solved)
-    if (!still()) {
-      for (let i = 0; i < 9; i++) {
-        const m = randomMove(history.at(-1));
-        applyMove(cube, m);
-        history.push(m);
-      }
-    }
+    if (still()) { paint(null); return; }
+    for (const m of scramble(SCRAMBLE)) applyMove(cube, m);
     paint(null);
 
-    // it starts solving itself the first time it comes properly into view
-    const io = new IntersectionObserver(([e]) => {
-      if (!e.isIntersecting || started) return;
-      started = true;
-      rest = setTimeout(solve, 700);
-    }, { threshold: 0.7 });
+    // it only works on the puzzle while it is on screen
+    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) run(); }, { threshold: 0.4 });
     io.observe(canvas);
 
     // --- fingers
@@ -113,19 +129,23 @@ export function Cube({ className }: { className?: string }) {
       const r = canvas.getBoundingClientRect();
       return [((e.clientX - r.left) / r.width) * CUBE_PX, ((e.clientY - r.top) / r.height) * CUBE_PX] as const;
     };
+    /** Taking over: whatever it was about to do is dropped, and it waits for you to finish. */
+    const hold = () => {
+      queue.length = 0;
+      clearTimeout(rest);
+      rest = setTimeout(() => { rest = undefined; }, 3200); // left alone, it carries on from here
+    };
     const make = (m: Move) => {
-      queue.push({ m, ms: 190, mine: true });
+      hold();
+      queue.push({ m, turns: 1, ms: 190, mine: true });
       click();
       run();
-      clearTimeout(rest);
-      rest = setTimeout(solve, 3500); // left alone, it puts itself right again
     };
     const down = (e: PointerEvent) => {
       const hit = hitCube(...toArt(e));
       if (!hit) return;
       e.preventDefault();
-      started = true;
-      takeOver();
+      hold();
       canvas.setPointerCapture(e.pointerId);
       grab = { hit, x: e.clientX, y: e.clientY, id: e.pointerId };
     };
@@ -167,7 +187,7 @@ export function Cube({ className }: { className?: string }) {
       width={CUBE_PX}
       height={CUBE_PX}
       role="img"
-      aria-label="A puzzle cube that solves itself. Drag across a face to turn a layer."
+      aria-label="A puzzle cube that scrambles and solves itself, over and over. Drag across a face to turn a layer."
       className={cn("pixelated block cursor-grab touch-none select-none", className)}
       style={{ width: CUBE_PX * SCALE, height: CUBE_PX * SCALE }}
     />

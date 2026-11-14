@@ -1,4 +1,4 @@
-import { CUBE_PX, MID, N, castBox, side, sight, type CubeState, type Move, type Vec } from "./cube-model";
+import { CUBE_PX, MID, N, SIGHT, castBox, side, sight, type CubeState, type Move, type Vec } from "./cube-model";
 
 // Drawing the cube. Voxels are no good for this: a layer caught part-way
 // through a turn is at an angle, and cubes on a grid can only fake an angle
@@ -10,7 +10,6 @@ import { CUBE_PX, MID, N, castBox, side, sight, type CubeState, type Move, type 
 const BLACK = "#1d1d1b";
 /** how brightly a face is lit, by the axis it faces along: right (+x) in shade, left (+y) mid, top brightest */
 const LIGHT = [0.74, 0.9, 1.06];
-const SEE: Vec = [1, 1, 1];
 
 const rgbs = new Map<string, Vec>();
 function rgb(hex: string): Vec {
@@ -54,14 +53,14 @@ export function drawCube(ctx: CanvasRenderingContext2D, cube: CubeState, anim: {
     r[w] = -sa * a + ca * b + centre;
     return r;
   };
-  const seeTurned = back(SEE, 0);
+  const seeTurned = back(SIGHT, 0);
 
   const img = ctx.createImageData(CUBE_PX, CUBE_PX);
   for (let py = 0; py < CUBE_PX; py++) for (let px = 0; px < CUBE_PX; px++) {
     const o = sight(px + 0.5, py + 0.5);
     let best: { t: number; axis: number; sign: number; box: Box; o: Vec; d: Vec } | null = null;
     for (const box of boxes) {
-      const bo = box.turning ? back(o, MID) : o, bd = box.turning ? seeTurned : SEE;
+      const bo = box.turning ? back(o, MID) : o, bd = box.turning ? seeTurned : SIGHT;
       const h = castBox(bo, bd, box.lo, box.hi);
       if (h && (!best || h.t > best.t)) best = { ...h, box, o: bo, d: bd };
     }
