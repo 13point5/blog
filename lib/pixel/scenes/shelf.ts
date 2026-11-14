@@ -395,9 +395,11 @@ const REACTOR: Item = {
   },
 };
 
-// A spellbook, seen flat on: one deep purple panel with a gilt frame and, in
-// a gold lozenge at its centre, a clear blue gem. No spine, no page edges.
-// Now and then light runs down the gem.
+// A spellbook. Its cover is one deep purple panel with a gilt frame and, in a
+// gold lozenge at its centre, a clear blue gem; now and then light runs down
+// the gem. It is seen from a little above and to the left, so that it has
+// some thickness: the spine, with its raised gilt bands, down the left side,
+// and the tops of the pages between the boards (see drawBookDepth).
 const BOOK_ROWS = [
   ".kkkkkkkkkkkkkkkkk.",
   "kkmmmmmmmmmmmmmmmkk",
@@ -427,6 +429,29 @@ const BOOK_ROWS = [
 const BOOK_PAL = { k: "#1c1030", m: "#4a2a80", g: "#e3b34d", y: "#f8e08c", w: "#ffffff", c: "#58c7d9", C: "#bff2fa" };
 const PAGE = "#fbf1dc", PAGE_EDGE = "#d9cdb0", INK = "#6b46a8", INK_PALE = "#b9a3dc";
 const BOOK_W = BOOK_ROWS[0].length;
+/** how thick the closed book is drawn: this many pixels of spine and of page-tops, each a step up and to the left */
+export const BOOK_DEPTH = 4;
+/**
+ * The thickness of the closed book whose front cover has its top-left corner
+ * at (bx, top): behind the cover, layer after layer, each one pixel up and to
+ * the left. What shows of them is the spine down the left and the tops of the
+ * pages along the top, closed off by the edge of the back cover.
+ */
+function drawBookDepth(g: Gfx, bx: number, top: number) {
+  const h = BOOK_ROWS.length, w = BOOK_W, last = BOOK_DEPTH;
+  for (let d = 1; d <= last; d++) {
+    const x = bx - d, y = top - d, back = d === last;
+    // the spine: darkest in the groove beside the cover, lightest where it rounds toward the light
+    g.rect(x, y + 1, 1, h - 2, back ? BOOK_PAL.k : ["#2c1757", "#43267c", "#5b379a"][Math.min(2, d - 1)]);
+    if (!back) for (const band of [3, 4, 11, 12, 19, 20]) g.px(x, y + band, band % 2 ? BOOK_PAL.g : BOOK_PAL.y);
+    // the page-tops: cream leaves, the odd one darker, and the back board's edge beyond them
+    g.rect(x + 1, y, w - 2, 1, back ? BOOK_PAL.k : d % 2 ? PAGE : PAGE_EDGE);
+    if (!back) { g.px(x + 1, y, BOOK_PAL.k); g.px(x + w - 2, y, PAGE_EDGE); g.px(x + w - 1, y, BOOK_PAL.k); }
+  }
+  // the head and tail of the spine, where the layers step
+  for (let d = 1; d < last; d++) g.px(bx - d, top - d + h - 1, BOOK_PAL.k);
+}
+
 /** frames the cover takes to swing open after a tap */
 export const BOOK_OPENING = 4;
 
@@ -493,6 +518,7 @@ const BOOK: Item = {
     const h = BOOK_ROWS.length, top = y - h;
     const opening = since < BOOK_OPENING;
     if (!active && !opening && since > BOOK_OPENING + 10) {
+      drawBookDepth(g, x + BOOK_W, top);
       g.sprite(BOOK_ROWS, x + BOOK_W, top, BOOK_PAL);
       // a glint travelling down the gem's left facet
       const t = f % 60;
