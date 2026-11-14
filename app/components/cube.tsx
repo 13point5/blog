@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { Gfx } from "@/lib/pixel/engine";
 import { drawCube } from "@/lib/pixel/cube";
-import { CUBE_PX, applyMove, dragMove, hitCube, isSolved, scramble, solve, solvedCube, type Move } from "@/lib/pixel/cube-model";
+import { CUBE_PX, applyMove, dragMove, hitCube, isSolved, perform, scramble, solvedCube, type Move } from "@/lib/pixel/cube-model";
 import { click, fanfare } from "@/lib/audio";
 import { useToys } from "./toys";
 import { cn } from "@/lib/utils";
@@ -13,15 +13,20 @@ const SCRAMBLE = 26; // turns in a scramble
 const QUARTER = 380; // milliseconds a quarter turn takes while it solves itself
 const HALF = 560; // a half turn, done in one sweep
 const MIXING = 95; // and a turn while it scrambles itself
+const OVER = 520; // turning the whole cube a quarter over, to look at another side
+const RIGHT_OVER = 800; // and half over in one go
 const still = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /**
  * A puzzle cube that never stops being a puzzle. It starts from a different
  * scramble on every load and solves itself the way a person would: a cross
  * on the bottom, the first two layers pair by pair, then the top layer turned
- * the right way up and put in place, with a breath between the stages. Once
- * it is done it sits solved for a moment, scrambles itself, and starts on the
- * new one.
+ * the right way up and put in place, with a breath between the stages. Most
+ * of that happens on faces that cannot be seen, so between one part and the
+ * next it turns itself over to bring the work to the front: the cross on top
+ * while it is made, each pair's slot to the near corner, and once right round
+ * at the end to show every side done. Then it sits solved for a moment,
+ * scrambles itself, and starts on the new one.
  *
  * It can be turned by hand as well: drag across any of its three faces and
  * the layer under your finger follows; a tap gives that layer a quarter turn.
@@ -57,7 +62,7 @@ export function Cube({ className }: { className?: string }) {
     /** queue some turns, a pair of the same turn becoming one half turn */
     const turn = (moves: Move[], quarter: number, half: number) => {
       for (let i = 0; i < moves.length; i++) {
-        const m = moves[i], n = moves[i + 1], twice = !!n && n.axis === m.axis && n.layer === m.layer && n.dir === m.dir;
+        const m = moves[i], n = moves[i + 1], twice = !!n && n.axis === m.axis && n.layer === m.layer && n.dir === m.dir && !n.whole === !m.whole;
         queue.push({ m, turns: twice ? 2 : 1, ms: twice ? half : quarter, mine: false });
         if (twice) i++;
       }
@@ -70,11 +75,12 @@ export function Cube({ className }: { className?: string }) {
         wait(900);
         return;
       }
-      const { moves, stages } = solve(cube);
       wait(500);
-      stages.forEach((end, i) => {
-        turn(moves.slice(i ? stages[i - 1] : 0, end), QUARTER, HALF);
-        if (i < stages.length - 1) wait(450); // a breath between the cross, the pairs, and the two halves of the top layer
+      perform(cube).forEach((scene, i, scenes) => {
+        // turn it over to see what comes next, look at it for a moment, then get on with it
+        if (scene.look.length) { wait(200); turn(scene.look, OVER, RIGHT_OVER); wait(250); }
+        turn(scene.moves, QUARTER, HALF);
+        if (scene.moves.length && i < scenes.length - 2) wait(350);
       });
     };
 
@@ -96,9 +102,10 @@ export function Cube({ className }: { className?: string }) {
           const done = cur;
           cur = null;
           if (done.m) {
+            const was = isSolved(cube);
             for (let i = 0; i < done.turns; i++) applyMove(cube, done.m);
             canvas.dataset.cube = isSolved(cube) ? "solved" : "mixed"; // for the tests, and the curious
-            if (!queue.length && isSolved(cube)) {
+            if (!was && isSolved(cube)) {
               glow = 26;
               if (done.mine) fanfare(); // you solved it yourself
             }

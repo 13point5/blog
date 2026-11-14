@@ -5,7 +5,7 @@
 
 export type Vec = [number, number, number];
 /** A quarter turn of the layer at `layer` (-1, 0 or 1) along `axis` (0 = x, 1 = y, 2 = z); +1 is right-handed. */
-export type Move = { axis: 0 | 1 | 2; layer: number; dir: 1 | -1 };
+export type Move = { axis: 0 | 1 | 2; layer: number; dir: 1 | -1; /** turn the whole cube over, not one layer of it */ whole?: true };
 /** A piece: where it is (each coordinate -1, 0 or 1) and its sticker on each of six sides (+x, -x, +y, -y, +z, -z). */
 export type Piece = { p: Vec; st: (string | null)[] };
 export type CubeState = Piece[];
@@ -36,7 +36,7 @@ export function solvedCube(): CubeState {
 
 export function applyMove(cube: CubeState, m: Move) {
   for (const piece of cube) {
-    if (piece.p[m.axis] !== m.layer) continue;
+    if (!m.whole && piece.p[m.axis] !== m.layer) continue;
     piece.p = turn(piece.p, m.axis, m.dir);
     const st: (string | null)[] = [null, null, null, null, null, null];
     for (let a = 0; a < 3; a++) for (const sign of [1, -1]) {
@@ -277,7 +277,16 @@ const SLOTS: [number, number][] = [[1, 1], [-1, 1], [-1, -1], [1, -1]];
  * How to solve a cube from wherever it is: the turns, in order, and where in
  * that list the cross, the first two layers, OLL and PLL each finish.
  */
-export function solve(cube: CubeState): { moves: Move[]; stages: number[] } {
+export type Part = {
+  /** where in the list of turns this part finishes */
+  end: number;
+  /** the face it is mostly about: best seen on top */
+  top: Vec;
+  /** for a corner-and-edge pair, the two side faces its slot lies between: best seen as the two faces toward the viewer */
+  sides?: [Vec, Vec];
+};
+
+export function solve(cube: CubeState): { moves: Move[]; stages: number[]; parts: Part[] } {
   const normal = (s: number): Vec => { const v: Vec = [0, 0, 0]; v[s >> 1] = s % 2 ? -1 : 1; return v; };
   /** which way round a piece is, judging by where its stickers face */
   const turned = (p: Piece) => {
@@ -290,7 +299,7 @@ export function solve(cube: CubeState): { moves: Move[]; stages: number[] } {
   const centres = cube.filter((p) => kind(home(p)) === 1);
   const core = ROTS.findIndex((_, r) => centres.every((p) => rot(r, home(p)).join() === p.p.join()));
   const all = cube.filter((p) => kind(home(p)) > 1).map((p) => ({ h: home(p), g: COMP[UNDO[core]][turned(p)] }));
-  const out: Turn[] = [], stages: number[] = [];
+  const out: Turn[] = [], stages: number[] = [], parts: Part[] = [];
   const stage = (pieces: typeof all, macros: Turn[][], done: (gs: number[]) => boolean) => {
     const turns = search(pieces.map((p) => p.h), pieces.map((p) => p.g), macros, done);
     for (const t of turns) for (const p of all) if (dot(rot(p.g, p.h), t.n) === 1) p.g = COMP[turnOf(t)][p.g];
@@ -310,6 +319,7 @@ export function solve(cube: CubeState): { moves: Move[]; stages: number[] } {
     out.push(...SINGLES[m]);
   }
   stages.push(out.length);
+  parts.push({ end: out.length, top: [0, 0, -1] });
   // the first two layers: one corner-and-edge pair at a time, using only the top layer and the slots still empty
   const up = quarterAbout([0, 0, 1]);
   SLOTS.forEach(([sx, sy], done) => {
@@ -319,20 +329,24 @@ export function solve(cube: CubeState): { moves: Move[]; stages: number[] } {
       return TRIGGERS.map((alg) => alg.map((t) => ({ n: rot(r, t.n), cw: t.cw })));
     });
     stage([at([sx, sy, -1]), at([sx, sy, 0])], [...TOP_TURNS, ...triggers], home0);
+    parts.push({ end: out.length, top: [0, 0, 1], sides: [[sx, 0, 0], [0, sy, 0]] });
   });
   stages.push(out.length);
   // the top layer: the right way up, then in place
   const top = all.filter((p) => p.h[2] === 1);
   stage(top, [...TOP_TURNS, ...OLL], (gs) => gs.every((g) => rot(g, [0, 0, 1])[2] === 1));
   stages.push(out.length);
+  parts.push({ end: out.length, top: [0, 0, 1] });
   stage(top, [...TOP_TURNS, ...PLL], home0);
   stages.push(out.length);
+  parts.push({ end: out.length, top: [0, 0, 1] });
 
   const moves = out.map((t): Move => {
     const n = rot(core, t.n), axis = n.findIndex((v) => v !== 0) as 0 | 1 | 2;
     return { axis, layer: n[axis], dir: ((t.cw ? 1 : -1) * n[axis]) as 1 | -1 };
   });
-  return { moves, stages };
+  // the parts were noted relative to the centres; say them as the cube now stands
+  return { moves, stages, parts: parts.map((p) => ({ end: p.end, top: rot(core, p.top), sides: p.sides && [rot(core, p.sides[0]), rot(core, p.sides[1])] })) };
 }
 
 /** A scramble of `n` turns of the outside layers, no layer turned twice running. */
@@ -344,4 +358,55 @@ export function scramble(n: number): Move[] {
     if (!last || last.axis !== m.axis || last.layer !== m.layer) out.push(m);
   }
   return out;
+}
+
+// --- showing the work ---------------------------------------------------------
+// Only three faces of the cube can be seen, and most of a solve happens on the
+// other three: the cross is made on the bottom, and three of the four pairs go
+// in round the back. So, as a person does, the cube is turned over in the hand
+// between one part of the solve and the next, to bring what is being worked on
+// to the front: the cross on top while it is made, then each pair's slot to
+// the corner nearest the viewer, then the top layer on top for the rest.
+
+/** One part of a performance: turn the whole cube to this view (if it needs it), then make these turns. */
+export type Scene = { look: Move[]; moves: Move[] };
+
+/** The six ways of turning the whole cube a quarter turn over. */
+const TUMBLES: Move[] = [0, 1, 2].flatMap((axis) => [1, -1].map((dir) => ({ axis, layer: 0, dir, whole: true }) as Move));
+const tumbleOf = (m: Move) => { const n: Vec = [0, 0, 0]; n[m.axis] = m.dir; return quarterAbout(n); };
+
+/**
+ * A solve with the cube turned over between its parts so that each can be
+ * seen, and once right round at the end to show every side finished.
+ */
+export function perform(cube: CubeState): Scene[] {
+  const { moves, parts } = solve(cube);
+  const scenes: Scene[] = [];
+  let held = SAME, from = 0; // how the cube has been turned over so far
+  for (const part of parts) {
+    if (part.end === from) continue; // nothing to do in this part, so nothing to look at
+    const shows = (r: number) => {
+      if (rot(r, part.top).join() !== "0,0,1") return false;
+      return !part.sides || part.sides.every((side) => { const n = rot(r, side); return n[0] === 1 || n[1] === 1; });
+    };
+    // the fewest quarter turns of the whole cube that bring a view like that round
+    const seen = new Map<number, Move[]>([[held, []]]), queue = [held];
+    let look: Move[] = [];
+    for (let i = 0; i < queue.length; i++) {
+      const r = queue[i], path = seen.get(r)!;
+      if (shows(r)) { held = r; look = path; break; }
+      for (const t of TUMBLES) { const next = COMP[tumbleOf(t)][r]; if (!seen.has(next)) { seen.set(next, [...path, t]); queue.push(next); } }
+    }
+    // the turns were worked out for the cube as it stood: carry each to where its layer has got to
+    const carried = moves.slice(from, part.end).map((m): Move => {
+      const n: Vec = [0, 0, 0];
+      n[m.axis] = m.layer;
+      const k = rot(held, n), axis = k.findIndex((v) => v !== 0) as 0 | 1 | 2;
+      return { axis, layer: k[axis], dir: (m.dir * m.layer * k[axis]) as 1 | -1 };
+    });
+    scenes.push({ look, moves: carried });
+    from = part.end;
+  }
+  scenes.push({ look: [TUMBLES[4], TUMBLES[4], TUMBLES[4], TUMBLES[4]], moves: [] });
+  return scenes;
 }

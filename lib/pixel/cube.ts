@@ -35,7 +35,8 @@ export function drawCube(ctx: CanvasRenderingContext2D, cube: CubeState, anim: {
     axis = anim.m.axis; u = (axis + 1) % 3; w = (axis + 2) % 3;
     const th = (anim.t * anim.m.dir * Math.PI) / 2;
     ca = Math.cos(th); sa = Math.sin(th);
-    const from = (anim.m.layer + 1) * 4, to = from + 3;
+    // (the whole cube turning over is the same thing with one layer as thick as the cube)
+    const from = anim.m.whole ? 0 : (anim.m.layer + 1) * 4, to = anim.m.whole ? N : from + 3;
     const slab = (a: number, b: number, turning: boolean) => {
       const lo: Vec = [0, 0, 0], hi: Vec = [N, N, N];
       lo[axis] = a; hi[axis] = b;

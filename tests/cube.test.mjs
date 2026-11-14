@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { SIGHT, applyMove, castBox, dragMove, hitCube, inverse, isSolved, randomMove, scramble, sight, solve, solvedCube } from "../lib/pixel/cube-model.ts";
+import { SIGHT, applyMove, castBox, dragMove, hitCube, inverse, isSolved, perform, randomMove, scramble, sight, solve, solvedCube } from "../lib/pixel/cube-model.ts";
 
 test("a fresh cube is solved, and one turn unsolves it", () => {
   const cube = solvedCube();
@@ -108,4 +108,47 @@ test("dragging a face turns the layer under the finger, in the finger's directio
   // left face, dragged straight up: the stickers go up, which is a positive turn about x
   const left = { face: 1, c: [1, 1, 0] };
   assert.deepEqual(dragMove(left, 0, -12), { axis: 0, layer: 1, dir: 1 });
+});
+
+test("turning the whole cube over moves every piece and leaves it as solved as it was", () => {
+  const cube = solvedCube();
+  for (const axis of [0, 1, 2]) for (const dir of [1, -1]) {
+    applyMove(cube, { axis, layer: 0, dir, whole: true });
+    assert.ok(isSolved(cube));
+  }
+  applyMove(cube, { axis: 2, layer: 1, dir: 1 });
+  const before = JSON.stringify(cube);
+  for (let i = 0; i < 4; i++) applyMove(cube, { axis: 0, layer: 0, dir: 1, whole: true });
+  assert.equal(JSON.stringify(cube), before, "four quarter turns over bring it back");
+});
+
+test("a performance turns the cube so that each part of the solve happens where it can be seen", () => {
+  for (let round = 0; round < 80; round++) {
+    const cube = solvedCube();
+    if (round % 3) for (const m of scramble(30)) applyMove(cube, m);
+    else for (let i = 0; i < 30; i++) applyMove(cube, randomMove());
+    const scenes = perform(cube);
+    assert.ok(scenes.length >= 2 && scenes.length <= 8);
+    const centre = (s) => cube.find((p) => p.st.filter(Boolean).length === 1 && p.st[s] !== null).st[s];
+    const right = (p) => p.st.every((c, s) => c === null || c === centre(s));
+    const at = (x, y, z) => cube.find((p) => p.p[0] === x && p.p[1] === y && p.p[2] === z);
+    scenes.forEach((scene, i) => {
+      assert.ok(scene.look.every((m) => m.whole) && scene.look.length <= 4);
+      assert.ok(scene.moves.every((m) => !m.whole && m.layer !== 0));
+      for (const m of [...scene.look, ...scene.moves]) applyMove(cube, m);
+      if (!scene.moves.length) return;
+      // the yellow face is where the cross goes: is this the scene that made it?
+      if (centre(4) === "#f2c14e") {
+        assert.equal(i, 0, "only the first scene has the cross face on top");
+        for (const [x, y] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) assert.ok(right(at(x, y, 1)), "the cross, made on top where it can be seen");
+      } else if (!isSolved(cube) && scenes.slice(i + 1).some((sc) => sc.moves.length && sc.look.length)) {
+        // a pair: it has just gone into the corner nearest the viewer
+        if (i <= 4) assert.ok(right(at(1, 1, -1)) && right(at(1, 1, 0)), `pair ${i} at the front corner (round ${round})`);
+      }
+    });
+    assert.ok(isSolved(cube), `round ${round}`);
+    // the last scene is a turn right round, and nothing else
+    assert.equal(scenes.at(-1).look.length, 4);
+    assert.equal(scenes.at(-1).moves.length, 0);
+  }
 });
