@@ -212,12 +212,6 @@ export function bell() {
   note(990, 0.9, 0.02);
 }
 
-/** Stone grinding as a staircase swings round. */
-export function rumble() {
-  burst(0.7, 0.1, "lowpass", 160, 90);
-  note(55, 0.7, 0.07, { attack: 0.1 });
-}
-
 /** A fish taking a crumb. */
 export function plop() {
   note(620, 0.12, 0.09, { glideTo: 170 });
