@@ -19,7 +19,7 @@ export const Socials = () => {
           title={label}
           className="grid place-items-center size-10 text-foreground-muted hover:text-link-hover transition-colors"
         >
-          <Glyph name={glyph} />
+          <Glyph name={glyph} scale={1} />
         </a>
       ))}
     </div>
