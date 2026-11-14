@@ -374,10 +374,11 @@ function tocEntries(): TocEntry[] {
 
 type Menu = { items: TocEntry[]; current: number; style: React.CSSProperties };
 
-// The welcome plays once per page load: not again when moving between pages.
+// The welcome belongs to the home page, and plays once: the first time the
+// home page is shown, not again on coming back to it.
 let welcomed = false;
-/** What the owl says after it lands, one line after another. */
-const GREETING = ["hoo are you?", "tap me for a map"];
+/** What the owl says after it lands, one line after another: its own hello-world, then a hint. */
+const GREETING = ["hoo-llo, world!", "tap me for a map"];
 
 /** A point on a smooth curve through `pts` (Catmull-Rom), u from 0 to 1. */
 function along(pts: { x: number; y: number }[], u: number) {
@@ -670,8 +671,9 @@ function Owl() {
     Object.assign(el, { owlLayout: () => readLayout(aim?.el ?? null).layout });
 
     /**
-     * The welcome, once per page load: it starts at home beside the name,
-     * takes a lap out over the page, lands at the title and says hello.
+     * The welcome, on the home page only: it starts at home beside the name,
+     * takes a lap out over the page, lands at the title and says hello. The
+     * lap is made up on the spot, so it is never the same twice.
      */
     const welcome = () => {
       if (scrolled) return;
@@ -683,14 +685,19 @@ function Owl() {
       const y0 = window.scrollY;
       pos = start;
       from = { ...start };
-      // out to the right, a swoop down across the page, then up and round to land
-      route = [
-        { x: Math.min(vw - 50, start.x + vw * 0.45), y: y0 + 150 },
-        { x: vw * 0.55, y: Math.min(to.y + 170, y0 + window.innerHeight * 0.55) },
-        { x: Math.max(60, vw * 0.22), y: to.y + 110 },
-        { x: Math.min(vw - 50, to.x + 80), y: to.y - 30 },
-      ];
-      dur = 2600;
+      // Three to five points scattered over the screen below the header, taken
+      // in order round the middle (clockwise or the other way, starting from
+      // anywhere), each a random distance out; then in to land from a little
+      // above the title, on one side or the other.
+      const pad = 46, lo = y0 + 110, hi = Math.max(lo + 120, y0 + Math.min(window.innerHeight * 0.72, 560));
+      const within = (p: Pt): Pt => ({ x: Math.max(pad, Math.min(vw - pad, p.x)), y: Math.max(lo, Math.min(hi, p.y)) });
+      const n = 3 + Math.floor(Math.random() * 3), turn = Math.random() < 0.5 ? 1 : -1, a0 = Math.random() * Math.PI * 2;
+      route = Array.from({ length: n }, (_, i) => {
+        const a = a0 + turn * (i / n) * Math.PI * 2 + (Math.random() - 0.5) * 0.9, r = 0.45 + Math.random() * 0.55;
+        return within({ x: vw / 2 + Math.cos(a) * (vw / 2 - pad) * r, y: (lo + hi) / 2 + (Math.sin(a) * (hi - lo) * r) / 2 });
+      });
+      route.push({ x: Math.max(pad, Math.min(vw - pad, to.x + (Math.random() < 0.5 ? -1 : 1) * (40 + Math.random() * 50))), y: to.y - 20 - Math.random() * 30 });
+      dur = 1500 + n * 300;
       t = 0;
       landed = () => {
         // Find somewhere for the bubble that covers nothing: above the owl
@@ -714,17 +721,18 @@ function Owl() {
       };
     };
 
-    // On a fresh page load it waits at home for a moment and then gives its
-    // welcome. Otherwise it takes its place quietly while the page settles.
+    // The first time the home page is shown it waits at home for a moment and
+    // then gives its welcome. Anywhere else, and every time after, it takes
+    // its place quietly while the page settles.
     // After that, whenever scrolling comes to rest, it looks again and flies
     // only if it has to move.
     const timers: ReturnType<typeof setTimeout>[] = [];
-    if (!welcomed && !still()) {
+    if (pathname === "/" && !welcomed && !still()) {
       welcomed = true;
       timers.push(setTimeout(() => { aim = null; pos = home(); }, 60));
       timers.push(setTimeout(welcome, 1100));
     } else {
-      welcomed = true;
+      if (pathname === "/") welcomed = true;
       timers.push(...[80, 400, 1200].map((ms) => setTimeout(() => decide(scrolled), ms)));
       void document.fonts?.ready.then(() => decide(scrolled));
     }

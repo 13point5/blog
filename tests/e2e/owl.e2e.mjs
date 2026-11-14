@@ -4,7 +4,9 @@
 //   pnpm test:e2e                   (in another; BASE_URL defaults to http://localhost:3000)
 //
 // Needs Playwright with a Chromium build (`npx playwright install chromium`).
-// After the welcome it checks that the owl's speech bubble covers no text.
+// The welcome (a lap of the page and a word) is for the home page only: it
+// checks that the owl gives it there and nowhere else, and that its speech
+// bubble covers no text.
 // Then, at every scroll position, going down and coming back up, it asserts:
 //   - if a heading is fully on screen (with an owl's height of room above it),
 //     the owl is at a heading, not in the header
@@ -124,10 +126,18 @@ for (const viewport of VIEWPORTS) {
     const where = (y) => `${viewport.width}px ${url} @${y}`;
     const fail = (y, msg) => failures.push(`${where(y)}: ${msg}`);
     await page.goto(BASE + url, { waitUntil: "networkidle" });
-    // the welcome: a lap of the page, a landing, then (where there is room) a word
-    await page.waitForTimeout(4600);
-    const said = await page.evaluate(bubbleHits);
+    // the welcome: on the home page a lap, a landing, then (where there is room) a word; elsewhere, nothing
+    await page.waitForTimeout(1900);
+    const early = await page.evaluate(() => ({ state: document.querySelector("[data-owl]")?.dataset.owlState, bubble: !!document.querySelector(".px-bubble") }));
     checks++;
+    if (url === "/" && early.state !== "flying") failures.push(`${viewport.width}px ${url}: no welcome flight on the home page (owl is ${early.state})`);
+    if (url !== "/" && (early.state === "flying" || early.bubble)) failures.push(`${viewport.width}px ${url}: the owl gave its welcome away from the home page`);
+    await page.waitForTimeout(2900);
+    const said = await page.evaluate(bubbleHits);
+    const words = await page.evaluate(() => document.querySelector(".px-bubble")?.textContent ?? "");
+    checks++;
+    if (url === "/" && said && !/world/.test(words)) failures.push(`${viewport.width}px ${url}: the owl said "${words}", not its hello-world`);
+    if (url !== "/" && said) failures.push(`${viewport.width}px ${url}: the owl spoke away from the home page`);
     if (said && said.hits.length) failures.push(`${viewport.width}px ${url}: the owl's bubble covers "${said.hits.join('", "')}"`);
     if (said && !said.inView) failures.push(`${viewport.width}px ${url}: the owl's bubble runs off the screen`);
     const max = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
