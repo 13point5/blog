@@ -4,6 +4,8 @@ import { useEffect, useRef } from "react";
 import { Gfx } from "@/lib/pixel/engine";
 import { drawCube } from "@/lib/pixel/cube";
 import { CUBE_PX, applyMove, dragMove, hitCube, isSolved, perform, scramble, solvedCube, type Move } from "@/lib/pixel/cube-model";
+import { createActor } from "xstate";
+import { cubeMachine } from "@/lib/machines/cube";
 import { click, fanfare } from "@/lib/audio";
 import { useToys } from "./toys";
 import { cn } from "@/lib/utils";
@@ -46,7 +48,11 @@ export function Cube({ className }: { className?: string }) {
     type Step = { m?: Move; turns: number; ms: number; mine: boolean };
     const queue: Step[] = [];
     let cur: (Step & { spent: number }) | null = null;
-    let raf = 0, last = 0, visible = false, glow = 0, rest: ReturnType<typeof setTimeout> | undefined;
+    let raf = 0, last = 0, visible = false, glow = 0;
+    // What it does next, and when, is a state machine (lib/machines/cube.ts). This code makes the
+    // turns the machine asks for, and tells it when they are all made.
+    const mind = createActor(cubeMachine);
+    let busy = false; // has it been given turns it has not yet reported finishing?
 
     const paint = (anim: { m: Move; t: number } | null) => {
       drawCube(ctx, cube, anim);
@@ -58,23 +64,18 @@ export function Cube({ className }: { className?: string }) {
         }
       }
     };
-    const wait = (ms: number) => queue.push({ turns: 0, ms, mine: false });
+    const wait = (ms: number) => { busy = true; queue.push({ turns: 0, ms, mine: false }); };
     /** queue some turns, a pair of the same turn becoming one half turn */
     const turn = (moves: Move[], quarter: number, half: number) => {
+      busy = true;
       for (let i = 0; i < moves.length; i++) {
         const m = moves[i], n = moves[i + 1], twice = !!n && n.axis === m.axis && n.layer === m.layer && n.dir === m.dir && !n.whole === !m.whole;
         queue.push({ m, turns: twice ? 2 : 1, ms: twice ? half : quarter, mine: false });
         if (twice) i++;
       }
     };
-    /** Nothing left to do: if it is in a muddle, solve it; if it is solved, admire it, then make a new muddle. */
-    const plan = () => {
-      if (isSolved(cube)) {
-        wait(2400);
-        turn(scramble(SCRAMBLE), MIXING, MIXING * 1.5);
-        wait(900);
-        return;
-      }
+    // asked to solve it: a breath, then the whole performance
+    const solving = mind.on("solve", () => {
       wait(500);
       perform(cube).forEach((scene, i, scenes) => {
         // turn it over to see what comes next, look at it for a moment, then get on with it
@@ -82,7 +83,9 @@ export function Cube({ className }: { className?: string }) {
         turn(scene.moves, QUARTER, HALF);
         if (scene.moves.length && i < scenes.length - 2) wait(350);
       });
-    };
+    });
+    // asked for a new muddle
+    const mixing = mind.on("scramble", () => turn(scramble(SCRAMBLE), MIXING, MIXING * 1.5));
 
     const step = (now: number) => {
       raf = 0;
@@ -90,7 +93,8 @@ export function Cube({ className }: { className?: string }) {
       last = now;
       if (!visible) { last = 0; return; }
       if (!cur) {
-        if (!queue.length && !rest) plan();
+        // everything asked of it is done: say so, and say how the cube stands
+        if (!queue.length && busy) { busy = false; mind.send({ type: "DONE", solved: isSolved(cube) }); }
         const next = queue.shift();
         if (next) cur = { ...next, spent: 0 };
       }
@@ -125,9 +129,10 @@ export function Cube({ className }: { className?: string }) {
     if (still()) { paint(null); return; }
     for (const m of scramble(SCRAMBLE)) applyMove(cube, m);
     paint(null);
+    mind.start();
 
     // it only works on the puzzle while it is on screen
-    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) run(); }, { threshold: 0.4 });
+    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible) { mind.send({ type: "SEEN" }); run(); } }, { threshold: 0.4 });
     io.observe(canvas);
 
     // --- fingers
@@ -139,11 +144,12 @@ export function Cube({ className }: { className?: string }) {
     /** Taking over: whatever it was about to do is dropped, and it waits for you to finish. */
     const hold = () => {
       queue.length = 0;
-      clearTimeout(rest);
-      rest = setTimeout(() => { rest = undefined; }, 3200); // left alone, it carries on from here
+      mind.send({ type: "HELD" }); // left alone for a few seconds, it carries on from here
     };
     const make = (m: Move) => {
-      hold();
+      queue.length = 0;
+      mind.send({ type: "TURNED" });
+      busy = true;
       queue.push({ m, turns: 1, ms: 190, mine: true });
       click();
       run();
@@ -178,7 +184,9 @@ export function Cube({ className }: { className?: string }) {
     canvas.addEventListener("pointercancel", cancel);
     return () => {
       cancelAnimationFrame(raf);
-      clearTimeout(rest);
+      solving.unsubscribe();
+      mixing.unsubscribe();
+      mind.stop();
       io.disconnect();
       canvas.removeEventListener("pointerdown", down);
       canvas.removeEventListener("pointermove", move);

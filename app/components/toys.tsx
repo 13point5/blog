@@ -2,7 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import { useActorRef, useSelector } from "@xstate/react";
 import { lap, planFlight, route as flightRoute, type Flight } from "@/lib/owl-flight";
+import { owlMachine, saying, type Place, type Spot } from "@/lib/machines/owl";
 import { Gfx, hash } from "@/lib/pixel/engine";
 import { TOYS, TOY_PALETTE, owlBlink } from "@/lib/pixel/scenes/shelf";
 import { OWL_FLAP, OWL_FRAME, OWL_PAL, OWL_PERCHED } from "@/lib/pixel/owl-sheet";
@@ -375,12 +377,6 @@ function tocEntries(): TocEntry[] {
 
 type Menu = { items: TocEntry[]; current: number; style: React.CSSProperties };
 
-// The welcome belongs to the home page, and plays once: the first time the
-// home page is shown, not again on coming back to it.
-let welcomed = false;
-/** What the owl says after it lands, one line after another: its own hello-world, then a hint. */
-const GREETING = ["hoo-llo, world!", "tap me for a map"];
-
 /** The lines of a heading as they are laid out on screen right now. */
 function headingLines(el: HTMLElement): Line[] {
   const range = document.createRange();
@@ -481,15 +477,20 @@ function Owl() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const btn = useRef<HTMLButtonElement>(null);
   const [menu, setMenu] = useState<Menu | null>(null);
-  // what the owl is saying, and which way the bubble should open so it stays on screen
-  const [says, setSays] = useState<{ text: string; side: "left" | "right"; below: boolean } | null>(null);
+  // What the owl is up to is a state machine (lib/machines/owl.ts) that lasts as long as the site is
+  // open: where it is, whether its welcome has been given, and what it is saying. This component does
+  // the looking and the flying and reports what happened; the machine decides what follows.
+  const owl = useActorRef(owlMachine);
+  // what it is saying, and which way the bubble opens so that it covers nothing
+  const text = useSelector(owl, saying);
+  const place = useSelector(owl, (s) => s.context.place);
   const pathname = usePathname();
 
   // Tapping the owl opens a small contents list, the way a page outline does.
   const openMenu = () => {
     const el = btn.current;
     if (!el) return;
-    setSays(null);
+    owl.send({ type: "HUSH" });
     if (menu) { setMenu(null); return; }
     hoot();
     const items = tocEntries();
@@ -543,8 +544,30 @@ function Owl() {
     let t = 1, dur = 1, f = 0, raf = 0, last = 0, lastPaint = 0, scrolled = false;
     // the flight in progress, worked out when it took off, and where it was then meant to land
     let plan: Flight | null = null, planTo: Pt = { x: 0, y: 0 };
-    let landed: (() => void) | null = null;
-    const talk: ReturnType<typeof setTimeout>[] = [];
+    /** what kind of place it is at, or making for */
+    const spot = (): Spot => (aim === null ? "home" : aim.kind === "roost" ? "roost" : "perched");
+    /**
+     * Somewhere beside the owl, where it now is, for a speech bubble that covers
+     * nothing: above it opening either way, else below it. Null if there is
+     * nowhere, or if it has nothing to say just now anyway.
+     */
+    const room = (): Place | null => {
+      const state = owl.getSnapshot();
+      if (!pos || !(state.matches({ welcome: "lap" }) || state.matches({ voice: "speaking" }))) return null;
+      const vw = document.documentElement.clientWidth;
+      const body = { left: pos.x - window.scrollX - OWL_BODY.w / 2, right: pos.x - window.scrollX + OWL_BODY.w / 2, top: pos.y - window.scrollY - OWL_BODY.h, bottom: pos.y - window.scrollY };
+      const { layout } = readLayout(aim?.el ?? null);
+      const W = 156, H = 30, gap = 8;
+      const options = (["left", "right"] as const).flatMap((side) => [false, true].map((below) => ({ side, below })))
+        .sort((p, q) => Number(p.below) - Number(q.below));
+      return options.find(({ side, below }) => {
+        const left = side === "left" ? body.left - 6 : body.right + 6 - W;
+        const top = below ? body.bottom + gap : body.top - gap - H;
+        const r = { left, right: left + W, top, bottom: top + H };
+        if (r.left < 4 || r.right > vw - 4 || r.top < layout.view.top - 4 || r.bottom > window.innerHeight - 4) return false;
+        return !layout.obstacles.some((o) => r.left < o.right && r.right > o.left && r.top < o.bottom && r.bottom > o.top);
+      }) ?? null;
+    };
 
     /** Home is the slot beside the name in the header; it rides along with the header. */
     const home = (): Pt | null => {
@@ -566,7 +589,6 @@ function Owl() {
       el.dataset.visibleHeadings = String(layout.headings.filter((h) => isVisible(h, layout.view, layout.owl)).length);
       const before = pos;
       plan = null;
-      landed = null;
       const anchor = p ? (p.kind === "roost" ? roostEl : els[p.heading]) : null;
       if (p && anchor) {
         const r = anchor.getBoundingClientRect();
@@ -576,7 +598,7 @@ function Owl() {
       const to = target();
       if (!to) return;
       const dist = before ? Math.hypot(to.x - before.x, to.y - before.y) : 0;
-      if (!before || !animate || still() || dist < 3) { pos = to; t = 1; return; }
+      if (!before || !animate || still() || dist < 3) { pos = to; t = 1; owl.send({ type: "SETTLED", at: spot(), room: room() }); return; }
       // If the page has been scrolled a long way, where it was is far off screen. It does not fly all
       // that distance in a blur: it comes in from just beyond the edge of the screen, on that side.
       const vw = document.documentElement.clientWidth, top = window.scrollY, bottom = top + window.innerHeight;
@@ -588,6 +610,7 @@ function Owl() {
       planTo = to;
       dur = plan.ms;
       t = 0;
+      owl.send({ type: "TOOK_OFF" });
     };
 
     const paint = (flying: boolean) => {
@@ -615,7 +638,7 @@ function Owl() {
         // making for has moved since it took off (the page shifted), it leans that way more and more.
         const at = plan ? plan.at(t * dur) : to, lean = t * t * (3 - 2 * t);
         pos = { x: at.x + (to.x - planTo.x) * lean, y: at.y + (to.y - planTo.y) * lean };
-        if (t >= 1) { pos = to; plan = null; const done = landed; landed = null; done?.(); }
+        if (t >= 1) { pos = to; plan = null; owl.send({ type: "LANDED", at: spot(), room: room() }); }
       } else pos = to;
       const flying = t < 1;
       // At home it is pinned to the screen like the header itself. Left in the
@@ -629,7 +652,7 @@ function Owl() {
       const header = document.querySelector("header")?.getBoundingClientRect();
       const under = aim !== null && !flying && header !== undefined && pos.y - window.scrollY - OWL_BODY.h < header.bottom;
       el.style.opacity = under ? "0" : "1";
-      el.dataset.owlState = flying ? "flying" : !aim ? "home" : aim.kind === "roost" ? "roost" : "perched";
+      el.dataset.owlState = owl.getSnapshot().value.body;
       // wings beat faster than anything else on the page moves
       if (now - lastPaint > 1000 / (flying ? 28 : FPS)) { lastPaint = now; f++; paint(flying); }
     };
@@ -643,11 +666,10 @@ function Owl() {
      * lap is made up on the spot, so it is never the same twice.
      */
     const welcome = () => {
-      if (scrolled) return;
       decide(false);
       const start = home();
       const to = target();
-      if (!aim || !start || !to || still()) return;
+      if (scrolled || !aim || !start || !to || still()) { owl.send({ type: "GROUNDED" }); return; }
       const vw = document.documentElement.clientWidth;
       const y0 = window.scrollY;
       pos = start;
@@ -659,48 +681,26 @@ function Owl() {
       planTo = to;
       dur = plan.ms;
       t = 0;
-      landed = () => {
-        // Find somewhere for the bubble that covers nothing: above the owl
-        // opening either way, else below it. If there is nowhere, it says nothing.
-        const body = btn.current?.getBoundingClientRect();
-        if (!body) return;
-        const { layout } = readLayout(aim?.el ?? null);
-        const W = 156, H = 30, gap = 8;
-        const options = (["left", "right"] as const).flatMap((side) => [false, true].map((below) => ({ side, below })))
-          .sort((p, q) => Number(p.below) - Number(q.below));
-        const place = options.find(({ side, below }) => {
-          const left = side === "left" ? body.left - 6 : body.right + 6 - W;
-          const top = below ? body.bottom + gap : body.top - gap - H;
-          const r = { left, right: left + W, top, bottom: top + H };
-          if (r.left < 4 || r.right > vw - 4 || r.top < layout.view.top - 4 || r.bottom > window.innerHeight - 4) return false;
-          return !layout.obstacles.some((o) => r.left < o.right && r.right > o.left && r.top < o.bottom && r.bottom > o.top);
-        });
-        if (!place) return;
-        GREETING.forEach((text, i) => talk.push(setTimeout(() => setSays({ text, ...place }), 150 + i * 2600)));
-        talk.push(setTimeout(() => setSays(null), 150 + GREETING.length * 2600));
-      };
+      owl.send({ type: "TOOK_OFF" });
     };
 
-    // The first time the home page is shown it waits at home for a moment and
-    // then gives its welcome. Anywhere else, and every time after, it takes
-    // its place quietly while the page settles.
-    // After that, whenever scrolling comes to rest, it looks again and flies
-    // only if it has to move.
+    // Tell the owl which page this is. If its welcome is owed and this is the home page, it waits at
+    // home for a moment and then asks for its lap; anywhere else, and every time after, it takes its
+    // place quietly while the page settles. After that, whenever scrolling comes to rest, it looks
+    // again and flies only if it has to move.
     const timers: ReturnType<typeof setTimeout>[] = [];
-    if (pathname === "/" && !welcomed && !still()) {
-      welcomed = true;
-      timers.push(setTimeout(() => { aim = null; pos = home(); }, 60));
-      timers.push(setTimeout(welcome, 1100));
+    owl.send({ type: "PAGE", home: pathname === "/", still: still() });
+    const asked = owl.on("lap", welcome);
+    if (owl.getSnapshot().matches({ welcome: "waiting" })) {
+      timers.push(setTimeout(() => { aim = null; pos = home(); owl.send({ type: "SETTLED", at: "home", room: null }); }, 60));
     } else {
-      if (pathname === "/") welcomed = true;
       timers.push(...[80, 400, 1200].map((ms) => setTimeout(() => decide(scrolled), ms)));
       void document.fonts?.ready.then(() => decide(scrolled));
     }
     let settle: ReturnType<typeof setTimeout>;
     const onScroll = () => {
       scrolled = true;
-      talk.forEach(clearTimeout);
-      setSays(null);
+      owl.send({ type: "SCROLLED" });
       clearTimeout(settle);
       settle = setTimeout(() => decide(true), 160);
     };
@@ -708,13 +708,13 @@ function Owl() {
     window.addEventListener("resize", onScroll);
     return () => {
       timers.forEach(clearTimeout);
-      talk.forEach(clearTimeout);
+      asked.unsubscribe();
       clearTimeout(settle);
       cancelAnimationFrame(raf);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, [pathname]);
+  }, [pathname, owl]);
 
   return (
     <>
@@ -732,20 +732,20 @@ function Owl() {
           className="pixelated block pointer-events-none"
           style={{ width: F.w * OWL_SCALE, height: (F.h + 2) * OWL_SCALE }}
         />
-        {says && (
+        {text && place && (
           <span
-            key={says.text}
+            key={text}
             role="status"
             className="px-bubble"
-            data-side={says.side}
-            data-below={says.below}
+            data-side={place.side}
+            data-below={place.below}
             style={{
-              ...(says.below ? { top: (F.bodyY + F.bodyH) * OWL_SCALE + 10 } : { bottom: (F.h + 2 - F.bodyY) * OWL_SCALE + 6 }),
+              ...(place.below ? { top: (F.bodyY + F.bodyH) * OWL_SCALE + 10 } : { bottom: (F.h + 2 - F.bodyY) * OWL_SCALE + 6 }),
               // opens away from the nearer edge of the screen
-              ...(says.side === "left" ? { left: F.bodyX * OWL_SCALE - 6 } : { right: (F.w - F.bodyX - F.bodyW) * OWL_SCALE - 6 }),
+              ...(place.side === "left" ? { left: F.bodyX * OWL_SCALE - 6 } : { right: (F.w - F.bodyX - F.bodyW) * OWL_SCALE - 6 }),
             }}
           >
-            {says.text}
+            {text}
           </span>
         )}
         {/* only the owl's body takes taps; the room left for its wings lets them through */}

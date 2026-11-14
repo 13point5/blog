@@ -22,6 +22,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@tabler/icons-react": "^3.36.1",
     "@types/mdx": "^2.0.13",
+    "@xstate/react": "^6.1.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.560.0",
@@ -39,7 +40,8 @@
     "shiki": "^3.20.0",
     "sugar-high": "^0.9.5",
     "tailwind-merge": "^3.4.0",
-    "unist-util-visit": "^5.0.0"
+    "unist-util-visit": "^5.0.0",
+    "xstate": "^5.33.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
