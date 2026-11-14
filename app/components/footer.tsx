@@ -1,18 +1,27 @@
 import { Socials } from "./socials";
+import { Art } from "./art";
+import { Ornament } from "./glyph";
 
 export function Footer() {
   return (
-    <footer className="border-t border-border/30 bg-background/80 backdrop-blur-xs">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 flex flex-col items-center justify-center gap-4">
-        <figure className="flex flex-col items-center">
-          <blockquote className="text-foreground-muted text-sm text-center">
+    <footer className="pt-16">
+      {/* everything here is centred on one axis: ornament, quote, name, links */}
+      <div className="max-w-2xl w-full mx-auto px-5 flex flex-col items-center text-center">
+        <Ornament className="text-foreground-muted mb-7" />
+        <figure>
+          <blockquote className="font-display italic d-md text-balance">
             What I cannot create, I do not understand.
           </blockquote>
-          <figcaption className="text-foreground-muted text-sm mt-1 self-end">
-            - Richard Feynman
-          </figcaption>
+          <figcaption className="text-foreground-muted text-sm mt-1.5">Richard Feynman</figcaption>
         </figure>
-        <Socials />
+        <div className="mt-5">
+          <Socials />
+        </div>
+      </div>
+      {/* The page ends at the castle. It has no sky of its own: the page is the
+          sky, so it changes with the light and dark themes. */}
+      <div className="mt-6" data-toc="The castle">
+        <Art scene="hogwarts" maxPx={520} />
       </div>
     </footer>
   );

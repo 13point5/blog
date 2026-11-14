@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { CustomMDX } from "@/app/components/mdx";
-import { formatDate, getBlogPosts } from "@/app/blog/utils";
-import Image from "next/image";
+import { formatDate, getBlogPosts, readingMinutes } from "@/app/blog/utils";
+import { Art } from "@/app/components/art";
 
 export async function generateStaticParams() {
   const posts = getBlogPosts();
@@ -57,9 +57,11 @@ export default async function BlogPost({
     notFound();
   }
 
+  const { metadata } = post;
+
   return (
-    <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-14 pb-16">
-      <article className="prose prose-lg animate-fade-blur">
+    <div className="max-w-2xl mx-auto px-5 pt-32 pb-8">
+      <article className="animate-fade-blur">
         <script
           type="application/ld+json"
           suppressHydrationWarning
@@ -67,40 +69,30 @@ export default async function BlogPost({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "BlogPosting",
-              headline: post.metadata.title,
-              datePublished: post.metadata.publishedAt,
-              dateModified: post.metadata.publishedAt,
-              description: post.metadata.summary,
+              headline: metadata.title,
+              datePublished: metadata.publishedAt,
+              dateModified: metadata.publishedAt,
+              description: metadata.summary,
             }),
           }}
         />
-        <h1 className="text-3xl font-semibold mb-4 mt-8 text-foreground text-center">
-          {post.metadata.title}
-        </h1>
-        <div className="flex items-center justify-center gap-2 text-sm text-foreground-muted mb-6">
-          <time>{formatDate(post.metadata.publishedAt)}</time>
-          {post.metadata.author && (
-            <>
-              <span>•</span>
-              <span>{post.metadata.author}</span>
-            </>
-          )}
+        {/* The page opens on its title, as the home and blog pages do, with the date under it. */}
+        <header className="relative mb-10">
+          <h1 className="d-xl mb-4 text-balance"><span data-perch="">{metadata.title}</span></h1>
+          <p className="text-sm text-foreground-muted flex flex-wrap gap-x-2">
+            <time dateTime={metadata.publishedAt}>{formatDate(metadata.publishedAt)}</time>
+            <span aria-hidden="true">·</span>
+            <span>{readingMinutes(post.content)} min read</span>
+          </p>
+        </header>
+
+        {/* One piece of pixel art per post, between the title and the text */}
+        {metadata.cover && <Art scene={metadata.cover} className="mb-12" />}
+
+        <div className="post-body">
+          <CustomMDX source={post.content} />
         </div>
-
-        {post.metadata.image && (
-          <div className="max-w-lg mx-auto mb-8">
-            <Image
-              src={post.metadata.image}
-              alt={post.metadata.title}
-              width={500}
-              height={350}
-              className="h-auto rounded-lg"
-            />
-          </div>
-        )}
-
-        <CustomMDX source={post.content} />
       </article>
-    </main>
+    </div>
   );
 }

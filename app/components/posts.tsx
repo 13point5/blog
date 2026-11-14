@@ -1,23 +1,17 @@
-import { getBlogPosts } from "@/app/blog/utils";
+import { getSortedPosts } from "@/app/blog/utils";
 import { BlogPostItem } from "./blog-post-item";
 
-export function BlogPosts() {
-  const allBlogs = getBlogPosts();
+/** `contents` lists each post in the owl's contents menu (used on the blog index). */
+export function BlogPosts({ limit, contents }: { limit?: number; contents?: boolean }) {
+  const posts = getSortedPosts().slice(0, limit);
 
   return (
-    <div className="space-y-1 not-prose">
-      {allBlogs
-        .sort((a, b) => {
-          if (
-            new Date(a.metadata.publishedAt) > new Date(b.metadata.publishedAt)
-          ) {
-            return -1;
-          }
-          return 1;
-        })
-        .map((post) => (
-          <BlogPostItem key={post.slug} slug={post.slug} metadata={post.metadata} />
-        ))}
-    </div>
+    <ul className="divide-y divide-border not-prose">
+      {posts.map((post) => (
+        <li key={post.slug} data-toc={contents ? post.metadata.title : undefined}>
+          <BlogPostItem slug={post.slug} metadata={post.metadata} />
+        </li>
+      ))}
+    </ul>
   );
 }

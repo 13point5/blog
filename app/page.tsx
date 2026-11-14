@@ -1,21 +1,19 @@
-import WorkSection from "./components/work-section";
 import Bio from "@/content/bio.mdx";
+import WorkSection from "./components/work-section";
+import { HomeArt } from "./components/art";
 
 export default function Home() {
   return (
-    <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-14 pb-25 flex flex-col">
-      {/* Hero Section */}
-      <section className="animate-fade-blur">
+    <div className="max-w-2xl mx-auto px-5 pt-32 pb-8 flex flex-col gap-12">
+      <section className="animate-fade-blur" data-toc="About">
+        <h1 className="d-xl mb-6"><span data-perch="">Hi</span></h1>
         <Bio />
       </section>
 
-      {/* Blog Section */}
-      <WorkSection />
+      {/* The one piece of art on the page, between the intro and the blog */}
+      <HomeArt className="animate-fade-blur animation-delay-100" />
 
-      {/* Contact Section */}
-      {/* <section id="contact" className="animate-fade-blur animation-delay-200">
-        <Contact />
-      </section> */}
-    </main>
+      <WorkSection />
+    </div>
   );
 }

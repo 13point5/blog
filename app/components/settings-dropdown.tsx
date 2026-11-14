@@ -1,113 +1,75 @@
 "use client";
 
-import { Sun, Moon, Type } from "lucide-react";
 import { useTheme } from "../providers/theme-provider";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { PRESETS, getFont } from "@/lib/fonts-config";
 import { cn } from "@/lib/utils";
 
-export function SettingsDropdown() {
-  const { theme, setTheme, fontFamily, setFontFamily } = useTheme();
+const row =
+  "flex w-full items-center justify-between gap-6 rounded-sm px-2 py-1.5 text-left text-sm hover:bg-accent outline-none focus-visible:bg-accent cursor-pointer";
 
-  const themes = [
-    { value: "light", label: "Light", icon: Sun },
-    { value: "dark", label: "Dark", icon: Moon },
-  ] as const;
+export function SettingsDropdown() {
+  const { theme, setTheme, display, body, setFonts, artWidth, artStyle, homeArt, setArt } = useTheme();
 
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="text-base sm:text-lg font-normal tracking-tight hover:text-foreground-muted transition-colors outline-none focus-visible:text-foreground-muted cursor-pointer"
-          aria-label="Menu"
+          className="font-display d-md text-foreground-muted hover:text-foreground transition-colors outline-none focus-visible:text-foreground cursor-pointer"
+          aria-label="Open settings menu"
         >
           menu
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent
-        className="flex items-center gap-1 sm:gap-1.5 p-1.5 sm:p-2 min-w-0 w-auto bg-background text-foreground"
-        align="end"
-        sideOffset={8}
-      >
-        {themes.map(({ value, label, icon: Icon }) => (
-          <Tooltip key={value}>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                aria-label={label}
-                aria-pressed={theme === value}
-                onClick={() => setTheme(value)}
-                className={cn(
-                  "rounded-md sm:size-9",
-                  theme === value &&
-                    "bg-foreground text-background hover:bg-foreground hover:text-background"
-                )}
-              >
-                <Icon className="size-4 sm:size-[18px]" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">{label}</TooltipContent>
-          </Tooltip>
+      <DropdownMenuContent align="end" sideOffset={10} className="w-52 p-1.5 bg-background-card text-foreground max-h-[calc(100dvh-5rem)] overflow-y-auto">
+        <p className="px-2 pt-1 pb-1 text-xs text-foreground-muted">Theme</p>
+        {(["light", "dark"] as const).map((t) => (
+          <button key={t} type="button" className={row} aria-pressed={theme === t} onClick={() => setTheme(t)}>
+            <span className="capitalize">{t}</span>
+            {theme === t && <span aria-hidden="true" className="size-1.5 bg-koi" />}
+          </button>
         ))}
 
-        <div
-          className="mx-0.5 h-5 sm:h-6 w-px bg-border/60"
-          aria-hidden="true"
-        />
+        <div className="my-1.5 h-px bg-border" aria-hidden="true" />
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Sans"
-              aria-pressed={fontFamily === "sans"}
-              onClick={() => setFontFamily("sans")}
-              className={cn(
-                "rounded-md sm:size-9",
-                fontFamily === "sans" &&
-                  "bg-foreground text-background hover:bg-foreground hover:text-background"
-              )}
-            >
-              <Type className="size-4 sm:size-[18px]" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">Sans</TooltipContent>
-        </Tooltip>
+        <p className="px-2 pt-1 pb-1 text-xs text-foreground-muted">Type</p>
+        {PRESETS.map((p) => {
+          const active = display === p.display && body === p.body;
+          const font = getFont(p.display);
+          return (
+            <button key={p.id} type="button" className={row} aria-pressed={active} onClick={() => setFonts(p.display, p.body)}>
+              <span className={cn("truncate")} style={{ fontFamily: font.css, fontSize: `${0.9 * font.ds}rem`, lineHeight: 1.3 }}>
+                {p.label}
+              </span>
+              {active && <span aria-hidden="true" className="size-1.5 bg-koi shrink-0" />}
+            </button>
+          );
+        })}
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              aria-label="Open Dyslexia"
-              aria-pressed={fontFamily === "dyslexia"}
-              onClick={() => setFontFamily("dyslexia")}
-              className={cn(
-                "rounded-md font-dyslexia text-xs sm:text-sm font-bold tracking-tight sm:size-9",
-                fontFamily === "dyslexia" &&
-                  "bg-foreground text-background hover:bg-foreground hover:text-background"
-              )}
-            >
-              OD
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">Open Dyslexia</TooltipContent>
-        </Tooltip>
+        <div className="my-1.5 h-px bg-border" aria-hidden="true" />
+
+        <p className="px-2 pt-1 pb-1 text-xs text-foreground-muted">Playfulness</p>
+        {([["scatter", "Toys everywhere"], ["shelf", "Shelf of things"], ["castle", "Castle"], ["pond", "Koi pond"]] as const).map(([v, label]) => (
+          <button key={v} type="button" className={row} aria-pressed={homeArt === v} onClick={() => setArt(artWidth, artStyle, v)}>
+            <span>{label}</span>
+            {homeArt === v && <span aria-hidden="true" className="size-1.5 bg-koi" />}
+          </button>
+        ))}
+        <p className="px-2 pt-2 pb-1 text-xs text-foreground-muted">Art style</p>
+        {([["color", "Full colour"], ["ink", "Ink"]] as const).map(([v, label]) => (
+          <button key={v} type="button" className={row} aria-pressed={artStyle === v} onClick={() => setArt(artWidth, v, homeArt)}>
+            <span>{label}</span>
+            {artStyle === v && <span aria-hidden="true" className="size-1.5 bg-koi" />}
+          </button>
+        ))}
+        <p className="px-2 pt-2 pb-1 text-xs text-foreground-muted">Art width</p>
+        {([["full", "Full screen"], ["column", "Text column"]] as const).map(([v, label]) => (
+          <button key={v} type="button" className={row} aria-pressed={artWidth === v} onClick={() => setArt(v, artStyle, homeArt)}>
+            <span>{label}</span>
+            {artWidth === v && <span aria-hidden="true" className="size-1.5 bg-koi" />}
+          </button>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );

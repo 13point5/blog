@@ -1,38 +1,23 @@
-import Link from "next/link";
-import Image from "next/image";
-import { formatDate, Metadata } from "@/app/blog/utils";
+import { PostLink } from "./post-link";
+import { formatDate, type Metadata } from "@/app/blog/utils";
+import { PostIcon } from "./post-icon";
 
 type BlogPostItemProps = {
   slug: string;
   metadata: Metadata;
 };
 
+/** One post: its little card, its title, its date. Nothing else. */
 export function BlogPostItem({ slug, metadata }: BlogPostItemProps) {
   return (
-    <Link href={`/blog/${slug}`} className="block group">
-      <article className="flex items-start justify-between gap-4 py-2">
-        <div className="flex items-start gap-3 min-w-0">
-          {metadata.image && (
-            <Image
-              src={metadata.image}
-              alt=""
-              width={32}
-              height={32}
-              className="w-8 h-8 rounded object-cover flex-shrink-0"
-            />
-          )}
-          <h3 className="font-medium group-hover:text-foreground-muted transition-colors">
-            {metadata.title}
-          </h3>
-        </div>
-        <time
-          dateTime={metadata.publishedAt}
-          className="hidden sm:block text-sm text-foreground-muted whitespace-nowrap"
-        >
+    <PostLink href={`/blog/${slug}`} sound={metadata.cover} className="group flex items-center gap-4 py-4">
+      <PostIcon name={metadata.cover} className="transition-transform duration-150 group-hover:-rotate-3" />
+      <span className="min-w-0 flex-1">
+        <span className="font-display d-md block leading-snug group-hover:text-link-hover transition-colors">{metadata.title}</span>
+        <time dateTime={metadata.publishedAt} className="block text-sm text-foreground-muted tabular-nums mt-0.5">
           {formatDate(metadata.publishedAt, false, true)}
         </time>
-      </article>
-    </Link>
+      </span>
+    </PostLink>
   );
 }
-

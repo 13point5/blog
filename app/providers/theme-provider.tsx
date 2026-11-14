@@ -1,89 +1,98 @@
 "use client";
 
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { DEFAULT_BODY, DEFAULT_DISPLAY, FONTS } from "@/lib/fonts-config";
 
 type Theme = "light" | "dark";
-type FontFamily = "sans" | "dyslexia";
+export type ArtWidth = "column" | "full";
+export type HomeArt = "scatter" | "shelf" | "castle" | "pond";
+export const HOME_ART: HomeArt[] = ["scatter", "shelf", "castle", "pond"];
+export type ArtStyle = "color" | "ink";
 
-interface ThemeContextType {
+interface Settings {
   theme: Theme;
   setTheme: (theme: Theme) => void;
-  fontFamily: FontFamily;
-  setFontFamily: (font: FontFamily) => void;
+  /** heading font id */
+  display: string;
+  /** body font id */
+  body: string;
+  setFonts: (display: string, body: string) => void;
+  /** How wide pixel art is drawn. */
+  artWidth: ArtWidth;
+  /** Which scene the home page shows. */
+  homeArt: HomeArt;
+  /** Full colour, or a few dithered tones of the text colour. */
+  artStyle: ArtStyle;
+  setArt: (width: ArtWidth, style: ArtStyle, home: HomeArt) => void;
 }
 
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+const ThemeContext = createContext<Settings | undefined>(undefined);
 
-function getStoredTheme(): Theme {
-  if (typeof window === "undefined") return "light";
-  const stored = localStorage.getItem("theme");
-  if (stored === "dark") return "dark";
-  return "light";
+const isFont = (id: string | null): id is string => FONTS.some((f) => f.id === id);
+
+function read(key: string) {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
 }
 
-function getStoredFont(): FontFamily {
-  if (typeof window === "undefined") return "sans";
-  const stored = localStorage.getItem("fontFamily");
-  if (stored === "dyslexia") return "dyslexia";
-  return "sans";
-}
-
-function useHasMounted() {
-  return useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false
-  );
+function write(key: string, value: string) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {}
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const hasMounted = useHasMounted();
-  const [theme, setThemeState] = useState<Theme>(() => getStoredTheme());
-  const [fontFamily, setFontFamilyState] = useState<FontFamily>(() =>
-    getStoredFont()
-  );
+  // Start from the defaults so the server and first client render agree; the
+  // inline boot script has already applied the stored values to <html>.
+  const [theme, setThemeState] = useState<Theme>("light");
+  const [display, setDisplay] = useState(DEFAULT_DISPLAY);
+  const [body, setBody] = useState(DEFAULT_BODY);
+  const [artWidth, setArtWidth] = useState<ArtWidth>("full");
+  const [homeArt, setHomeArt] = useState<HomeArt>("scatter");
+  const [artStyle, setArtStyle] = useState<ArtStyle>("color");
 
   useEffect(() => {
-    if (!hasMounted) return;
+    const d = read("fontDisplay");
+    const b = read("fontBody");
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync from localStorage after hydration
+    setThemeState(read("theme") === "dark" ? "dark" : "light");
+    if (isFont(d)) setDisplay(d);
+    if (isFont(b)) setBody(b);
+    if (read("artWidth") === "column") setArtWidth("column");
+    const h = read("homeArt") as HomeArt | null;
+    if (h && HOME_ART.includes(h)) setHomeArt(h);
+    if (read("artStyle") === "ink") setArtStyle("ink");
+  }, []);
 
-    const root = document.documentElement;
-    root.classList.remove("dark", "warm");
-
-    if (theme === "dark") {
-      root.classList.add("dark");
-    }
-
-    localStorage.setItem("theme", theme);
-  }, [theme, hasMounted]);
-
-  useEffect(() => {
-    if (!hasMounted) return;
-
-    const root = document.documentElement;
-    root.classList.remove("font-sans", "font-dyslexia");
-    root.classList.add(`font-${fontFamily}`);
-
-    localStorage.setItem("fontFamily", fontFamily);
-  }, [fontFamily, hasMounted]);
-
-  const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
+  const setTheme = (next: Theme) => {
+    setThemeState(next);
+    document.documentElement.classList.toggle("dark", next === "dark");
+    write("theme", next);
   };
 
-  const setFontFamily = (newFont: FontFamily) => {
-    setFontFamilyState(newFont);
+  const setFonts = (nextDisplay: string, nextBody: string) => {
+    setDisplay(nextDisplay);
+    setBody(nextBody);
+    document.documentElement.dataset.display = nextDisplay;
+    document.documentElement.dataset.body = nextBody;
+    write("fontDisplay", nextDisplay);
+    write("fontBody", nextBody);
+  };
+
+  const setArt = (width: ArtWidth, style: ArtStyle, home: HomeArt) => {
+    setArtWidth(width);
+    setArtStyle(style);
+    setHomeArt(home);
+    write("artWidth", width);
+    write("artStyle", style);
+    write("homeArt", home);
   };
 
   return (
-    <ThemeContext.Provider
-      value={{ theme, setTheme, fontFamily, setFontFamily }}
-    >
+    <ThemeContext.Provider value={{ theme, setTheme, display, body, setFonts, artWidth, artStyle, homeArt, setArt }}>
       {children}
     </ThemeContext.Provider>
   );

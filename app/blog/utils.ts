@@ -7,6 +7,9 @@ export type Metadata = {
   summary: string;
   image?: string;
   author?: string;
+  /** Name of a pixel-art scene in lib/pixel (see SCENES). */
+  cover?: string;
+  /** "true" marks filler content that exists to show off the layout. */
 };
 
 function parseFrontmatter(fileContent: string) {
@@ -52,6 +55,17 @@ function getMDXData(dir: string) {
 
 export function getBlogPosts() {
   return getMDXData(path.join(process.cwd(), "app", "blog", "posts"));
+}
+
+/** Newest first. */
+export function getSortedPosts() {
+  return getBlogPosts().sort(
+    (a, b) => +new Date(b.metadata.publishedAt) - +new Date(a.metadata.publishedAt)
+  );
+}
+
+export function readingMinutes(content: string) {
+  return Math.max(1, Math.round(content.split(/\s+/).length / 220));
 }
 
 export function formatDate(date: string, includeRelative = false, abbreviated = false) {

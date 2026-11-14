@@ -1,44 +1,24 @@
-import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { getBlogPosts } from "@/app/blog/utils";
-import { BlogPostItem } from "./blog-post-item";
+import { BlogPosts } from "./posts";
+import { Glyph } from "./glyph";
 
 export default function WorkSection() {
-  const posts = getBlogPosts()
-    .sort((a, b) => {
-      if (new Date(a.metadata.publishedAt) > new Date(b.metadata.publishedAt)) {
-        return -1;
-      }
-      return 1;
-    })
-    .slice(0, 5);
-
   return (
-    <section id="blog" className="animate-fade-blur animation-delay-100">
-      <div className="flex items-center justify-between mb-4 mt-6">
-        <h2 className="text-2xl font-semibold text-foreground">blog</h2>
-
-        <Link href="/blog">
-          <Button variant="ghost" className="gap-2 group">
-            view all
-            <ArrowRight
-              size={16}
-              className="transition-transform group-hover:translate-x-1"
-            />
-          </Button>
+    // Called "Blog" here as everywhere else: in the owl's map, and on the page this links to.
+    <section id="blog" className="animate-fade-blur animation-delay-100" data-toc="Blog">
+      <div className="flex items-center justify-between gap-4 mb-1">
+        {/* the same size as "Hi" above it and as the heading of the blog page itself */}
+        <h2 className="d-xl"><span data-perch="">Blog</span></h2>
+        <Link
+          href="/blog"
+          aria-label="All posts"
+          title="All posts"
+          className="grid place-items-center size-10 -mr-2 text-foreground-muted hover:text-link-hover transition-colors"
+        >
+          <Glyph name="arrow" />
         </Link>
       </div>
-
-      <div className="space-y-1">
-        {posts.map((post) => (
-          <BlogPostItem
-            key={post.slug}
-            slug={post.slug}
-            metadata={post.metadata}
-          />
-        ))}
-      </div>
+      <BlogPosts limit={5} />
     </section>
   );
 }
