@@ -10,7 +10,7 @@ export default function Home() {
         <Bio />
       </section>
 
-      {/* The one piece of art on the page, between the intro and the writing */}
+      {/* The one piece of art on the page, between the intro and the blog */}
       <HomeArt className="animate-fade-blur animation-delay-100" />
 
       <WorkSection />

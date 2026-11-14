@@ -4,9 +4,11 @@ import { Glyph } from "./glyph";
 
 export default function WorkSection() {
   return (
-    <section id="blog" className="animate-fade-blur animation-delay-100" data-toc="Writing">
+    // Called "Blog" here as everywhere else: in the owl's map, and on the page this links to.
+    <section id="blog" className="animate-fade-blur animation-delay-100" data-toc="Blog">
       <div className="flex items-center justify-between gap-4 mb-1">
-        <h2 className="d-lg"><span data-perch="">Writing</span></h2>
+        {/* the same size as "Hi" above it and as the heading of the blog page itself */}
+        <h2 className="d-xl"><span data-perch="">Blog</span></h2>
         <Link
           href="/blog"
           aria-label="All posts"
