@@ -76,9 +76,7 @@ export default async function BlogPost({
             }),
           }}
         />
-        {/* One piece of pixel art per post, above the title */}
-        {metadata.cover && <Art scene={metadata.cover} className="-mt-14 mb-12" />}
-
+        {/* The page opens on its title, as the home and blog pages do, with the date under it. */}
         <header className="relative mb-10">
           <h1 className="d-xl mb-4 text-balance"><span data-perch="">{metadata.title}</span></h1>
           <p className="text-sm text-foreground-muted flex flex-wrap gap-x-2">
@@ -87,6 +85,9 @@ export default async function BlogPost({
             <span>{readingMinutes(post.content)} min read</span>
           </p>
         </header>
+
+        {/* One piece of pixel art per post, between the title and the text */}
+        {metadata.cover && <Art scene={metadata.cover} className="mb-12" />}
 
         <div className="post-body">
           <CustomMDX source={post.content} />
