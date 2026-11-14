@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
+import { lap, planFlight, route as flightRoute, type Flight } from "@/lib/owl-flight";
 import { Gfx, hash } from "@/lib/pixel/engine";
 import { TOYS, TOY_PALETTE, owlBlink } from "@/lib/pixel/scenes/shelf";
 import { OWL_FLAP, OWL_FRAME, OWL_PAL, OWL_PERCHED } from "@/lib/pixel/owl-sheet";
@@ -380,17 +381,6 @@ let welcomed = false;
 /** What the owl says after it lands, one line after another: its own hello-world, then a hint. */
 const GREETING = ["hoo-llo, world!", "tap me for a map"];
 
-/** A point on a smooth curve through `pts` (Catmull-Rom), u from 0 to 1. */
-function along(pts: { x: number; y: number }[], u: number) {
-  const n = pts.length - 1;
-  const s = Math.min(n - 1e-6, Math.max(0, u * n));
-  const i = Math.floor(s), t = s - i;
-  const p = (k: number) => pts[Math.max(0, Math.min(n, k))];
-  const [a, b, c, d] = [p(i - 1), p(i), p(i + 1), p(i + 2)];
-  const f = (a: number, b: number, c: number, d: number) => 0.5 * (2 * b + (c - a) * t + (2 * a - 5 * b + 4 * c - d) * t * t + (3 * b - a - 3 * c + d) * t * t * t);
-  return { x: f(a.x, b.x, c.x, d.x), y: f(a.y, b.y, c.y, d.y) };
-}
-
 /** The lines of a heading as they are laid out on screen right now. */
 function headingLines(el: HTMLElement): Line[] {
   const range = document.createRange();
@@ -549,10 +539,10 @@ function Owl() {
     // Where it is headed: a spot at a heading (kept as an offset from the
     // heading, so it follows the heading if the page reflows), or null = home.
     let aim: { el: HTMLElement; id: number; kind: string; dx: number; dy: number } | null = null;
-    let pos: Pt | null = null, from: Pt = { x: 0, y: 0 };
+    let pos: Pt | null = null;
     let t = 1, dur = 1, f = 0, raf = 0, last = 0, lastPaint = 0, scrolled = false;
-    // a longer, wandering flight: waypoints between where it was and where it is going
-    let route: Pt[] | null = null;
+    // the flight in progress, worked out when it took off, and where it was then meant to land
+    let plan: Flight | null = null, planTo: Pt = { x: 0, y: 0 };
     let landed: (() => void) | null = null;
     const talk: ReturnType<typeof setTimeout>[] = [];
 
@@ -575,7 +565,7 @@ function Owl() {
       const p = choosePerch(layout);
       el.dataset.visibleHeadings = String(layout.headings.filter((h) => isVisible(h, layout.view, layout.owl)).length);
       const before = pos;
-      route = null;
+      plan = null;
       landed = null;
       const anchor = p ? (p.kind === "roost" ? roostEl : els[p.heading]) : null;
       if (p && anchor) {
@@ -587,42 +577,17 @@ function Owl() {
       if (!to) return;
       const dist = before ? Math.hypot(to.x - before.x, to.y - before.y) : 0;
       if (!before || !animate || still() || dist < 3) { pos = to; t = 1; return; }
-      from = { ...before };
-      route = wander(before, to);
-      dur = Math.min(1700, 420 + dist * 0.9 + route.length * 160);
+      // If the page has been scrolled a long way, where it was is far off screen. It does not fly all
+      // that distance in a blur: it comes in from just beyond the edge of the screen, on that side.
+      const vw = document.documentElement.clientWidth, top = window.scrollY, bottom = top + window.innerHeight;
+      const start = { x: Math.max(30, Math.min(vw - 30, before.x)), y: Math.max(top - 70, Math.min(bottom + 70, before.y)) };
+      // A new line every time, of the kind a bird would take; and the longer the way, the longer it takes.
+      const way = flightRoute(start, to, { left: 30, right: vw - 30, top: Math.min(start.y, to.y, top + 24) });
+      plan = planFlight([start, ...way, to], (length) => Math.min(1900, 380 + length * 1.05));
+      pos = start;
+      planTo = to;
+      dur = plan.ms;
       t = 0;
-    };
-
-    /**
-     * No two flights are the same. Between where it is and where it is going
-     * it picks one or two points off to the side (now to one side, now the
-     * other, usually a little upward), sometimes overshoots and doubles back,
-     * and the curve is drawn smoothly through them.
-     */
-    const wander = (a: Pt, b: Pt): Pt[] => {
-      const dx = b.x - a.x, dy = b.y - a.y, dist = Math.hypot(dx, dy);
-      const nx = -dy / dist, ny = dx / dist; // across the line of flight
-      const vw = document.documentElement.clientWidth;
-      const keep = (p: Pt): Pt => ({ x: Math.max(30, Math.min(vw - 30, p.x)), y: Math.max(window.scrollY + 24, p.y) });
-      const sway = Math.min(130, 18 + dist * 0.4);
-      const side = Math.random() < 0.5 ? -1 : 1;
-      const pts: Pt[] = [];
-      const stops = dist > 220 && Math.random() < 0.7 ? 2 : 1;
-      for (let i = 1; i <= stops; i++) {
-        const u = i / (stops + 1) + (Math.random() - 0.5) * 0.2;
-        // the second point swings to the other side, for an S-shaped path
-        let off = sway * (0.45 + Math.random() * 0.55) * (i === 1 ? side : -side * (0.3 + Math.random() * 0.7));
-        // if that would carry it off the edge of the screen, swing the other way instead of flattening out
-        const x = a.x + dx * u + nx * off;
-        if (x < 30 || x > vw - 30) off = -off;
-        pts.push(keep({ x: a.x + dx * u + nx * off, y: a.y + dy * u + ny * off - Math.random() * sway * 0.35 }));
-      }
-      // now and then it sails past and comes back round to land
-      if (dist > 90 && Math.random() < 0.35) {
-        const past = 24 + Math.random() * 46;
-        pts.push(keep({ x: b.x + (dx / dist) * past + nx * side * 22, y: b.y + (dy / dist) * past - 26 - Math.random() * 30 }));
-      }
-      return pts;
     };
 
     const paint = (flying: boolean) => {
@@ -646,9 +611,11 @@ function Owl() {
       if (!pos || !to) return;
       if (t < 1) {
         t = Math.min(1, t + dt / dur);
-        const e = t * t * (3 - 2 * t);
-        pos = along([from, ...(route ?? []), to], e);
-        if (t >= 1) { pos = to; route = null; const done = landed; landed = null; done?.(); }
+        // Where the plan says, which already has its own speeding up and slowing down. If the place it is
+        // making for has moved since it took off (the page shifted), it leans that way more and more.
+        const at = plan ? plan.at(t * dur) : to, lean = t * t * (3 - 2 * t);
+        pos = { x: at.x + (to.x - planTo.x) * lean, y: at.y + (to.y - planTo.y) * lean };
+        if (t >= 1) { pos = to; plan = null; const done = landed; landed = null; done?.(); }
       } else pos = to;
       const flying = t < 1;
       // At home it is pinned to the screen like the header itself. Left in the
@@ -684,20 +651,13 @@ function Owl() {
       const vw = document.documentElement.clientWidth;
       const y0 = window.scrollY;
       pos = start;
-      from = { ...start };
-      // Three to five points scattered over the screen below the header, taken
-      // in order round the middle (clockwise or the other way, starting from
-      // anywhere), each a random distance out; then in to land from a little
-      // above the title, on one side or the other.
-      const pad = 46, lo = y0 + 110, hi = Math.max(lo + 120, y0 + Math.min(window.innerHeight * 0.72, 560));
-      const within = (p: Pt): Pt => ({ x: Math.max(pad, Math.min(vw - pad, p.x)), y: Math.max(lo, Math.min(hi, p.y)) });
-      const n = 3 + Math.floor(Math.random() * 3), turn = Math.random() < 0.5 ? 1 : -1, a0 = Math.random() * Math.PI * 2;
-      route = Array.from({ length: n }, (_, i) => {
-        const a = a0 + turn * (i / n) * Math.PI * 2 + (Math.random() - 0.5) * 0.9, r = 0.45 + Math.random() * 0.55;
-        return within({ x: vw / 2 + Math.cos(a) * (vw / 2 - pad) * r, y: (lo + hi) / 2 + (Math.sin(a) * (hi - lo) * r) / 2 });
-      });
-      route.push({ x: Math.max(pad, Math.min(vw - pad, to.x + (Math.random() < 0.5 ? -1 : 1) * (40 + Math.random() * 50))), y: to.y - 20 - Math.random() * 30 });
-      dur = 1500 + n * 300;
+      // Once round an oval that fills the screen below the header, either way round, a little uneven,
+      // and in to land at the title.
+      const lo = y0 + 110, hi = Math.max(lo + 120, y0 + Math.min(window.innerHeight * 0.72, 560));
+      const round = lap(start, to, { left: 46, right: vw - 46, top: lo, bottom: hi });
+      plan = planFlight([start, ...round, to], 2700);
+      planTo = to;
+      dur = plan.ms;
       t = 0;
       landed = () => {
         // Find somewhere for the bubble that covers nothing: above the owl
