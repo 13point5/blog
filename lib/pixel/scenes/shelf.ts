@@ -430,7 +430,7 @@ const BOOK_PAL = { k: "#1c1030", m: "#4a2a80", g: "#e3b34d", y: "#f8e08c", w: "#
 const PAGE = "#fbf1dc", PAGE_EDGE = "#d9cdb0", INK = "#6b46a8", INK_PALE = "#b9a3dc";
 const BOOK_W = BOOK_ROWS[0].length;
 /** how thick the closed book is drawn: this many pixels of spine and of page-tops, each a step up and to the left */
-export const BOOK_DEPTH = 3;
+export const BOOK_DEPTH = 2;
 /**
  * The thickness of the closed book whose front cover has its top-left corner
  * at (bx, top): behind the cover, layer after layer, each one pixel up and to
@@ -442,7 +442,7 @@ function drawBookDepth(g: Gfx, bx: number, top: number) {
   for (let d = 1; d <= last; d++) {
     const x = bx - d, y = top - d, back = d === last;
     // the spine: darkest in the groove beside the cover, lightest where it rounds toward the light
-    g.rect(x, y + 1, 1, h - 2, back ? BOOK_PAL.k : ["#33195e", "#55329a"][Math.min(1, d - 1)]);
+    g.rect(x, y + 1, 1, h - 2, back ? BOOK_PAL.k : d === last - 1 ? "#55329a" : "#33195e");
     if (!back) for (const band of [3, 4, 11, 12, 19, 20]) g.px(x, y + band, band % 2 ? BOOK_PAL.g : BOOK_PAL.y);
     // the page-tops: cream leaves, the odd one darker, and the back board's edge beyond them
     g.rect(x + 1, y, w - 2, 1, back ? BOOK_PAL.k : d % 2 ? PAGE : PAGE_EDGE);

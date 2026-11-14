@@ -59,7 +59,7 @@ export function Header() {
         </div>
         <div className="flex items-center gap-3">
           <Link href="/blog" aria-label="Blog" title="Blog" onClick={openBook} className="flex items-center hover:opacity-80 transition-opacity">
-            <Sprite id="book" scale={2} rows={30} active={isOnBlogPage} taps={bookTaps} />
+            <Sprite id="book" scale={2} rows={29} active={isOnBlogPage} taps={bookTaps} />
           </Link>
           {/*
             The settings menu (theme, type, playfulness, art style and width) is
